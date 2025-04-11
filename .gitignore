@@ -1,0 +1,10 @@
+/.lake
+/blueprint/print
+/blueprint/web
+blueprint/src/*.paux
+.vscode/
+home_page/docs/
+home_page/blueprint/
+home_page/blueprint.pdf
+home_page/_site/
+.task/

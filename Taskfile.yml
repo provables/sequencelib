@@ -1,0 +1,86 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  build:
+    desc: Build the library
+    cmds:
+      - lake build
+    deps:
+      - get-cache
+
+  build-docs:
+    desc: Build docs
+    sources:
+      - ./**/*.lean
+      - ./**/lakefile.toml
+      - exclude: ./**/.lake
+    generates:
+      - .lake/build/doc/Sequencelib.html
+    cmds:
+      - DOCGEN_SRC="file" lake -R -Kenv=dev build Sequencelib:docs
+    deps:
+      - get-cache
+
+  build-blueprint:
+    desc: Build blueprint
+    sources:
+      - blueprint/src/content.tex
+      - exclude: blueprint/print/**/*
+      - exclude: blueprint/web/**/*
+    generates:
+      - blueprint/print/print.pdf
+      - blueprint/web/index.html
+    cmds:
+      - leanblueprint pdf
+      # For some reason, leanblueprint web generates files without write permissions,
+      # so we need to delete any previous run.
+      - rm -rf blueprint/web
+      - leanblueprint web
+
+  build-page:
+    desc: Build full home page
+    sources:
+      - ./**/*.lean
+      - ./lakefile.toml
+      - blueprint/src/*
+      - home_page/**/*
+      - exclude: home_page/_site/**/*
+      - exclude: home_page/blueprint/**/*
+      - exclude: home_page/blueprint.pdf
+      - exclude: home_page/docs/**/*
+    generates:
+      - home_page/_site/index.html
+    cmds:
+      - cp blueprint/print/print.pdf home_page/blueprint.pdf
+      - rsync -av blueprint/web/ home_page/blueprint/
+      - rsync -av .lake/build/doc/ home_page/docs
+      - cd home_page && bundle exec jekyll build
+    deps:
+      - build-docs
+      - build-blueprint
+
+  serve-page:
+    desc: Serve full home page
+    cmds:
+      - cd home_page && bundle exec jekyll serve
+    deps:
+      - build-page
+
+  get-cache-for-dir:
+    internal: true
+    run: once
+    dir: '{{.DIR | default "." }}'
+    cmds:
+      - lake exe cache get
+    status:
+      - test -f .lake/packages/mathlib/.lake/build/lib/Mathlib.olean
+  
+  get-cache:
+    desc: Ensure Mathlib cache is available
+    cmds:
+      - for: ["."]
+        task: get-cache-for-dir
+        vars:
+          DIR: '{{ .ITEM }}'

@@ -27,6 +27,7 @@ tasks:
     desc: Build blueprint
     sources:
       - blueprint/src/content.tex
+      - blueprint/src/chapter/*.tex
       - exclude: blueprint/print/**/*
       - exclude: blueprint/web/**/*
     generates:

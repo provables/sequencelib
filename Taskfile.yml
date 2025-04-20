@@ -23,6 +23,13 @@ tasks:
     deps:
       - get-cache
 
+  serve-docs:
+    desc: Serve docs
+    cmds:
+      - python -m webbrowser file:///$(pwd)/.lake/build/doc/Sequencelib.html
+    deps:
+      - build-docs
+
   build-blueprint:
     desc: Build blueprint
     sources:

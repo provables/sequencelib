@@ -29,12 +29,19 @@ We follow the presentantion from [Wikipedia](https://en.wikipedia.org/wiki/Sylve
 * <https://en.wikipedia.org/wiki/Sylvester%27s_sequence>
 -/
 
+/-!
+More comments
+-/
 namespace Sequence
 
-/-- A docstring for fooFun -/
-@[OEIS 2]
+/-- A docstring for fooFun. -/
+@[OEIS A002]
 def fooFun := 3
 
+@[OEIS A003]
+def bar := 4
+#oeis_tags
+#oeis_tags_json
 open Nat
 
 /-- Sylvester's sequence: https://oeis.org/A000058. -/

@@ -83,7 +83,7 @@ tasks:
     cmds:
       - lake exe cache get
     status:
-      - test -f .lake/packages/mathlib/.lake/build/lib/Mathlib.olean
+      - test -f .lake/packages/mathlib/.lake/build/lib/lean/Mathlib.olean
   
   get-cache:
     desc: Ensure Mathlib cache is available

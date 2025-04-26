@@ -19,7 +19,13 @@ def addOEISEntry {m : Type → Type} [MonadEnv m]
   modifyEnv (oeisExt.addEntry ·
     { declName := declName, module := module, oeisTag := oeisTag })
 
-syntax (name := OEIS) "OEIS" ident : attr
+syntax (name := OEIS) "OEIS" ":=" ident ("," "offset" ":=" num)?: attr
+
+#check Lean.addDecl
+#synth MonadLiftT CoreM AttrM
+#check Declaration.defnDecl
+#eval Name.mkStr `Foo "a"
+#check Lean.setImplementedBy
 
 initialize registerBuiltinAttribute {
     name := `OEIS
@@ -27,7 +33,7 @@ initialize registerBuiltinAttribute {
     applicationTime := AttributeApplicationTime.beforeElaboration
     add := fun decl stx kind => do
       match stx with
-      | `(attr|OEIS $seq) => do
+      | `(attr|OEIS := $seq $[, offset := $n]?) => do
         let seqStr := seq.getId.toString
         let env ← getEnv
         let mod ← getMainModule
@@ -38,6 +44,15 @@ initialize registerBuiltinAttribute {
         ]
         addDocString decl <| "\n\n".intercalate <| newDoc.filter (· ≠ "")
         addOEISEntry decl mod seqStr
+        let newDecl := Declaration.defnDecl {
+          name := Name.mkStr decl "OEIS"
+          levelParams := []
+          type := mkConst `Nat
+          value := mkNatLit <| (n.map <| fun x => x.getNat).getD 0
+          hints := ReducibilityHints.abbrev
+          safety := DefinitionSafety.safe
+        }
+        Lean.addAndCompile newDecl
       | _ => throwError "invalid OEIS attribute syntax"
   }
 

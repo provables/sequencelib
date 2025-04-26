@@ -35,13 +35,17 @@ More comments
 namespace Sequence
 
 /-- A docstring for fooFun. -/
-@[OEIS A002]
+@[OEIS := A002, offset := 1]
 def fooFun := 3
+def fooFun.bar := 2
 
-@[OEIS A003]
+#eval fooFun.OEIS
+@[OEIS := A003]
 def bar := 4
 #oeis_tags
 #oeis_tags_json
+#eval bar.OEIS
+
 open Nat
 
 /-- Sylvester's sequence: https://oeis.org/A000058. -/

@@ -37,14 +37,15 @@ namespace Sequence
 /-- A docstring for fooFun. -/
 @[OEIS := A002, offset := 1]
 def fooFun := 3
-def fooFun.bar := 2
-
 #eval fooFun.OEIS
+#eval fooFun.offset
+
 @[OEIS := A003]
 def bar := 4
+#eval bar.offset
+
 #oeis_tags
 #oeis_tags_json
-#eval bar.OEIS
 
 open Nat
 

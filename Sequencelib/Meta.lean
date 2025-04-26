@@ -44,15 +44,24 @@ initialize registerBuiltinAttribute {
         ]
         addDocString decl <| "\n\n".intercalate <| newDoc.filter (· ≠ "")
         addOEISEntry decl mod seqStr
-        let newDecl := Declaration.defnDecl {
+        let tagDecl := Declaration.defnDecl {
           name := Name.mkStr decl "OEIS"
+          levelParams := []
+          type := mkConst `String
+          value := mkStrLit seqStr
+          hints := ReducibilityHints.abbrev
+          safety := DefinitionSafety.safe
+        }
+        let offsetDecl := Declaration.defnDecl {
+          name := Name.mkStr decl "offset"
           levelParams := []
           type := mkConst `Nat
           value := mkNatLit <| (n.map <| fun x => x.getNat).getD 0
           hints := ReducibilityHints.abbrev
           safety := DefinitionSafety.safe
         }
-        Lean.addAndCompile newDecl
+        Lean.addAndCompile tagDecl
+        Lean.addAndCompile offsetDecl
       | _ => throwError "invalid OEIS attribute syntax"
   }
 

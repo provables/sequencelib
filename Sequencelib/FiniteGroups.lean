@@ -19,7 +19,7 @@ def FiniteGrpSetoid (n : ℕ) : Setoid (FiniteGrpOfOrder n) where
 
 def NonIsoFiniteGrp (n : ℕ) := Quotient (FiniteGrpSetoid n)
 
-@[OEIS A000001]
+@[OEIS := A000001]
 noncomputable def GroupsOfOrder (n : ℕ) : ℕ := Nat.card (NonIsoFiniteGrp n)
 
 theorem GroupsOfOrder_zero : GroupsOfOrder 0 = 0 := by

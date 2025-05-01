@@ -21,7 +21,7 @@ def addOEISEntry {m : Type → Type} [MonadEnv m]
 
 syntax (name := OEIS) "OEIS" ":=" ident ("," "offset" ":=" num)?: attr
 
-def postfixes : Std.HashMap Nat String := Std.HashMap.insertMany default #[
+def suffixes : Std.HashMap Nat String := Std.HashMap.insertMany default #[
   (0, "zero"),
   (1, "one"),
   (2, "two"),
@@ -34,19 +34,6 @@ def postfixes : Std.HashMap Nat String := Std.HashMap.insertMany default #[
   (9, "nine"),
   (10, "ten")
 ]
-
-def exampleCoreMatch (e : Expr) : MetaM (Option (Q(Nat) × Q(Nat) × Q(Nat → Nat))) := do
-  match (← inferTypeQ e) with
-  | ⟨1, ~q(Prop), ~q(Eq (($f : Nat → Nat) $z) $y)⟩  =>
-    IO.println s!"y := {y}"
-    if let some o := y.nat? then
-      IO.println s!"o := {o}"
-    else
-      IO.println "no nat"
-    let p := f.constName
-    IO.println s!"p := {p}"
-    return some (y, z, f)
-  | _ => return none
 
 def matchTheorem (e : Expr) (seq : Name) (n : Nat) : MetaM (Option Nat) := do
   match (← inferTypeQ e) with
@@ -61,28 +48,16 @@ def matchTheorem (e : Expr) (seq : Name) (n : Nat) : MetaM (Option Nat) := do
     return b.nat?
   | _ => return none
 
-def findTheorems (decl : Name) (off : Nat) : MetaM (Array (Name × Nat × Nat)) := do
+def findTheorems (decl : Name) (off : Nat := 0) : MetaM (Array (Name × Nat × Nat)) := do
   let env ← getEnv
   let mut result := #[]
   for i in [off:10] do
-    let some p := postfixes[i]? | continue
-    let n := Name.mkSimple <| s!"{decl.toString}_{p}"
+    let some p := suffixes[i]? | continue
+    let n := Name.appendAfter decl s!"_{p}"
     let some type := env.find? n |>.map (·.type) | continue
-    -- let maybeType : Option Expr := do
-    --   let p ← postfixes[i]?
-    --   let n := Name.mkSimple <| s!"{decl.toString}_{p}"
-    --   return  ← (← env.find? n).type
-    -- let some type := maybeType | continue
     let some value ← matchTheorem type decl i | continue
     result := result.push (n, i, value)
   return result
-
-def foo (n : Nat) := n
-
-theorem foo_zero : foo 0 = 5 := by sorry
-theorem foo_one : foo 1 = 6 := by sorry
--- def foo_one := "bar"
--- def foo_two (n : Nat) : Nat := n + 1
 
 initialize registerBuiltinAttribute {
     name := `OEIS
@@ -95,7 +70,6 @@ initialize registerBuiltinAttribute {
         let offst := n.map (·.getNat) |>.getD 0
         let env ← getEnv
         let mod ← getMainModule
-        let theorems ← MetaM.run' <| findTheorems decl offst
         let oldDoc := (← findDocString? env decl).getD ""
         let newDoc := [s!
           "[The On-Line Encyclopedia of Integer Sequences (OEIS): {seqStr}](https://oeis.org/{seqStr})",
@@ -124,7 +98,7 @@ initialize registerBuiltinAttribute {
       | _ => throwError "invalid OEIS attribute syntax"
   }
 
-def getOEISTags (env : Environment) : Std.HashMap Name (Array OEISTag) :=
+def getOEISTagsByModule (env : Environment) : Std.HashMap Name (Array OEISTag) :=
   let tags := oeisExt.getState env
   let result : Std.HashMap Name (Array OEISTag) := default
   tags.fold (fun map {declName, module, oeisTag} =>
@@ -135,6 +109,17 @@ def getOEISTags (env : Environment) : Std.HashMap Name (Array OEISTag) :=
       map.insert module #[{declName, module, oeisTag}]
   ) result
 
+def getOEISTags (env : Environment) : Std.HashMap String (Array OEISTag) :=
+  let tags := oeisExt.getState env
+  let result : Std.HashMap String (Array OEISTag) := default
+  tags.fold (fun map {declName, module, oeisTag} =>
+    match map.get? oeisTag with
+    | some decls =>
+      map.insert oeisTag (decls.push {declName, module, oeisTag})
+    | none =>
+      map.insert oeisTag #[{declName, module, oeisTag}]
+  ) result
+
 def OEISTagToJson (tag : OEISTag) : Json :=
   Json.mkObj [
     ("declaration", Json.str <| tag.declName.toString),
@@ -143,7 +128,7 @@ def OEISTagToJson (tag : OEISTag) : Json :=
   ]
 
 def getOEISTagsAsJSON (env : Environment) : Json :=
-  let map := getOEISTags env
+  let map := getOEISTagsByModule env
   Json.mkObj <| map.toList.map fun (k, v) => (
     k.toString,
     Json.arr <| v.map OEISTagToJson
@@ -151,7 +136,7 @@ def getOEISTagsAsJSON (env : Environment) : Json :=
 
 def showOEISTags : Command.CommandElabM Unit := do
   let env ← getEnv
-  let tags := getOEISTags env
+  let tags := getOEISTagsByModule env
   let mut msgs : Array MessageData := #[]
   for (mod, tagsForModule) in tags do
     for tag in tagsForModule do
@@ -164,8 +149,55 @@ def jsonOEISTags : Command.CommandElabM Unit := do
   let json := getOEISTagsAsJSON env
   logInfo m!"{json}"
 
+/--
+Retrieve all the definitions and theorems for the OEIS tags.
+
+The result is a JSON object of the form:
+```
+{
+  <OEIS>: {
+    <def1>: {
+      <thm1>: [a, b],
+      ...
+    }
+    ...
+  }
+  ...
+}
+```
+This means that `def1` defines a sequence associated to the `OEIS` tag, and there
+are theorems such as `thm1 : def1 a = b`.
+-/
+def findAllTheorems : Command.CommandElabM Unit := do
+  let env ← getEnv
+  let tags := getOEISTags env
+  let mut sequencesForTag : Array (String × Json) := #[]
+  for (tag, decls) in tags do
+    let mut theoremsForDecl : Array (String × Json) := #[]
+    for decl in decls do
+      let thms ← Command.liftTermElabM <| findTheorems decl.declName
+      let thmsJson := Json.mkObj <| thms.toList.map (fun (name, i, j) =>
+        (Name.append decl.module name |>.toString, Json.arr #[Json.num i, Json.num j])
+      )
+      theoremsForDecl := theoremsForDecl.push
+        (Name.append decl.module decl.declName |>.toString, thmsJson)
+    sequencesForTag := sequencesForTag.push (tag, Json.mkObj <| theoremsForDecl.toList)
+  let result := Json.mkObj <| sequencesForTag.toList
+  logInfo m!"{result}"
+
 elab (name := oeisTags) "#oeis_tags" : command =>
   showOEISTags
 
 elab (name := jsonOeisTags) "#oeis_tags_json" : command =>
   jsonOEISTags
+
+elab (name := theorems) "#find_theorems" t:ident : command => do
+  let x ← Command.liftTermElabM <| findTheorems t.getId 0
+  let mut msgs : Array MessageData := #[]
+  for (n, i, j) in x do
+    msgs := msgs.push
+      m!"theorem {n} : {t} {i} = {j}"
+  logInfo <| MessageData.joinSep msgs.toList "\n"
+
+elab (name := theoremsJson) "#find_theorems_json" : command => do
+  findAllTheorems

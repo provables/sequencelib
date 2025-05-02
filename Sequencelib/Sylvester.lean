@@ -32,21 +32,38 @@ We follow the presentantion from [Wikipedia](https://en.wikipedia.org/wiki/Sylve
 /-!
 More comments
 -/
+@[OEIS := A003]
+def bar (n : ℕ) := 4
+
+@[OEIS := A003]
+def bar2 (n : ℕ) := 4
+-- #eval bar.offset
+-- #eval bar.OEIS
+theorem bar2_three : bar2 3 = 3 := by sorry
+
+theorem bar_zero : bar 0 = 2 := by sorry
+theorem bar_one : bar 1 = 2 := by sorry
+
 namespace Sequence
 
 /-- A docstring for fooFun. -/
 @[OEIS := A002, offset := 1]
-def fooFun := 3
+def fooFun (n : ℕ):= 3
 #eval fooFun.OEIS
 #eval fooFun.offset
+theorem fooFun_one : fooFun 1 = 1 := by sorry
 
-@[OEIS := A003]
-def bar := 4
-#eval bar.offset
+
+def foo (n : Nat) := n
+
+theorem foo_zero : foo 0 = 5 := by sorry
+theorem foo_one : foo 1 = 60 := by sorry
+-- def foo_one := "bar"
+-- def foo_two (n : Nat) : Nat := n + 1
 
 #oeis_tags
 #oeis_tags_json
-
+#find_theorems_json
 open Nat
 
 /-- Sylvester's sequence: https://oeis.org/A000058. -/

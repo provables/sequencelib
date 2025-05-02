@@ -21,5 +21,10 @@ name = "«doc-gen4»"
 git = "https://github.com/leanprover/doc-gen4"
 rev = "v4.18.0"
 
+[[require]]
+name = "REPL"
+git = "https://github.com/leanprover-community/repl"
+rev = "v4.18.0"
+
 [[lean_lib]]
 name = "Sequencelib"

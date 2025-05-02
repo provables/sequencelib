@@ -168,22 +168,21 @@ The result is a JSON object of the form:
 This means that `def1` defines a sequence associated to the `OEIS` tag, and there
 are theorems such as `thm1 : def1 a = b`.
 -/
-def findAllTheorems : Command.CommandElabM Unit := do
+def findAllTheorems : MetaM Json := do
   let env ← getEnv
   let tags := getOEISTags env
   let mut sequencesForTag : Array (String × Json) := #[]
   for (tag, decls) in tags do
     let mut theoremsForDecl : Array (String × Json) := #[]
     for decl in decls do
-      let thms ← Command.liftTermElabM <| findTheorems decl.declName
+      let thms ← findTheorems decl.declName
       let thmsJson := Json.mkObj <| thms.toList.map (fun (name, i, j) =>
         (Name.append decl.module name |>.toString, Json.arr #[Json.num i, Json.num j])
       )
       theoremsForDecl := theoremsForDecl.push
         (Name.append decl.module decl.declName |>.toString, thmsJson)
     sequencesForTag := sequencesForTag.push (tag, Json.mkObj <| theoremsForDecl.toList)
-  let result := Json.mkObj <| sequencesForTag.toList
-  logInfo m!"{result}"
+  return Json.mkObj <| sequencesForTag.toList
 
 elab (name := oeisTags) "#oeis_tags" : command =>
   showOEISTags
@@ -200,4 +199,5 @@ elab (name := theorems) "#find_theorems" t:ident : command => do
   logInfo <| MessageData.joinSep msgs.toList "\n"
 
 elab (name := theoremsJson) "#find_theorems_json" : command => do
-  findAllTheorems
+  let result ← Command.liftTermElabM findAllTheorems
+  logInfo m!"{result}"

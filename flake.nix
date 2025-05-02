@@ -61,6 +61,7 @@
           ghostscript
           ruby_3_1
           rsync
+          jq
         ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
       };
     }

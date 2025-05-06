@@ -32,6 +32,7 @@
             gitpython
             beautifulsoup4
             html5lib
+            ipython
         ];
 
         pythonImportsCheck = [ "leanblueprint" ];

@@ -125,13 +125,12 @@ def getOEISInfo : MetaM OEISInfo := do
   let env ← getEnv
   let info := oeisExt.getState env
   return .ofList (← info.toList.mapM (fun (mod, tagsForMod) => do
-      return (mod, Std.HashMap.ofList <| ← tagsForMod.toList.mapM (fun (tag, declsForTag) => do
-        return (tag, Std.HashMap.ofList <| ← declsForTag.toList.mapM (fun (decl, thmsForDecl) => do
-          return (decl, thmsForDecl.append (← findTheorems decl))
-        ))
-      )
+    return (mod, .ofList <| ← tagsForMod.toList.mapM (fun (tag, declsForTag) => do
+      return (tag, .ofList <| ← declsForTag.toList.mapM (fun (decl, thmsForDecl) => do
+        return (decl, thmsForDecl.append (← findTheorems decl))
+      ))
     ))
-  )
+  ))
 
 def showOEISInfo : Command.CommandElabM Unit := do
   let info ← Command.liftTermElabM getOEISInfo

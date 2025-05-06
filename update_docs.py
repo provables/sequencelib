@@ -2,12 +2,19 @@ import subprocess
 import json
 import pathlib
 
+import more_itertools
 from bs4 import BeautifulSoup
 import html5lib
 
 def get_oeis_info():
     result = subprocess.run(["./run_meta.sh"], capture_output=True, text=True)
     return json.loads(result.stdout)
+
+def theorems(soup, thms):
+    for thm, thm_data in thms.items():
+        thm_tag = soup.new_tag('a', href=f'#{thm}')
+        thm_tag.string = str(thm_data['value'])
+        yield thm_tag
 
 def insert(soup, mod, tags):
     old = soup.find('div', class_='sequencelib')
@@ -27,6 +34,12 @@ def insert(soup, mod, tags):
             decl_tag.string = decl
             decl = soup.new_tag('li')
             decl.append(decl_tag)
+            if thms:
+                decl.append(': ')
+                print(thms)
+                decl.extend(list(
+                    more_itertools.intersperse(", ", theorems(soup, thms))))
+                print(decl)
             decl_list.append(decl)
         ul_tag.append(li_tag)
         ul_tag.append(decl_list)  

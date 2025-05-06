@@ -33,6 +33,7 @@
             beautifulsoup4
             html5lib
             ipython
+            more-itertools
         ];
 
         pythonImportsCheck = [ "leanblueprint" ];

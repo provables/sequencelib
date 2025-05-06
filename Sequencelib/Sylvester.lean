@@ -61,9 +61,8 @@ theorem foo_one : foo 1 = 60 := by sorry
 -- def foo_one := "bar"
 -- def foo_two (n : Nat) : Nat := n + 1
 
-#oeis_tags
-#oeis_tags_json
-#find_theorems_json
+#oeis_info
+#oeis_info_json
 open Nat
 
 /-- Sylvester's sequence: https://oeis.org/A000058. -/

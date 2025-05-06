@@ -24,7 +24,6 @@ noncomputable def GroupsOfOrder (n : ℕ) : ℕ := Nat.card (NonIsoFiniteGrp n)
 
 theorem GroupsOfOrder_zero : GroupsOfOrder 0 = 0 := by
   have : FiniteGrpOfOrder 0 = ∅ := by
-    unfold FiniteGrpOfOrder
     ext x
     constructor
     · simp

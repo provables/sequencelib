@@ -30,6 +30,8 @@
             tomlkit
             jinja2
             gitpython
+            beautifulsoup4
+            html5lib
         ];
 
         pythonImportsCheck = [ "leanblueprint" ];

@@ -1,3 +1,3 @@
 import Sequencelib
 
-#find_theorems_json
+#oeis_info_json

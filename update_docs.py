@@ -3,13 +3,28 @@
 import subprocess
 import json
 import pathlib
+import os
 
 import more_itertools
 from bs4 import BeautifulSoup
 import html5lib
 
 def get_oeis_info():
-    result = subprocess.run(["./run_meta.sh"], capture_output=True, text=True)
+    print("PATH")
+    print(os.environ["PATH"])
+    result = subprocess.run(
+        ["run_meta.sh"], 
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,  # Return strings rather than bytes
+        check=False  # Don't raise exception on non-zero return code
+    )
+    print("\n\nSTDERR")
+    print(result.stderr)
+    print("\n\nSTDOUT")
+    print(result.stdout)
+    if result.returncode:
+        raise Exception(result)
     return json.loads(result.stdout)
 
 def theorems(soup, thms):

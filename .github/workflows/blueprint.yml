@@ -69,6 +69,20 @@ jobs:
             echo "HOME_PAGE_EXISTS=false" >> $GITHUB_ENV
           fi
 
+      - name: Update for sequencelib
+        run: |
+          sudo apt install jq python3 python3-pip python3-venv
+          python3 -m venv --system-site-packages venv
+          source venv/bin/activate
+          pip install beautifulsoup4 html5lib more-itertools
+          which sh
+          ls -l
+          echo '{"path": "GetOEISInfo.lean"}' | ~/.elan/bin/lake exe repl | jq -r '.messages[0].data'
+          export PATH=.:~/.elan/bin:$PATH
+          echo $PATH
+          run_meta.sh
+          update_docs.py
+
       - name: Build blueprint and copy to `home_page/blueprint`
         uses: xu-cheng/texlive-action@v2
         with:
@@ -93,13 +107,6 @@ jobs:
       - name: Check declarations mentioned in the blueprint exist in Lean code
         run: |
             ~/.elan/bin/lake exe checkdecls blueprint/lean_decls
-
-      - name: Update docs to include Sequencelib information
-        run: |
-            pip install beautifulsoup4 html5lib more-itertools
-            pwd
-            ls -l
-            python3 update_docs.py
 
       - name: Copy API documentation to `home_page/docs`
         run: cp -r .lake/build/doc home_page/docs

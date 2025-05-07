@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import subprocess
 import json
 import pathlib
@@ -36,10 +38,8 @@ def insert(soup, mod, tags):
             decl.append(decl_tag)
             if thms:
                 decl.append(': ')
-                print(thms)
                 decl.extend(list(
                     more_itertools.intersperse(", ", theorems(soup, thms))))
-                print(decl)
             decl_list.append(decl)
         ul_tag.append(li_tag)
         ul_tag.append(decl_list)  
@@ -72,3 +72,6 @@ def process_all():
     info = get_oeis_info()
     for mod, tags in info.items():
         process_mod(mod, tags)
+
+if __name__ == '__main__':
+    process_all()

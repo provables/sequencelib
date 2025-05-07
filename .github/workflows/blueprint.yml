@@ -97,7 +97,9 @@ jobs:
       - name: Update docs to include Sequencelib information
         run: |
             pip install beautifulsoup4 html5lib more-itertools
-            ./update-docs.py
+            pwd
+            ls -l
+            python3 update-docs.py
 
       - name: Copy API documentation to `home_page/docs`
         run: cp -r .lake/build/doc home_page/docs

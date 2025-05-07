@@ -99,7 +99,7 @@ jobs:
             pip install beautifulsoup4 html5lib more-itertools
             pwd
             ls -l
-            python3 update-docs.py
+            python3 update_docs.py
 
       - name: Copy API documentation to `home_page/docs`
         run: cp -r .lake/build/doc home_page/docs

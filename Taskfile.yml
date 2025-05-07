@@ -64,7 +64,7 @@ tasks:
       - cp blueprint/print/print.pdf home_page/blueprint.pdf
       - rsync -av blueprint/web/ home_page/blueprint/
       - rsync -av .lake/build/doc/ home_page/docs
-      - cd home_page && bundle exec jekyll build
+      - cd home_page && bundle install && bundle exec jekyll build
     deps:
       - build-docs
       - build-blueprint
@@ -72,7 +72,7 @@ tasks:
   serve-page:
     desc: Serve full home page
     cmds:
-      - cd home_page && bundle exec jekyll serve
+      - cd home_page && bundle install && bundle exec jekyll serve
     deps:
       - build-page
 

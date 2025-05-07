@@ -39,6 +39,7 @@
         pythonImportsCheck = [ "leanblueprint" ];
       };
       python = pkgs.python311.withPackages (ps: [ blueprints ]);
+      ruby = pkgs.ruby_3_1.withPackages (ps: [ ps.jekyll ]);
     in
     {
       devShell = shell {
@@ -62,7 +63,7 @@
           graphviz
           texliveFull
           ghostscript
-          ruby_3_1
+          ruby
           rsync
           jq
         ] ++ lib.optional stdenv.isDarwin apple-sdk_14;

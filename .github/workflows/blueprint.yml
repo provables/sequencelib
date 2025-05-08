@@ -75,12 +75,7 @@ jobs:
           python3 -m venv --system-site-packages venv
           source venv/bin/activate
           pip install beautifulsoup4 html5lib more-itertools
-          which sh
-          ls -l
-          echo '{"path": "GetOEISInfo.lean"}' | ~/.elan/bin/lake exe repl | jq -r '.messages[0].data'
           export PATH=.:~/.elan/bin:$PATH
-          echo $PATH
-          run_meta.sh
           update_docs.py
 
       - name: Build blueprint and copy to `home_page/blueprint`

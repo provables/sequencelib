@@ -12,6 +12,7 @@ tasks:
 
   build-docs:
     desc: Build docs
+    run: once
     sources:
       - ./**/*.lean
       - ./**/lakefile.toml
@@ -20,6 +21,7 @@ tasks:
       - .lake/build/doc/Sequencelib.html
     cmds:
       - DOCGEN_SRC="file" lake -R -Kenv=dev build Sequencelib:docs
+      - python update_docs.py
     deps:
       - get-cache
 
@@ -46,6 +48,8 @@ tasks:
       # so we need to delete any previous run.
       - rm -rf blueprint/web
       - leanblueprint web
+    deps:
+      - build-docs
 
   build-page:
     desc: Build full home page

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
+Released under MIT license as described in the file LICENSE.
 Authors: Walter Moreira, Joe Stubbs
 -/
 import Mathlib
@@ -29,46 +29,12 @@ We follow the presentantion from [Wikipedia](https://en.wikipedia.org/wiki/Sylve
 * <https://en.wikipedia.org/wiki/Sylvester%27s_sequence>
 -/
 
-/-!
-More comments
--/
-@[OEIS := A000664]
-def bar (n : ℕ) := 4
-
-@[OEIS := A000664]
-def barx (n : ℕ) := 4
-
-@[OEIS := A000055]
-def bar2 (n : ℕ) := 4
--- #eval bar.offset
--- #eval bar.OEIS
-theorem bar2_three : bar2 3 = 3 := by sorry
-
-theorem bar_zero : bar 0 = 2 := by sorry
-theorem bar_one : bar 1 = 2 := by sorry
-
 namespace Sequence
 
-/-- A docstring for fooFun. -/
-@[OEIS := A000081, offset := 1]
-def fooFun (n : ℕ):= 3
-#eval fooFun.OEIS
-#eval fooFun.offset
-theorem fooFun_one : fooFun 1 = 1 := by sorry
-
-
-def foo (n : Nat) := n
-
-theorem foo_zero : foo 0 = 5 := by sorry
-theorem foo_one : foo 1 = 60 := by sorry
--- def foo_one := "bar"
--- def foo_two (n : Nat) : Nat := n + 1
-
-#oeis_info
-#oeis_info_json
 open Nat
 
-/-- Sylvester's sequence: https://oeis.org/A000058. -/
+/-- Sylvester's sequence. -/
+@[OEIS := A000058]
 def sylvester : ℕ → ℕ
   | 0 => 2
   | n + 1 => (sylvester n) * (sylvester n - 1) + 1

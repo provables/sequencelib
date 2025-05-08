@@ -1,5 +1,18 @@
+/-
+Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
+Released under MIT license as described in the file LICENSE.
+Authors: Walter Moreira, Joe Stubbs
+-/
 import Mathlib
 import Sequencelib.Meta
+
+/-!
+# Finite groups of order n
+
+This file introduces the number of non-isomorphic groups of order `n`.
+-/
+
+namespace Sequence
 
 def FiniteGrpOfOrder (n : ℕ) := {G : FiniteGrp.{1} | Nat.card G = n}
 
@@ -40,8 +53,4 @@ theorem GroupsOfOrder_zero : GroupsOfOrder 0 = 0 := by
   haveI : IsEmpty (Quotient (FiniteGrpSetoid 0)) := Quotient.instIsEmpty
   exact Nat.card_of_isEmpty
 
-
--- theorem FiniteGrpUpToIso_Finite (n : ℕ) : Finite (FiniteGrpUpToIso n) := by
---   -- map group to its embedding as (up to isomorphism) subgroup of S_n,
---   -- prove it passes to the quotient
---   sorry
+end Sequence

@@ -3,8 +3,10 @@
 import subprocess
 import json
 import pathlib
+import re
 
 import more_itertools
+import requests
 from bs4 import BeautifulSoup
 import html5lib
 
@@ -75,17 +77,66 @@ def process(html_file, mod, tags):
     return str(soup)
 
 
+def mod_to_path(mod):
+    return mod.replace(".", "/") + ".html"
+
+
 def process_mod(mod, tags):
-    html_file = pathlib.Path(".lake/build/doc") / (mod.replace(".", "/") + ".html")
+    html_file = pathlib.Path(".lake/build/doc") / mod_to_path(mod)
     out = process(html_file, mod, tags)
     html_file.write_text(out)
 
 
-def process_all():
-    info = get_oeis_info()
+def process_all(info):
     for mod, tags in info.items():
         process_mod(mod, tags)
 
 
+def get_titles(info):
+    result = {}
+    for tags in info.values():
+        for tag in tags:
+            print(f"Getting title for {tag}...")
+            resp = requests.get(f"https://oeis.org/search?q=id:{tag}&fmt=text")
+            resp.raise_for_status()
+            m = re.search(
+                "^%N (\w*) (.*)$", resp.content.decode("utf-8"), flags=re.MULTILINE
+            )
+            if not m:
+                raise ValueError("%N field not found")
+            result[tag] = m.groups()[1]
+            print(f".. {result[tag]}")
+    return result
+
+
+def create_index(info, titles):
+    out = pathlib.Path("home_page/sequences.md")
+    lines = {}
+    for mod, tags in info.items():
+        for tag, decls in tags.items():
+            decls_for_tag = lines.setdefault(tag, {})
+            for decl in decls:
+                decls_for_tag[decl] = mod
+    out_lines = []
+    for tag in sorted(lines):
+        title = titles[tag]
+        out_lines.append(f"* [{tag}](https://oeis.org/{tag}): {title}")
+        decls = lines[tag]
+        for decl in sorted(decls):
+            mod = decls[decl]
+            p = mod_to_path(mod)
+            out_lines.append(
+                f"    * [{decl}](https://provables.github.io/sequencelib/docs/{p}#{decl})"
+            )
+    out.write_text("\n".join(out_lines))
+
+
+def main():
+    info = get_oeis_info()
+    titles = get_titles(info)
+    process_all(info)
+    create_index(info, titles)
+
+
 if __name__ == "__main__":
-    process_all()
+    main()

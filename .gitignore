@@ -7,5 +7,6 @@ home_page/docs/
 home_page/blueprint/
 home_page/blueprint.pdf
 home_page/_site/
+home_page/sequences.md
 .task/
 __pycache__/

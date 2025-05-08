@@ -34,6 +34,7 @@
             html5lib
             ipython
             more-itertools
+            requests
         ];
 
         pythonImportsCheck = [ "leanblueprint" ];

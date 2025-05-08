@@ -32,10 +32,13 @@ We follow the presentantion from [Wikipedia](https://en.wikipedia.org/wiki/Sylve
 /-!
 More comments
 -/
-@[OEIS := A003]
+@[OEIS := A000664]
 def bar (n : ℕ) := 4
 
-@[OEIS := A003]
+@[OEIS := A000664]
+def barx (n : ℕ) := 4
+
+@[OEIS := A000055]
 def bar2 (n : ℕ) := 4
 -- #eval bar.offset
 -- #eval bar.OEIS
@@ -47,7 +50,7 @@ theorem bar_one : bar 1 = 2 := by sorry
 namespace Sequence
 
 /-- A docstring for fooFun. -/
-@[OEIS := A002, offset := 1]
+@[OEIS := A000081, offset := 1]
 def fooFun (n : ℕ):= 3
 #eval fooFun.OEIS
 #eval fooFun.offset

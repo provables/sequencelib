@@ -39,16 +39,9 @@ theorem GroupsOfOrder_zero : GroupsOfOrder 0 = 0 := by
   have : FiniteGrpOfOrder 0 = ∅ := by
     ext x
     constructor
-    · simp
-      refine Nat.card_ne_zero.mpr ?_
-      constructor
-      · use 1
-      · exact x.isFinite
-    · intro h
-      exfalso
-      exact h
-  unfold GroupsOfOrder
-  unfold NonIsoFiniteGrp
+    · exact Nat.card_ne_zero.mpr ⟨(by use 1), x.isFinite⟩
+    · exact False.elim
+  unfold GroupsOfOrder NonIsoFiniteGrp
   haveI : IsEmpty (FiniteGrpOfOrder 0) := Set.isEmpty_coe_sort.mpr this
   haveI : IsEmpty (Quotient (FiniteGrpSetoid 0)) := Quotient.instIsEmpty
   exact Nat.card_of_isEmpty

@@ -10,6 +10,13 @@ tasks:
     deps:
       - get-cache
 
+  lint:
+    desc: Run linter
+    cmds:
+      - lake lint
+    deps:
+      - get-cache
+
   build-docs:
     desc: Build docs
     run: once

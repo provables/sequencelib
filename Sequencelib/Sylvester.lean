@@ -198,4 +198,48 @@ theorem sylvester_eq_floor_constant_pow {n : ℕ} :
   · linarith [pow_pos sylvesterConstant_pos (2 ^ (n + 1))]
   · exact ⟨sylvester_le_const_pow, const_pow_lt_sylvester_add_one⟩
 
+/-!
+### Sum of reciprocals
+-/
+
+-- Partial sums of the series ∑ 1/(sylvester i)
+def partialSums_sylvester (n : ℕ) := ∑ i ∈ Finset.range n, (1:ℚ) / sylvester i
+
+example : partialSums_sylvester 4 = (1805 : ℚ) / 1806 := by
+  unfold partialSums_sylvester
+  simp [Finset.sum_range_succ]
+  norm_num
+
+-- Formula for the partial sums
+theorem partialSums_sylvester_eq_one_minus_one_div_pred (j : ℕ) :
+    partialSums_sylvester j = 1 - (1 : ℚ) / (sylvester j - 1) := by
+  induction j
+  case zero =>
+    simp [partialSums_sylvester]
+    norm_num
+  case succ j ih =>
+    unfold partialSums_sylvester at *
+    rw [Finset.sum_range_succ, ih]
+    clear ih
+    field_simp [sylvester]
+
+    have h1 : sylvester j ≠ 0 := by
+      have : 2 ≤ sylvester j := by exact two_le_sylvester j
+      positivity
+    have h3 : ((sylvester j) : ℚ)  - 1 ≠ 0 := by
+      have : (2:ℚ) ≤ sylvester j := by
+        norm_cast
+        exact two_le_sylvester j
+      linarith
+
+    apply_fun (fun x : ℚ ↦ ((sylvester j) * (sylvester j - 1)) * x)
+    case inj =>
+      have : (((sylvester j) * (sylvester j - 1)) : ℚ) ≠ 0 := by positivity
+      exact mul_right_injective₀ this
+    dsimp
+    rw [mul_add, mul_sub, mul_one, mul_assoc ((sylvester j) : ℚ), mul_sub (((sylvester j) : ℚ) * (sylvester j - 1))]
+    have := by exact two_le_sylvester j
+    rw [cast_pred (by positivity)]
+    field_simp
+
 end Sequence

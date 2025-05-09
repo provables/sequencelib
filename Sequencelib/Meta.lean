@@ -99,22 +99,26 @@ initialize registerBuiltinAttribute {
         ]
         addDocString decl <| "\n\n".intercalate <| newDoc.filter (· ≠ "")
         addOEISEntry decl mod seqStr
+        let tagDeclName := Name.mkStr decl "OEIS"
         let tagDecl := Declaration.defnDecl {
-          name := Name.mkStr decl "OEIS"
+          name := tagDeclName
           levelParams := []
           type := mkConst `String
           value := mkStrLit seqStr
           hints := ReducibilityHints.abbrev
           safety := DefinitionSafety.safe
         }
+        addDocString tagDeclName "OEIS Identifier"
+        let offsetDeclName := Name.mkStr decl "offset"
         let offsetDecl := Declaration.defnDecl {
-          name := Name.mkStr decl "offset"
+          name := offsetDeclName
           levelParams := []
           type := mkConst `Nat
           value := mkNatLit offst
           hints := ReducibilityHints.abbrev
           safety := DefinitionSafety.safe
         }
+        addDocString offsetDeclName "OEIS sequence offset"
         Lean.addAndCompile tagDecl
         Lean.addAndCompile offsetDecl
       | _ => throwError "invalid OEIS attribute syntax"

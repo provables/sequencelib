@@ -5,6 +5,7 @@ Authors: Walter Moreira
 -/
 import Lean
 import Qq
+import Batteries
 open Lean Meta Elab Qq
 
 structure OEISTag where

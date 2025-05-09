@@ -2,6 +2,7 @@ name = "sequencelib"
 version = "0.1.0"
 keywords = ["math"]
 defaultTargets = ["Sequencelib"]
+lintDriver = "lint"
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
@@ -28,3 +29,7 @@ rev = "v4.18.0"
 
 [[lean_lib]]
 name = "Sequencelib"
+
+[[lean_exe]]
+name = "lint"
+root = "Lint"

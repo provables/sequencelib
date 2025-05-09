@@ -202,44 +202,46 @@ theorem sylvester_eq_floor_constant_pow {n : ℕ} :
 ### Sum of reciprocals
 -/
 
--- Partial sums of the series ∑ 1/(sylvester i)
-def partialSums_sylvester (n : ℕ) := ∑ i ∈ Finset.range n, (1:ℚ) / sylvester i
+/--
+Partial sums of the series `∑ 1/(sylvester i)`.
+-/
+def PartialSumsSylvester (n : ℕ) := ∑ i ∈ Finset.range n, (1 : ℚ) / sylvester i
 
-example : partialSums_sylvester 4 = (1805 : ℚ) / 1806 := by
-  unfold partialSums_sylvester
+example : PartialSumsSylvester 4 = (1805 : ℚ) / 1806 := by
+  unfold PartialSumsSylvester
   simp [Finset.sum_range_succ]
   norm_num
 
--- Formula for the partial sums
+/--
+Formula for the partial sums:
+$$
+\sum_{i=0}^{n-1} \frac{1}{\mathrm{sylvester}~i} = 1 - \frac{1}{\mathrm{sylvester}~n - 1}.
+$$
+-/
 theorem partialSums_sylvester_eq_one_minus_one_div_pred (j : ℕ) :
-    partialSums_sylvester j = 1 - (1 : ℚ) / (sylvester j - 1) := by
+    PartialSumsSylvester j = 1 - (1 : ℚ) / (sylvester j - 1) := by
   induction j
   case zero =>
-    simp [partialSums_sylvester]
+    simp [PartialSumsSylvester]
     norm_num
   case succ j ih =>
-    unfold partialSums_sylvester at *
+    unfold PartialSumsSylvester at *
     rw [Finset.sum_range_succ, ih]
     clear ih
     field_simp [sylvester]
 
     have h1 : sylvester j ≠ 0 := by
-      have : 2 ≤ sylvester j := by exact two_le_sylvester j
-      positivity
+      linarith [two_le_sylvester j]
     have h3 : ((sylvester j) : ℚ)  - 1 ≠ 0 := by
-      have : (2:ℚ) ≤ sylvester j := by
-        norm_cast
-        exact two_le_sylvester j
-      linarith
+      linarith [show (2 : ℚ) ≤ sylvester j by exact_mod_cast two_le_sylvester j]
 
     apply_fun (fun x : ℚ ↦ ((sylvester j) * (sylvester j - 1)) * x)
     case inj =>
       have : (((sylvester j) * (sylvester j - 1)) : ℚ) ≠ 0 := by positivity
       exact mul_right_injective₀ this
     dsimp
-    rw [mul_add, mul_sub, mul_one, mul_assoc ((sylvester j) : ℚ), mul_sub (((sylvester j) : ℚ) * (sylvester j - 1))]
-    have := by exact two_le_sylvester j
-    rw [cast_pred (by positivity)]
+    rw [mul_add, mul_sub, mul_one, mul_assoc ((sylvester j) : ℚ),
+      mul_sub (((sylvester j) : ℚ) * (sylvester j - 1)), cast_pred (by positivity)]
     field_simp
 
 end Sequence

@@ -12,47 +12,11 @@ import Sequencelib.Meta
 This file introduces the number of non-isomorphic groups of order `n`.
 -/
 
+abbrev SymmetricGroup (n : ℕ) : Type := Equiv.Perm (Fin n)
+
 namespace Sequence
 
--- def foo (n : ℕ) := {G : Grp.{0} | ENat.card G = n}
-
--- @[OEIS := A000001]
--- noncomputable def bar (n : ℕ) :=
---   ENat.card {X : Quotient (CategoryTheory.isIsomorphicSetoid Grp.{0}) // ENat.card X.out = n}
-
--- theorem bar_zero : bar 0 = 0 := by
---   unfold bar
---   simp [ENat.card_eq_zero_iff_empty]
---   exact Subtype.isEmpty_false
-
--- #check instHasEquivOfSetoid
--- #check Nat.card_of_subsingleton
--- #check Fin.addCommSemigroup
-
--- theorem bar_one : bar 1 = 1 := by
---   unfold bar
---   have : Subsingleton
---       { X : (Quotient (CategoryTheory.isIsomorphicSetoid Grp)) // ENat.card X.out = 1 } := by
---     refine subsingleton_iff.mpr ?_
---     intro X Y
---     obtain ⟨x, xc⟩ := X
---     obtain ⟨y, yc⟩ := Y
---     rw [Subtype.mk.injEq]
---     apply Quotient.out_equiv_out.mp
---     have : Nonempty (x.out ≅ y.out) := by sorry
---     exact this
---   rw [ENat.card_eq_coe_natCard]
---   norm_cast
---   apply Nat.card_of_subsingleton
---   exact ⟨⟦Grp.of <| Equiv.Perm <| Fin 1⟧, by
---     whnf
---     rw [ENat.card_eq_coe_natCard]
-
---   ⟩
-
-
-
-def FiniteGrpOfOrder (n : ℕ) := {G : Grp.{0} // ENat.card G = n}
+abbrev FiniteGrpOfOrder (n : ℕ) := {G : Grp.{0} // ENat.card G = n}
 
 def FiniteGrpSetoid (n : ℕ) : Setoid (FiniteGrpOfOrder n) where
   r := fun ⟨g1, _⟩ ⟨g2, _⟩ => Nonempty (g1 ≅ g2)
@@ -65,19 +29,9 @@ def FiniteGrpSetoid (n : ℕ) : Setoid (FiniteGrpOfOrder n) where
 def NonIsoFiniteGrp (n : ℕ) := Quotient (FiniteGrpSetoid n)
 
 -- Not a good definition because it can be zero if NonIsoFiniteGrp is infinite
+-- Fix it after proving equivalence with subgroups of S_n
 @[OEIS := A000001]
 noncomputable def GroupsOfOrder (n : ℕ) : ℕ := Nat.card (NonIsoFiniteGrp n)
-
--- theorem GroupsOfOrder_zero : GroupsOfOrder 0 = 0 := by
---   have : FiniteGrpOfOrder 0 = ∅ := by
---     ext x
---     constructor
---     · exact Nat.card_ne_zero.mpr ⟨(by use 1), x.isFinite⟩
---     · exact False.elim
---   unfold GroupsOfOrder NonIsoFiniteGrp
---   haveI : IsEmpty (FiniteGrpOfOrder 0) := Set.isEmpty_coe_sort.mpr this
---   haveI : IsEmpty (Quotient (FiniteGrpSetoid 0)) := Quotient.instIsEmpty
---   exact Nat.card_of_isEmpty
 
 def CayleySubgroup (G : Type*) [Group G] : Subgroup (Equiv.Perm G) :=
   (MulAction.toPermHom G G).range
@@ -89,41 +43,120 @@ theorem perm_group_congr {α β : Type*} (h : α ≃ β) : Nonempty (Equiv.Perm 
   ⟨⟨Equiv.permCongr h, by aesop⟩⟩
 
 theorem cayley_subgroup_Fin (G : Type*) [Group G] [Finite G] :
-    ∃ H : Subgroup (Equiv.Perm (Fin (Nat.card G))), Nonempty (G ≃* H) := by
+    ∃ H : Subgroup <| SymmetricGroup <| Nat.card G, Nonempty (G ≃* H) := by
   let f := Finite.equivFin G
   let K := CayleySubgroup G
-  let g : Equiv.Perm G ≃* Equiv.Perm (Fin (Nat.card G)) := Nonempty.some <| perm_group_congr f
-  let K' : Subgroup (Equiv.Perm (Fin (Nat.card G))) := K.map g
+  let g : Equiv.Perm G ≃* SymmetricGroup (Nat.card G) := Nonempty.some <| perm_group_congr f
+  let K' : Subgroup <| SymmetricGroup (Nat.card G) := K.map g
   let k : K ≃* K' := MulEquiv.subgroupMap g K
   let g' : G ≃* K := Nonempty.some cayley_theorem
   use K'
   exact Nonempty.intro (g'.trans k)
 
-def CayleyGrp (G : Grp) : Grp := Grp.of <| CayleySubgroup G
+def OrderNSubgroupsOfSymmetricGroup (n : ℕ) := {H : Subgroup (SymmetricGroup n) | Nat.card H = n}
 
-theorem cayley_theorem_Grp (G : Grp) : Nonempty (G ≅ (CayleyGrp G)) :=
-  Nonempty.intro <| MulEquiv.toGrpIso <| Nonempty.some <| cayley_theorem (G := G)
+def NonIsoOrderNSubgroupsOfSymmetricGroup (n : ℕ) :
+    Setoid (OrderNSubgroupsOfSymmetricGroup n) where
+  r G H := Nonempty (G ≃* H)
+  iseqv := {
+    refl _ := instNonemptyOfInhabited
+    symm := fun ⟨x⟩ => ⟨x.symm⟩
+    trans := fun ⟨x⟩ ⟨y⟩ => ⟨x.trans y⟩
+  }
 
--- #check MonoidHom.mk
--- theorem GroupsOfOrder_one : GroupsOfOrder 1 = 1 := by
---   unfold GroupsOfOrder
---   haveI : Group (Fin 1) := groupOfIsUnit isUnit_of_subsingleton
---   have t1 : (a : FiniteGrpOfOrder 1) → Nonempty ((a : FiniteGrp) ≅ .of (Equiv.Perm (Fin 1))) := by
---     intro a
---     apply Nonempty.intro
---     let y : Unique (Equiv.Perm (Fin 1)) := Equiv.permUnique
---     refine MulEquiv.toGrpIso (by sorry : ↑a ≃* FiniteGrp.of (Equiv.Perm (Fin 1)))
---     let x : (a : FiniteGrp) ≅ .of (Fin 1) := {
---       hom := by
---         exact Grp.ofHom (by sorry)
---         ,
---       inv := by sorry
---     }
---     sorry
---   haveI : Subsingleton ↑(FiniteGrp.of (Fin 1)).toGrp := Fin.subsingleton_one
---   haveI : Subsingleton (NonIsoFiniteGrp 1) := Subsingleton.intro <|
---     fun a b => Quotient.out_equiv_out.mp <| Nonempty.intro <| Nonempty.some <| t1 a.out b.out
---   apply Nat.card_of_subsingleton
---   use Quotient.mk (FiniteGrpSetoid 1) ⟨FiniteGrp.of (Fin 1), Nat.card_unique⟩
+def IsoClassesOrderNSubgroups (n : ℕ) := Quotient (NonIsoOrderNSubgroupsOfSymmetricGroup n)
+
+@[OEIS := A000001]
+noncomputable def OrderNGroups (n : ℕ) : ℕ := Nat.card (IsoClassesOrderNSubgroups n)
+
+example (n m : ℕ) (h : n = m) : (n : ENat) = m := congrArg Nat.cast h
+
+theorem bar (n : ℕ) (G : FiniteGrpOfOrder n) :
+    ∃ H ∈ OrderNSubgroupsOfSymmetricGroup n, Nonempty (G ≃* H) := by
+  let z := G.property
+  haveI : Finite G := by
+    rw [← not_infinite_iff_finite, ← ENat.card_eq_top]
+    exact ENat.ne_top_iff_exists.mpr ⟨n, z.symm⟩
+  have t2 : Nat.card G = n := by
+    apply_fun (Nat.cast : ℕ → ENat) using CharZero.cast_injective
+    simp [← z, ENat.card_eq_coe_natCard ↑↑G]
+  let x := cayley_subgroup_Fin G.val
+  rw [t2] at x
+  obtain ⟨H, Hh⟩ := x
+  use H
+  constructor
+  · whnf
+    simp [← t2]
+    refine Nat.card_congr ?_
+    obtain ⟨l, _⟩ := Hh.some
+    exact l.symm
+  · exact Hh
+
+theorem foo_thm (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ IsoClassesOrderNSubgroups n) := by
+  choose f h using bar
+  let g : FiniteGrpOfOrder n → OrderNSubgroupsOfSymmetricGroup n := fun G => ⟨f n G, h n G |>.left⟩
+  let g' : NonIsoFiniteGrp n → IsoClassesOrderNSubgroups n := Quotient.map g (by
+    intro a b hh
+    let wag := h n a |>.right.some
+    let wbg := h n b |>.right.some
+    let wab := CategoryTheory.Iso.groupIsoToMulEquiv hh.some
+    exact ⟨wag.symm.trans wab |>.trans wbg⟩
+  )
+  -- Prove that g' is Bijective
+  have hinj : Function.Injective g' := by
+    whnf
+    intro x y hxy
+    have : ∃ a, x = ⟦a⟧ := by
+      use x.out
+      simp [Quotient.out_eq]
+    obtain ⟨a, ha⟩ := this
+    have : ∃ b, y = ⟦b⟧ := by
+      use y.out
+      simp [Quotient.out_eq]
+    obtain ⟨b, hb⟩ := this
+    rw [<- Quotient.out_equiv_out] at hxy
+    unfold g' g at hxy
+    rw [ha, hb] at hxy
+    simp [Quotient.map_mk] at hxy
+    whnf at hxy
+    let wff := hxy.some
+    simp at wff
+    let waf := h n a |>.right.some
+    let wbf := h n b |>.right.some
+    let wab := waf.trans wff |>.trans wbf.symm
+    let ww := MulEquiv.toGrpIso wab
+    rw [ha, hb]
+    apply Quotient.sound
+    exact ⟨ww⟩
+  have hsur : Function.Surjective g' := by
+    intro b
+    let wb := b.out
+    let wc : Grp := .of wb
+    have : ENat.card wc = n := by
+      have t : wc ≃* wb := by rfl
+      have t2 : ENat.card wb = n := by
+        let y := wb.property
+        whnf at y
+        rw [ENat.card_eq_coe_natCard]
+        norm_cast
+      rw [← t2]
+    let wd : FiniteGrpOfOrder n := ⟨wc, this⟩
+    use ⟦wd⟧
+    unfold g' g
+    simp [Quotient.map_mk]
+    have t2 : b = ⟦wb⟧ := Quotient.out_eq b |>.symm
+    rw [t2]
+    apply Quotient.sound
+    whnf
+    refine ⟨?_⟩
+    simp
+    let we := h n wd |>.right.some
+    have t3 : wb ≃* wd := by rfl
+    exact we.symm.trans t3.symm
+  have : Function.Bijective g' := ⟨hinj, hsur⟩
+  exact ⟨Equiv.ofBijective g' this⟩
+
+theorem equiv (n : ℕ) : Nat.card (NonIsoFiniteGrp n) = Nat.card (IsoClassesOrderNSubgroups n) :=
+  Nat.card_congr <| foo_thm n |>.some
 
 end Sequence

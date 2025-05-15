@@ -133,7 +133,6 @@ theorem foo_thm (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ IsoClassesOrderNSubg
     let wb := b.out
     let wc : Grp := .of wb
     have : ENat.card wc = n := by
-      have t : wc ≃* wb := by rfl
       have t2 : ENat.card wb = n := by
         let y := wb.property
         whnf at y

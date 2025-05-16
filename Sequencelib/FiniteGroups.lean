@@ -82,8 +82,7 @@ theorem cayley_subgroup_symmetric (n : ℕ) (G : FiniteGrpOfOrder n) :
   use H
   exact ⟨Trans.simple (Nat.card_congr Hh.some.toEquiv).symm hcard, Hh⟩
 
-#check Quotient.out_eq
-theorem foo_thm (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ IsoClassesOrderNSubgroups n) := by
+theorem nonempty_equiv (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ IsoClassesOrderNSubgroups n) := by
   choose f h using cayley_subgroup_symmetric
   let g : FiniteGrpOfOrder n → OrderNSubgroupsOfSymmetricGroup n := fun G => ⟨f n G, h n G |>.left⟩
   let g' : NonIsoFiniteGrp n → IsoClassesOrderNSubgroups n := Quotient.map g (by
@@ -110,32 +109,14 @@ theorem foo_thm (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ IsoClassesOrderNSubg
     exact Quotient.sound ⟨ww⟩
   have hsur : Function.Surjective g' := by
     intro b
-    let wb := b.out
-    let wc : Grp := .of wb
-    have : ENat.card wc = n := by
-      have t2 : ENat.card wb = n := by
-        let y := wb.property
-        whnf at y
-        rw [ENat.card_eq_coe_natCard]
-        norm_cast
-      rw [← t2]
-    let wd : FiniteGrpOfOrder n := ⟨wc, this⟩
-    use ⟦wd⟧
+    use ⟦⟨.of b.out, by rw [ENat.card_eq_coe_natCard, b.out.property]⟩⟧
     unfold g' g
-    simp [Quotient.map_mk]
-    have t2 : b = ⟦wb⟧ := Quotient.out_eq b |>.symm
-    rw [t2]
-    apply Quotient.sound
-    whnf
-    refine ⟨?_⟩
-    simp
-    let we := h n wd |>.right.some
-    have t3 : wb ≃* wd := by rfl
-    exact we.symm.trans t3.symm
+    rw [Quotient.map_mk, Quotient.sound (b := b.out), Quotient.out_eq]
+    exact ⟨h n _ |>.right.some.symm.trans (by rfl)⟩
   have : Function.Bijective g' := ⟨hinj, hsur⟩
   exact ⟨Equiv.ofBijective g' this⟩
 
 theorem equiv (n : ℕ) : Nat.card (NonIsoFiniteGrp n) = Nat.card (IsoClassesOrderNSubgroups n) :=
-  Nat.card_congr <| foo_thm n |>.some
+  Nat.card_congr <| nonempty_equiv n |>.some
 
 end Sequence

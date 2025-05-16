@@ -44,9 +44,9 @@ theorem perm_group_congr {α β : Type*} (h : α ≃ β) : Nonempty (Equiv.Perm 
 
 theorem cayley_subgroup_Fin (G : Type*) [Group G] [Finite G] :
     ∃ H : Subgroup <| SymmetricGroup <| Nat.card G, Nonempty (G ≃* H) := by
-  let f := Finite.equivFin G
   let K := CayleySubgroup G
-  let g : Equiv.Perm G ≃* SymmetricGroup (Nat.card G) := Nonempty.some <| perm_group_congr f
+  let g : Equiv.Perm G ≃* SymmetricGroup (Nat.card G) :=
+    Nonempty.some <| perm_group_congr <| Finite.equivFin G
   let K' : Subgroup <| SymmetricGroup (Nat.card G) := K.map g
   let k : K ≃* K' := MulEquiv.subgroupMap g K
   let g' : G ≃* K := Nonempty.some cayley_theorem
@@ -69,31 +69,21 @@ def IsoClassesOrderNSubgroups (n : ℕ) := Quotient (NonIsoOrderNSubgroupsOfSymm
 @[OEIS := A000001]
 noncomputable def OrderNGroups (n : ℕ) : ℕ := Nat.card (IsoClassesOrderNSubgroups n)
 
-example (n m : ℕ) (h : n = m) : (n : ENat) = m := congrArg Nat.cast h
-
-theorem bar (n : ℕ) (G : FiniteGrpOfOrder n) :
+open Cardinal in
+theorem cayley_subgroup_symmetric (n : ℕ) (G : FiniteGrpOfOrder n) :
     ∃ H ∈ OrderNSubgroupsOfSymmetricGroup n, Nonempty (G ≃* H) := by
-  let z := G.property
-  haveI : Finite G := by
-    rw [← not_infinite_iff_finite, ← ENat.card_eq_top]
-    exact ENat.ne_top_iff_exists.mpr ⟨n, z.symm⟩
-  have t2 : Nat.card G = n := by
-    apply_fun (Nat.cast : ℕ → ENat) using CharZero.cast_injective
-    simp [← z, ENat.card_eq_coe_natCard ↑↑G]
-  let x := cayley_subgroup_Fin G.val
-  rw [t2] at x
-  obtain ⟨H, Hh⟩ := x
+  have hc : #G = n := Cardinal.natCast_eq_toENat_iff.mp (G.property.symm) |>.symm
+  have hc' : G ≃ Fin n := Cardinal.mk_eq_nat_iff.mp hc |>.some
+  have hcard : Nat.card G = n := Nat.card_eq_of_equiv_fin hc'
+  haveI : Finite G := Finite.intro hc'
+  let C := cayley_subgroup_Fin G.val
+  rw [hcard] at C
+  obtain ⟨H, Hh⟩ := C
   use H
-  constructor
-  · whnf
-    simp [← t2]
-    refine Nat.card_congr ?_
-    obtain ⟨l, _⟩ := Hh.some
-    exact l.symm
-  · exact Hh
+  exact ⟨Trans.simple (Nat.card_congr Hh.some.toEquiv).symm hcard, Hh⟩
 
 theorem foo_thm (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ IsoClassesOrderNSubgroups n) := by
-  choose f h using bar
+  choose f h using cayley_subgroup_symmetric
   let g : FiniteGrpOfOrder n → OrderNSubgroupsOfSymmetricGroup n := fun G => ⟨f n G, h n G |>.left⟩
   let g' : NonIsoFiniteGrp n → IsoClassesOrderNSubgroups n := Quotient.map g (by
     intro a b hh

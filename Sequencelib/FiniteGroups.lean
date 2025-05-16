@@ -82,6 +82,7 @@ theorem cayley_subgroup_symmetric (n : ℕ) (G : FiniteGrpOfOrder n) :
   use H
   exact ⟨Trans.simple (Nat.card_congr Hh.some.toEquiv).symm hcard, Hh⟩
 
+#check Quotient.out_eq
 theorem foo_thm (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ IsoClassesOrderNSubgroups n) := by
   choose f h using cayley_subgroup_symmetric
   let g : FiniteGrpOfOrder n → OrderNSubgroupsOfSymmetricGroup n := fun G => ⟨f n G, h n G |>.left⟩
@@ -94,30 +95,19 @@ theorem foo_thm (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ IsoClassesOrderNSubg
   )
   -- Prove that g' is Bijective
   have hinj : Function.Injective g' := by
-    whnf
     intro x y hxy
-    have : ∃ a, x = ⟦a⟧ := by
-      use x.out
-      simp [Quotient.out_eq]
-    obtain ⟨a, ha⟩ := this
-    have : ∃ b, y = ⟦b⟧ := by
-      use y.out
-      simp [Quotient.out_eq]
-    obtain ⟨b, hb⟩ := this
-    rw [<- Quotient.out_equiv_out] at hxy
+    have ha : ⟦x.out⟧ = x := Quotient.out_eq x
+    have hb : ⟦y.out⟧ = y := Quotient.out_eq y
+    rw [← ha, ← hb] at hxy
     unfold g' g at hxy
-    rw [ha, hb] at hxy
-    simp [Quotient.map_mk] at hxy
-    whnf at hxy
-    let wff := hxy.some
-    simp at wff
-    let waf := h n a |>.right.some
-    let wbf := h n b |>.right.some
+    rw [Quotient.map_mk, Quotient.map_mk] at hxy
+    let wff := Quotient.exact hxy |>.some
+    let waf := h n x.out |>.right.some
+    let wbf := h n y.out |>.right.some
     let wab := waf.trans wff |>.trans wbf.symm
     let ww := MulEquiv.toGrpIso wab
-    rw [ha, hb]
-    apply Quotient.sound
-    exact ⟨ww⟩
+    rw [← ha, ← hb]
+    exact Quotient.sound ⟨ww⟩
   have hsur : Function.Surjective g' := by
     intro b
     let wb := b.out

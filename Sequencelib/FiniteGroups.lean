@@ -28,8 +28,6 @@ def FiniteGrpSetoid (n : ℕ) : Setoid (FiniteGrpOfOrder n) where
 
 def NonIsoFiniteGrp (n : ℕ) := Quotient (FiniteGrpSetoid n)
 
--- Not a good definition because it can be zero if NonIsoFiniteGrp is infinite
--- Fix it after proving equivalence with subgroups of S_n
 @[OEIS := A000001]
 noncomputable def GroupsOfOrder (n : ℕ) : ℕ := Nat.card (NonIsoFiniteGrp n)
 
@@ -116,7 +114,12 @@ theorem nonempty_equiv (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ IsoClassesOrd
   have : Function.Bijective g' := ⟨hinj, hsur⟩
   exact ⟨Equiv.ofBijective g' this⟩
 
+theorem finite_NonIsoFiniteGrp (n : ℕ) : Finite (NonIsoFiniteGrp n) := by
+  exact Equiv.finite_iff (nonempty_equiv n |>.some) |>.mpr (by apply Quotient.finite)
+
 theorem equiv (n : ℕ) : Nat.card (NonIsoFiniteGrp n) = Nat.card (IsoClassesOrderNSubgroups n) :=
   Nat.card_congr <| nonempty_equiv n |>.some
+
+theorem GroupsOfOrder_eq_OrderNGroups : GroupsOfOrder = OrderNGroups := funext equiv
 
 end Sequence

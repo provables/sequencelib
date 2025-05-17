@@ -148,4 +148,20 @@ theorem equiv (n : ℕ) : Nat.card (NonIsoFiniteGrp n) = Nat.card (IsoClassesOrd
 
 theorem GroupsOfOrder_eq_OrderNGroups : GroupsOfOrder = OrderNGroups := funext equiv
 
+/-!
+## First values of the sequence
+-/
+
+theorem OrderNGroups_zero : OrderNGroups 0 = 0 := by
+  haveI : IsEmpty (OrderNSubgroupsOfSymmetricGroup 0) := by simp [OrderNSubgroupsOfSymmetricGroup]
+  haveI : IsEmpty (IsoClassesOrderNSubgroups 0) := Quotient.instIsEmpty
+  apply Nat.card_of_isEmpty
+
+theorem OrderNGroups_one : OrderNGroups 1 = 1 := by
+  refine Nat.card_eq_one_iff_unique.mpr ?_
+  exact ⟨
+    Quotient.instSubsingletonQuotient (NonIsoOrderNSubgroupsOfSymmetricGroup 1),
+    ⟨⟦⟨⊥, by simp [OrderNSubgroupsOfSymmetricGroup]⟩⟧⟩
+  ⟩
+
 end Sequence

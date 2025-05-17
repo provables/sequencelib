@@ -16,6 +16,15 @@ abbrev SymmetricGroup (n : ℕ) : Type := Equiv.Perm (Fin n)
 
 namespace Sequence
 
+/-!
+## Finite Groups from the bundled category `Grp`
+-/
+
+/--
+Objects of the category `Grp` that have (extended) cardinality equal to `n`.
+We use `ENat.card` because the more usual `Nat.card` is defined as 0 for infinite arguments,
+so it would yield the wrong count for order 0.
+-/
 abbrev FiniteGrpOfOrder (n : ℕ) := {G : Grp.{0} // ENat.card G = n}
 
 def FiniteGrpSetoid (n : ℕ) : Setoid (FiniteGrpOfOrder n) where
@@ -28,28 +37,16 @@ def FiniteGrpSetoid (n : ℕ) : Setoid (FiniteGrpOfOrder n) where
 
 def NonIsoFiniteGrp (n : ℕ) := Quotient (FiniteGrpSetoid n)
 
+/--
+The number of non-isomorphic finite groups of order `n`.
+-/
 @[OEIS := A000001]
 noncomputable def GroupsOfOrder (n : ℕ) : ℕ := Nat.card (NonIsoFiniteGrp n)
 
-def CayleySubgroup (G : Type*) [Group G] : Subgroup (Equiv.Perm G) :=
-  (MulAction.toPermHom G G).range
 
-theorem cayley_theorem {G : Type*} [Group G] : Nonempty (G ≃* (CayleySubgroup G)) :=
-  Nonempty.intro <| Equiv.Perm.subgroupOfMulAction G G
-
-theorem perm_group_congr {α β : Type*} (h : α ≃ β) : Nonempty (Equiv.Perm α ≃* Equiv.Perm β) :=
-  ⟨⟨Equiv.permCongr h, by aesop⟩⟩
-
-theorem cayley_subgroup_Fin (G : Type*) [Group G] [Finite G] :
-    ∃ H : Subgroup <| SymmetricGroup <| Nat.card G, Nonempty (G ≃* H) := by
-  let K := CayleySubgroup G
-  let g : Equiv.Perm G ≃* SymmetricGroup (Nat.card G) :=
-    Nonempty.some <| perm_group_congr <| Finite.equivFin G
-  let K' : Subgroup <| SymmetricGroup (Nat.card G) := K.map g
-  let k : K ≃* K' := MulEquiv.subgroupMap g K
-  let g' : G ≃* K := Nonempty.some cayley_theorem
-  use K'
-  exact Nonempty.intro (g'.trans k)
+/-!
+## Finite groups as subgroups of the Symmetric Group
+-/
 
 def OrderNSubgroupsOfSymmetricGroup (n : ℕ) := {H : Subgroup (SymmetricGroup n) | Nat.card H = n}
 
@@ -64,11 +61,40 @@ def NonIsoOrderNSubgroupsOfSymmetricGroup (n : ℕ) :
 
 def IsoClassesOrderNSubgroups (n : ℕ) := Quotient (NonIsoOrderNSubgroupsOfSymmetricGroup n)
 
+/--
+The number of non-isomorphic subgroups of `S_n` of order `n`.
+-/
 @[OEIS := A000001]
 noncomputable def OrderNGroups (n : ℕ) : ℕ := Nat.card (IsoClassesOrderNSubgroups n)
 
+
+/-!
+## Equivalence of the sequences
+-/
+
+private def CayleySubgroup (G : Type*) [Group G] : Subgroup (Equiv.Perm G) :=
+  (MulAction.toPermHom G G).range
+
+private theorem cayley_theorem {G : Type*} [Group G] : Nonempty (G ≃* (CayleySubgroup G)) :=
+  Nonempty.intro <| Equiv.Perm.subgroupOfMulAction G G
+
+private theorem perm_group_congr {α β : Type*} (h : α ≃ β) :
+    Nonempty (Equiv.Perm α ≃* Equiv.Perm β) :=
+  ⟨⟨Equiv.permCongr h, by aesop⟩⟩
+
+private theorem cayley_subgroup_Fin (G : Type*) [Group G] [Finite G] :
+    ∃ H : Subgroup <| SymmetricGroup <| Nat.card G, Nonempty (G ≃* H) := by
+  let K := CayleySubgroup G
+  let g : Equiv.Perm G ≃* SymmetricGroup (Nat.card G) :=
+    Nonempty.some <| perm_group_congr <| Finite.equivFin G
+  let K' : Subgroup <| SymmetricGroup (Nat.card G) := K.map g
+  let k : K ≃* K' := MulEquiv.subgroupMap g K
+  let g' : G ≃* K := Nonempty.some cayley_theorem
+  use K'
+  exact Nonempty.intro (g'.trans k)
+
 open Cardinal in
-theorem cayley_subgroup_symmetric (n : ℕ) (G : FiniteGrpOfOrder n) :
+private theorem cayley_subgroup_symmetric (n : ℕ) (G : FiniteGrpOfOrder n) :
     ∃ H ∈ OrderNSubgroupsOfSymmetricGroup n, Nonempty (G ≃* H) := by
   have hc : #G = n := Cardinal.natCast_eq_toENat_iff.mp (G.property.symm) |>.symm
   have hc' : G ≃ Fin n := Cardinal.mk_eq_nat_iff.mp hc |>.some

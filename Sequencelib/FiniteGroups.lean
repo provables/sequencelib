@@ -10,6 +10,14 @@ import Sequencelib.Meta
 # Finite groups of order n
 
 This file introduces the number of non-isomorphic groups of order `n`.
+
+## Main results
+
+- `NonIsoGrpOfOrder n`: counts the number of non-isomorphic groups of order `n`.
+- `NonIsoSubgroupsSymmOfOrder n`: counts the number of non-isomorphic subgroups of `S_n`
+    of order `n`.
+- `NonIsoGrpOfOrder_eq_NonIsoSubgroupsSymmOfOrder`: both sequences above coincide.
+- The first values are 0, 1.
 -/
 
 abbrev SymmetricGroup (n : ℕ) : Type := Equiv.Perm (Fin n)
@@ -25,9 +33,9 @@ Objects of the category `Grp` that have (extended) cardinality equal to `n`.
 We use `ENat.card` because the more usual `Nat.card` is defined as 0 for infinite arguments,
 so it would yield the wrong count for order 0.
 -/
-abbrev FiniteGrpOfOrder (n : ℕ) := {G : Grp.{0} // ENat.card G = n}
+abbrev GrpOfOrder (n : ℕ) := {G : Grp.{0} // ENat.card G = n}
 
-def FiniteGrpSetoid (n : ℕ) : Setoid (FiniteGrpOfOrder n) where
+def FiniteGrpSetoid (n : ℕ) : Setoid (GrpOfOrder n) where
   r := fun ⟨g1, _⟩ ⟨g2, _⟩ => Nonempty (g1 ≅ g2)
   iseqv := {
     refl := fun ⟨X, _⟩  => ⟨CategoryTheory.Iso.refl X⟩
@@ -41,17 +49,17 @@ def NonIsoFiniteGrp (n : ℕ) := Quotient (FiniteGrpSetoid n)
 The number of non-isomorphic finite groups of order `n`.
 -/
 @[OEIS := A000001]
-noncomputable def GroupsOfOrder (n : ℕ) : ℕ := Nat.card (NonIsoFiniteGrp n)
+noncomputable def NonIsoGrpOfOrder (n : ℕ) : ℕ := Nat.card (NonIsoFiniteGrp n)
 
 
 /-!
 ## Finite groups as subgroups of the Symmetric Group
 -/
 
-def OrderNSubgroupsOfSymmetricGroup (n : ℕ) := {H : Subgroup (SymmetricGroup n) | Nat.card H = n}
+def SubgroupsSymmOfOrder (n : ℕ) := {H : Subgroup (SymmetricGroup n) | Nat.card H = n}
 
-def NonIsoOrderNSubgroupsOfSymmetricGroup (n : ℕ) :
-    Setoid (OrderNSubgroupsOfSymmetricGroup n) where
+def SubgroupsSymmSetoid (n : ℕ) :
+    Setoid (SubgroupsSymmOfOrder n) where
   r G H := Nonempty (G ≃* H)
   iseqv := {
     refl _ := instNonemptyOfInhabited
@@ -59,14 +67,13 @@ def NonIsoOrderNSubgroupsOfSymmetricGroup (n : ℕ) :
     trans := fun ⟨x⟩ ⟨y⟩ => ⟨x.trans y⟩
   }
 
-def IsoClassesOrderNSubgroups (n : ℕ) := Quotient (NonIsoOrderNSubgroupsOfSymmetricGroup n)
+def NonIsoSubgroupsSymm (n : ℕ) := Quotient (SubgroupsSymmSetoid n)
 
 /--
 The number of non-isomorphic subgroups of `S_n` of order `n`.
 -/
 @[OEIS := A000001]
-noncomputable def OrderNGroups (n : ℕ) : ℕ := Nat.card (IsoClassesOrderNSubgroups n)
-
+noncomputable def NonIsoSubgroupsSymmOfOrder (n : ℕ) : ℕ := Nat.card (NonIsoSubgroupsSymm n)
 
 /-!
 ## Equivalence of the sequences
@@ -83,7 +90,7 @@ private theorem perm_group_congr {α β : Type*} (h : α ≃ β) :
   ⟨⟨Equiv.permCongr h, by aesop⟩⟩
 
 private theorem cayley_subgroup_Fin (G : Type*) [Group G] [Finite G] :
-    ∃ H : Subgroup <| SymmetricGroup <| Nat.card G, Nonempty (G ≃* H) := by
+    ∃ H : Subgroup (SymmetricGroup (Nat.card G)), Nonempty (G ≃* H) := by
   let K := CayleySubgroup G
   let g : Equiv.Perm G ≃* SymmetricGroup (Nat.card G) :=
     Nonempty.some <| perm_group_congr <| Finite.equivFin G
@@ -94,8 +101,8 @@ private theorem cayley_subgroup_Fin (G : Type*) [Group G] [Finite G] :
   exact Nonempty.intro (g'.trans k)
 
 open Cardinal in
-private theorem cayley_subgroup_symmetric (n : ℕ) (G : FiniteGrpOfOrder n) :
-    ∃ H ∈ OrderNSubgroupsOfSymmetricGroup n, Nonempty (G ≃* H) := by
+private theorem cayley_subgroup_symmetric (n : ℕ) (G : GrpOfOrder n) :
+    ∃ H ∈ SubgroupsSymmOfOrder n, Nonempty (G ≃* H) := by
   have hc : #G = n := Cardinal.natCast_eq_toENat_iff.mp (G.property.symm) |>.symm
   have hc' : G ≃ Fin n := Cardinal.mk_eq_nat_iff.mp hc |>.some
   have hcard : Nat.card G = n := Nat.card_eq_of_equiv_fin hc'
@@ -106,10 +113,10 @@ private theorem cayley_subgroup_symmetric (n : ℕ) (G : FiniteGrpOfOrder n) :
   use H
   exact ⟨Trans.simple (Nat.card_congr Hh.some.toEquiv).symm hcard, Hh⟩
 
-theorem nonempty_equiv (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ IsoClassesOrderNSubgroups n) := by
+theorem nonempty_equiv (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ NonIsoSubgroupsSymm n) := by
   choose f h using cayley_subgroup_symmetric
-  let g : FiniteGrpOfOrder n → OrderNSubgroupsOfSymmetricGroup n := fun G => ⟨f n G, h n G |>.left⟩
-  let g' : NonIsoFiniteGrp n → IsoClassesOrderNSubgroups n := Quotient.map g (by
+  let g : GrpOfOrder n → SubgroupsSymmOfOrder n := fun G => ⟨f n G, h n G |>.left⟩
+  let g' : NonIsoFiniteGrp n → NonIsoSubgroupsSymm n := Quotient.map g (by
     intro a b hh
     let wag := h n a |>.right.some
     let wbg := h n b |>.right.some
@@ -143,25 +150,27 @@ theorem nonempty_equiv (n : ℕ) : Nonempty (NonIsoFiniteGrp n ≃ IsoClassesOrd
 theorem finite_NonIsoFiniteGrp (n : ℕ) : Finite (NonIsoFiniteGrp n) := by
   exact Equiv.finite_iff (nonempty_equiv n |>.some) |>.mpr (by apply Quotient.finite)
 
-theorem equiv (n : ℕ) : Nat.card (NonIsoFiniteGrp n) = Nat.card (IsoClassesOrderNSubgroups n) :=
+theorem equiv (n : ℕ) : Nat.card (NonIsoFiniteGrp n) = Nat.card (NonIsoSubgroupsSymm n) :=
   Nat.card_congr <| nonempty_equiv n |>.some
 
-theorem GroupsOfOrder_eq_OrderNGroups : GroupsOfOrder = OrderNGroups := funext equiv
+theorem NonIsoGrpOfOrder_eq_NonIsoSubgroupsSymmOfOrder :
+    NonIsoGrpOfOrder = NonIsoSubgroupsSymmOfOrder :=
+  funext equiv
 
 /-!
 ## First values of the sequence
 -/
 
-theorem OrderNGroups_zero : OrderNGroups 0 = 0 := by
-  haveI : IsEmpty (OrderNSubgroupsOfSymmetricGroup 0) := by simp [OrderNSubgroupsOfSymmetricGroup]
-  haveI : IsEmpty (IsoClassesOrderNSubgroups 0) := Quotient.instIsEmpty
+theorem NonIsoSubgroupsSymmOfOrder_zero : NonIsoSubgroupsSymmOfOrder 0 = 0 := by
+  haveI : IsEmpty (SubgroupsSymmOfOrder 0) := by simp [SubgroupsSymmOfOrder]
+  haveI : IsEmpty (NonIsoSubgroupsSymm 0) := Quotient.instIsEmpty
   apply Nat.card_of_isEmpty
 
-theorem OrderNGroups_one : OrderNGroups 1 = 1 := by
+theorem NonIsoSubgroupsSymmOfOrder_one : NonIsoSubgroupsSymmOfOrder 1 = 1 := by
   refine Nat.card_eq_one_iff_unique.mpr ?_
   exact ⟨
-    Quotient.instSubsingletonQuotient (NonIsoOrderNSubgroupsOfSymmetricGroup 1),
-    ⟨⟦⟨⊥, by simp [OrderNSubgroupsOfSymmetricGroup]⟩⟧⟩
+    Quotient.instSubsingletonQuotient (SubgroupsSymmSetoid 1),
+    ⟨⟦⟨⊥, by simp [SubgroupsSymmOfOrder]⟩⟧⟩
   ⟩
 
 end Sequence

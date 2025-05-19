@@ -4,3 +4,4 @@ import Sequencelib.Basic
 import Sequencelib.Meta
 import Sequencelib.Sylvester
 import Sequencelib.FiniteGroups
+import Sequencelib.Primes

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under MIT license as described in the file LICENSE.
-Authors: Walter Moreira, Joe Stubbs
+Authors: Walter Moreira, Joe Stubbs, Li Xuanji
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -23,6 +23,7 @@ We follow the presentantion from [Wikipedia](https://en.wikipedia.org/wiki/Sylve
 - `sylvester_strictMono`: the sequence is strictly monotonic.
 - `sylvester_coprime`: Pairwise co-primality.
 - `sylvester_eq_floor_constant_pow`: explicit non-recursive formula.
+- `partialSums_sylvester_eq_one_minus_one_div_pred`: compute sums of reciprocals of the sequence.
 
 ## References
 

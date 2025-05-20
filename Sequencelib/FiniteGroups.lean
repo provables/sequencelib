@@ -173,4 +173,12 @@ theorem NonIsoSubgroupsSymmOfOrder_one : NonIsoSubgroupsSymmOfOrder 1 = 1 := by
     ⟨⟦⟨⊥, by simp [SubgroupsSymmOfOrder]⟩⟧⟩
   ⟩
 
+theorem NonIsoSubgroupsSymmOfOrder_two : NonIsoSubgroupsSymmOfOrder 2 = 1 := by
+  have : ∀ a ∈ SubgroupsSymmOfOrder 2, a = ⊤ :=
+    fun a h  => Subgroup.eq_top_of_le_card a (by rw [h, Nat.card_perm]; norm_num)
+  haveI : Subsingleton (SubgroupsSymmOfOrder 2) :=
+    Subsingleton.intro fun ⟨a, ha⟩ ⟨b, hb⟩ => by simp [this a ha, this b hb |>.symm]
+  unfold NonIsoSubgroupsSymmOfOrder NonIsoSubgroupsSymm
+  exact Nat.card_of_subsingleton ⟦⟨⊤, by simp [SubgroupsSymmOfOrder, Nat.card_perm]; rfl⟩⟧
+
 end Sequence

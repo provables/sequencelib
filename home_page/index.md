@@ -11,6 +11,11 @@ usemathjax: true
 A collection of formalizations of sequences from the 
 [The On-Line Encyclopedia of Integer Sequences (OEIS)](https://oeis.org/).
 
+## Contributing
+
+We welcome contributions of new sequences, new values for existing sequences, and
+theorems about them. Please, see the [guidelines for contributing]({% link contributing.md %}).
+
 ## Index
 
 {% include_relative sequences.md %}

@@ -39,4 +39,5 @@ theorems about them.
   We do, however, welcome deviations and we accept proofs about the sequences even
   if they are not in the most general form required by Mathlib. 
     
-* Before submitting a PR, please, ensure that `lake build` and `lake lint` both succeed.
+* Before submitting a PR, please, ensure that `lake build` and `lake lint` both succeed
+  (or, alternatively, `task lint` if you are in the Nix environment).

@@ -21,8 +21,15 @@ namespace Sequence
 
 open Classical
 
+/--
+A natural number, n, is a prime power if there exists a natural number, e, and prime, p,
+such that n = p^e
+-/
 def PrimePower (n : ℕ ) : Prop := ∃ p e : ℕ, n = p^e ∧ Nat.Prime p
 
+/--
+The sequence of prime powers, including 1 (i.e., `PowersOfPrimes 1 = 1`).
+-/
 @[OEIS := A000961, offset := 1]
 noncomputable def PowersOfPrimes (n : ℕ) : ℕ := nth PrimePower (n - 1)
 
@@ -49,12 +56,6 @@ theorem PrimePower_four : PrimePower 4 := by
   constructor
   · simp
   · exact prime_two
-
-#check DecidablePred
-#check Decidable
-
-#check nth_count PrimePower_one
-
 
 theorem PowersOfPrimes_one : PowersOfPrimes 1 = 1 := by
   unfold PowersOfPrimes

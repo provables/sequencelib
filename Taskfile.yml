@@ -16,6 +16,7 @@ tasks:
       - lake lint
     deps:
       - get-cache
+      - build
 
   build-docs:
     desc: Build docs

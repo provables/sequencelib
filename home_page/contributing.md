@@ -19,24 +19,23 @@ theorems about them.
   actions.
 
 * If you are adding a **new sequence**, please, 
-  1. Add the copyright statement as a Lean comment at the top of the file and include all authors. 
-  For example:
-  ```
+  1. Add the copyright statement as a Lean comment at the top of the file and include all authors.  For example:
+     ```
      /-
      Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
      Released under MIT license as described in the file LICENSE.
      Authors: Walter Moreira, Joe Stubbs
      -/
-  ```
+     ```
 
   2. Ensure you add the definition in the `Sequence` namespace. Tag the definition with the attribute `@[OEIS := ANNNNNN, offset := N]`, following the values given by [OEIS](https://oeis.org). For example:
-  ```lean4
-  namespace Sequence
+     ```lean4
+     namespace Sequence
 
-  @[OEIS := A000108, offset := 0]
-  def Catalan (n : ℕ) : ℕ := sorry
-  ```
-  Note that you will need to add `import Sequencelib.Meta` for this step.
+     @[OEIS := A000108, offset := 0]
+     def Catalan (n : ℕ) : ℕ := sorry
+     ```
+     Note that you will need to add `import Sequencelib.Meta` for this step.
 
 * For adding proofs of new values, please, add theorems of the form:
   ```lean4

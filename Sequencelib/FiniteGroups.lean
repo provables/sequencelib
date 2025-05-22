@@ -35,6 +35,9 @@ so it would yield the wrong count for order 0.
 -/
 abbrev GrpOfOrder (n : ℕ) := {G : Grp.{0} // ENat.card G = n}
 
+/--
+Two groups are related if they are isomorphic in the category `Grp`.
+-/
 def FiniteGrpSetoid (n : ℕ) : Setoid (GrpOfOrder n) where
   r := fun ⟨g1, _⟩ ⟨g2, _⟩ => Nonempty (g1 ≅ g2)
   iseqv := {
@@ -43,6 +46,9 @@ def FiniteGrpSetoid (n : ℕ) : Setoid (GrpOfOrder n) where
     trans := fun ⟨a⟩ ⟨b⟩ => ⟨a.trans b⟩
   }
 
+/--
+Classes of isomorphism of groups of order `n`.
+-/
 def NonIsoFiniteGrp (n : ℕ) := Quotient (FiniteGrpSetoid n)
 
 /--
@@ -56,8 +62,14 @@ noncomputable def NonIsoGrpOfOrder (n : ℕ) : ℕ := Nat.card (NonIsoFiniteGrp 
 ## Finite groups as subgroups of the Symmetric Group
 -/
 
+/--
+Subgroups of $S_n$ of order `n`.
+-/
 def SubgroupsSymmOfOrder (n : ℕ) := {H : Subgroup (SymmetricGroup n) | Nat.card H = n}
 
+/--
+Two subgroups of $S_n$ are related if they are isomorphic as groups.
+-/
 def SubgroupsSymmSetoid (n : ℕ) :
     Setoid (SubgroupsSymmOfOrder n) where
   r G H := Nonempty (G ≃* H)
@@ -67,6 +79,9 @@ def SubgroupsSymmSetoid (n : ℕ) :
     trans := fun ⟨x⟩ ⟨y⟩ => ⟨x.trans y⟩
   }
 
+/--
+Classes of isomorphism of subgroups of order `n` of $S_n$.
+-/
 def NonIsoSubgroupsSymm (n : ℕ) := Quotient (SubgroupsSymmSetoid n)
 
 /--

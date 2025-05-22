@@ -9,7 +9,7 @@ theorems about them.
 
 ## Guidelines
 
-* Fork this repository in [Github](https://github.com/provables/sequencelib). It is an standard
+* Fork this repository in [Github](https://github.com/provables/sequencelib). It is a standard
   Lake project, so the general instructions for 
   [Setting Up Lean](https://lean-lang.org/documentation/setup/) apply.
 
@@ -18,15 +18,25 @@ theorems about them.
   root level of this repository. Once in the environment, run `task -a` to list all the available
   actions.
 
-* If you are adding a **new sequence**, please, ensure you add the definiton in the `Sequence`
-  namespace. Tag the definition with the attribute `@[OEIS := ANNNNNN, offset := N]`, following
-  the values given by [OEIS](https://oeis.org).  For example:
+* If you are adding a **new sequence**, please, 
+  1. Add the copyright statement as a Lean comment at the top of the file and include all authors. 
+  For example:
+  ```
+     /-
+     Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
+     Released under MIT license as described in the file LICENSE.
+     Authors: Walter Moreira, Joe Stubbs
+     -/
+  ```
+
+  2. Ensure you add the definition in the `Sequence` namespace. Tag the definition with the attribute `@[OEIS := ANNNNNN, offset := N]`, following the values given by [OEIS](https://oeis.org). For example:
   ```lean4
   namespace Sequence
 
   @[OEIS := A000108, offset := 0]
   def Catalan (n : ℕ) : ℕ := sorry
   ```
+  Note that you will need to add `import Sequencelib.Meta` for this step.
 
 * For adding proofs of new values, please, add theorems of the form:
   ```lean4

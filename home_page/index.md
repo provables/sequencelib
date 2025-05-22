@@ -14,7 +14,8 @@ A collection of formalizations of sequences from the
 ## Contributing
 
 We welcome contributions of new sequences, new values for existing sequences, and
-theorems about them. Please, see the [guidelines for contributing]({% link contributing.md %}).
+theorems about them. Please, see the 
+[guidelines for contributing]({{ site.url }}/contributing.html).
 
 ## Index
 

@@ -82,7 +82,7 @@ def insert(soup, mod, tags):
             decl = soup.new_tag("li")
             decl.append(decl_tag)
             if thms:
-                value_thms = {k: v for (k, v) in thms.items() if v == "value"}
+                value_thms = {k: v for (k, v) in thms.items() if v["type"] == "value"}
                 decl.append(": ")
                 decl.extend(
                     list(more_itertools.intersperse(", ", theorems(soup, value_thms)))

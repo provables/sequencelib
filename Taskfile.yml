@@ -73,6 +73,7 @@ tasks:
       - exclude: home_page/docs/**/*
     generates:
       - home_page/_site/index.html
+      - home_page/sequences.md
     cmds:
       - cp blueprint/print/print.pdf home_page/blueprint.pdf
       - rsync -av blueprint/web/ home_page/blueprint/

@@ -6,6 +6,7 @@ Authors: Walter Moreira
 import Lean
 import Qq
 import Batteries
+import Mathlib
 open Lean Meta Elab Qq
 
 structure OEISTag where
@@ -14,12 +15,17 @@ structure OEISTag where
   oeisTag : String
   deriving BEq, Hashable, Repr
 
-structure Thm where
-  thmName : Name
-  declName : Name
-  index : Nat
-  value : Nat
+inductive Thm : Type where
+  | Value (thmName : Name) (declName : Name) (index : Nat) (value : Nat) : Thm
+  | Equiv (thmName : Name) (seq1 : Name) (seq2 : Name) : Thm
   deriving BEq, Hashable, Repr
+
+-- structure Thm where
+--   thmName : Name
+--   declName : Name
+--   index : Nat
+--   value : Nat
+--   deriving BEq, Hashable, Repr
 
 abbrev OEISInfo := Std.HashMap Name (Std.HashMap String (Std.HashMap Name (Array Thm)))
 
@@ -58,7 +64,7 @@ def suffixes : Std.HashMap Nat String := Std.HashMap.insertMany default #[
     (20, "twenty")
 ]
 
-def matchTheorem (e : Expr) (seq : Name) (n : Nat) : MetaM (Option Nat) := do
+def matchValueTheorem (e : Expr) (seq : Name) (n : Nat) : MetaM (Option Nat) := do
   match (← inferTypeQ e) with
   | ⟨1, ~q(Prop), ~q(Eq (($f : Nat → Nat) $a) $b)⟩ =>
     let some aValue := a.nat? | return none
@@ -71,15 +77,35 @@ def matchTheorem (e : Expr) (seq : Name) (n : Nat) : MetaM (Option Nat) := do
     return b.nat?
   | _ => return none
 
-def findTheorems (decl : Name) (off : Nat := 0) : MetaM (Array Thm) := do
+def matchEquivTheorem (e : Expr) (name1 : Name) (name2 : Name) : MetaM (Option Unit) := do
+  let ⟨_, _, z⟩ ← forallMetaTelescope e
+  match (← inferTypeQ z) with
+  | ⟨1, ~q(Prop), ~q(Eq ($f : Nat → Nat) ($g : Nat → Nat))⟩ => do
+    pure <| if f.constName == name1 && g.constName == name2 then
+      some ()
+    else
+      none
+  | _ => pure none
+
+def findValueTheorems (decl : Name) (off : Nat := 0) : MetaM (Array Thm) := do
   let env ← getEnv
   let mut result := #[]
   for i in [off:10] do
     let some p := suffixes[i]? | continue
     let n := Name.appendAfter decl s!"_{p}"
     let some type := env.find? n |>.map (·.type) | continue
-    let some value ← matchTheorem type decl i | continue
-    result := result.push ⟨n, decl, i, value⟩
+    let some value ← matchValueTheorem type decl i | continue
+    result := result.push <| .Value n decl i value
+  return result
+
+def findEquivTheorems (decl : Name) (decls : List Name) : MetaM (Array Thm) := do
+  let env ← getEnv
+  let mut result := #[]
+  for decl2 in decls do
+    let n := Name.appendAfter decl s!"_eq_{decl2.getString!}"
+    let some type := env.find? n |>.map (·.type) | continue
+    let some _ ← matchEquivTheorem type decl decl2 | continue
+    result := result.push <| Thm.Equiv n decl decl2
   return result
 
 initialize registerBuiltinAttribute {
@@ -130,8 +156,13 @@ def getOEISInfo : MetaM OEISInfo := do
   let info := oeisExt.getState env
   return .ofList (← info.toList.mapM (fun (mod, tagsForMod) => do
     return (mod, .ofList <| ← tagsForMod.toList.mapM (fun (tag, declsForTag) => do
+      -- find things like d1_eq_d2 for d1, d2 in declsForTag
+      -- append to thmsForDecl
       return (tag, .ofList <| ← declsForTag.toList.mapM (fun (decl, thmsForDecl) => do
-        return (decl, thmsForDecl.append (← findTheorems decl))
+        return (
+          decl,
+          thmsForDecl.append (← findValueTheorems decl)
+            |>.append (← findEquivTheorems decl declsForTag.keys))
       ))
     ))
   ))
@@ -157,19 +188,34 @@ def OEISTagToJson (tag : OEISTag) : Json :=
   ]
 
 def ThmToJson (thm : Thm) : Json :=
-  Json.mkObj [
-    ("declaration", Json.str thm.declName.toString),
-    ("theorem", Json.str thm.thmName.toString),
-    ("index", Json.num thm.index),
-    ("value", Json.num thm.value)
-  ]
+  match thm with
+  | .Value thmName declName index value =>
+    Json.mkObj [
+      ("type", "value"),
+      ("declaration", Json.str declName.toString),
+      ("theorem", Json.str thmName.toString),
+      ("index", Json.num index),
+      ("value", Json.num value)
+    ]
+  | .Equiv thmName seq1 seq2 =>
+    Json.mkObj [
+      ("type", "equiv"),
+      ("theorem", thmName.toString),
+      ("seq1", seq1.toString),
+      ("seq2", seq2.toString)
+    ]
+
+def ThmToName (thm : Thm) : Name :=
+  match thm with
+  | .Value n _ _ _ => n
+  | .Equiv n _ _ => n
 
 def OEISInfoToJson (info : OEISInfo) : Json :=
   Json.mkObj <| info.toList.map (fun (mod, tagsForMod) =>
     (mod.toString, Json.mkObj <| tagsForMod.toList.map (fun (tag, declsForTag) =>
       (tag, Json.mkObj <| declsForTag.toList.map (fun (decl, thmsForDecl) =>
         (decl.toString, Json.mkObj <| thmsForDecl.toList.map (fun thm =>
-          (thm.thmName.toString, ThmToJson thm)
+          (ThmToName thm |>.toString, ThmToJson thm)
         ))
       ))
     ))

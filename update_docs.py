@@ -47,6 +47,13 @@ keys = dict([
 ])
 
 
+def clean_name(name):
+    fst, *lst = name.split('.')
+    if fst == "Sequence":
+        return '.'.join(lst)
+    return name
+
+
 def theorems(soup, thms):
     key = lambda thm: keys[thm.split("_")[1]]
     for thm in sorted(thms, key=key):
@@ -71,13 +78,14 @@ def insert(soup, mod, tags):
         decl_list = soup.new_tag("ul")
         for decl, thms in decls.items():
             decl_tag = soup.new_tag("a", href=f"#{decl}")
-            decl_tag.string = decl
+            decl_tag.string = clean_name(decl)
             decl = soup.new_tag("li")
             decl.append(decl_tag)
             if thms:
+                value_thms = {k: v for (k, v) in thms.items() if v == "value"}
                 decl.append(": ")
                 decl.extend(
-                    list(more_itertools.intersperse(", ", theorems(soup, thms)))
+                    list(more_itertools.intersperse(", ", theorems(soup, value_thms)))
                 )
             decl_list.append(decl)
         ul_tag.append(li_tag)
@@ -152,8 +160,9 @@ def create_index(info, titles):
         for decl in sorted(decls):
             mod = decls[decl]
             p = mod_to_path(mod)
+            cleaned = clean_name(decl)
             out_lines.append(
-                f"    * [{decl}](https://provables.github.io/sequencelib/docs/{p}#{decl})"
+                f"    * [{cleaned}](https://provables.github.io/sequencelib/docs/{p}#{decl})"
             )
     out.write_text("\n".join(out_lines))
 

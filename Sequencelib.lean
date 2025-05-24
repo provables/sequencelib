@@ -11,3 +11,4 @@ import Sequencelib.Fib
 import Sequencelib.Divisors
 import Sequencelib.Partitions
 import Sequencelib.Totient
+import Sequencelib.Parity

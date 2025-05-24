@@ -21,6 +21,7 @@ structure Sequence where
   definition : Name
   module : Name
   theorems : Array Thm
+  offset : Nat
   deriving Repr
 
 structure OEISTag where
@@ -55,7 +56,7 @@ def addOEISEntry {m : Type → Type} [MonadEnv m]
     (declName : Name) (module : Name) (oeisTag : String) (offset : Nat) : m Unit :=
   modifyEnv (oeisExt.addEntry · {
     tagName := oeisTag,
-    sequences := #[⟨oeisTag, declName, module, #[]⟩],
+    sequences := #[⟨oeisTag, declName, module, #[], offset⟩],
     offset := offset
   })
 
@@ -103,7 +104,7 @@ def findValueTheorems (decl : Name) (off : Nat := 0) : MetaM (Array Thm) := do
     result := result.push <| .Value n decl i value
   return result
 
-def findEquivTheorems (decl : Name) (decls : List Name) : MetaM (Array Thm) := do
+def findEquivTheorems (decl : Name) (decls : Array Name) : MetaM (Array Thm) := do
   let env ← getEnv
   let mut result := #[]
   for decl2 in decls do
@@ -126,7 +127,8 @@ initialize registerBuiltinAttribute {
         let mod ← getMainModule
         let oldDoc := (← findDocString? env decl).getD ""
         let newDoc := [s!
-          "[The On-Line Encyclopedia of Integer Sequences (OEIS): {seqStr}](https://oeis.org/{seqStr})",
+          "* [The On-Line Encyclopedia of Integer Sequences (OEIS): {seqStr}](https://oeis.org/{seqStr})",
+          s!"* Offset: {offst}",
           oldDoc
         ]
         addDocString decl <| "\n\n".intercalate <| newDoc.filter (· ≠ "")
@@ -159,19 +161,17 @@ initialize registerBuiltinAttribute {
 def getOEISInfo : MetaM OEISInfo := do
   let env ← getEnv
   let info := oeisExt.getState env
-  return info
-  -- return .ofList (← info.toList.mapM (fun (mod, tagsForMod) => do
-  --   return (mod, .ofList <| ← tagsForMod.toList.mapM (fun (tag, declsForTag) => do
-  --     -- find things like d1_eq_d2 for d1, d2 in declsForTag
-  --     -- append to thmsForDecl
-  --     return (tag, .ofList <| ← declsForTag.toList.mapM (fun (decl, thmsForDecl) => do
-  --       return (
-  --         decl,
-  --         thmsForDecl.append (← findValueTheorems decl)
-  --           |>.append (← findEquivTheorems decl declsForTag.keys))
-  --     ))
-  --   ))
-  -- ))
+  return .ofList (← info.toList.mapM (fun (tag, oeisTag) => do
+    return (tag, ⟨
+      tag,
+      ← oeisTag.sequences.mapM (fun seq => do
+        let new_thms := (← findValueTheorems seq.definition)
+          |>.append (← findEquivTheorems seq.definition <| oeisTag.sequences.map (·.definition))
+        return {seq with theorems := seq.theorems.append new_thms}
+      ),
+      oeisTag.offset
+    ⟩)
+  ))
 
 -- def showOEISInfo : Command.CommandElabM Unit := do
 --   let info ← Command.liftTermElabM getOEISInfo

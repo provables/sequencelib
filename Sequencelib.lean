@@ -9,3 +9,4 @@ import Sequencelib.PowersOfPrimes
 import Sequencelib.MersenneExponents
 import Sequencelib.Fib
 import Sequencelib.Divisors
+import Sequencelib.Partitions

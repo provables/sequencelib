@@ -30,8 +30,6 @@ the 2^p - 1 is called a Mersenne prime.
 -/
 def IsMersenneExponent (p : ℕ) : Prop := Nat.Prime p ∧ Nat.Prime (2^p - 1)
 
-#check @Nat.prime_of_pow_sub_one_prime 2
-
 theorem power_sub_one_prime_implies_prime (p : ℕ) (h2: Nat.Prime (2^p - 1))
     : Nat.Prime p := by
   have h1: p ≠ 1 := by

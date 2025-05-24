@@ -6,3 +6,4 @@ import Sequencelib.Sylvester
 import Sequencelib.FiniteGroups
 import Sequencelib.Primes
 import Sequencelib.PowersOfPrimes
+import Sequencelib.MersenneExponents

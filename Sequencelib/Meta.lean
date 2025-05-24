@@ -20,13 +20,6 @@ inductive Thm : Type where
   | Equiv (thmName : Name) (seq1 : Name) (seq2 : Name) : Thm
   deriving BEq, Hashable, Repr
 
--- structure Thm where
---   thmName : Name
---   declName : Name
---   index : Nat
---   value : Nat
---   deriving BEq, Hashable, Repr
-
 abbrev OEISInfo := Std.HashMap Name (Std.HashMap String (Std.HashMap Name (Array Thm)))
 
 def addOEISInfo (info : OEISInfo) (tag : OEISTag) : OEISInfo :=

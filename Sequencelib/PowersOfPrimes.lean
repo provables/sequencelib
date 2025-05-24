@@ -25,7 +25,7 @@ The sequence of prime powers, including 1 (i.e., `PowersOfPrimes 1 = 1`).
 -/
 @[OEIS := A000961, offset := 1]
 noncomputable def PowersOfPrimes : ℕ → ℕ
-  | 0 => 1
+  | 0 => 1  -- dummy value, since sequence starts at offset 1
   | 1 => 1
   | n + 1 => nth IsPrimePow (n - 1)
 

@@ -21,42 +21,37 @@ namespace Sequence
 open Classical
 
 /--
-A natural number, `n`, is a prime power if there exists a natural number, `e`, and prime, `p`,
-such that n = p^e
--/
-def PrimePower (n : ℕ) : Prop := ∃ p e : ℕ, n = p ^ e ∧ Nat.Prime p
-
-/--
 The sequence of prime powers, including 1 (i.e., `PowersOfPrimes 1 = 1`).
 -/
 @[OEIS := A000961, offset := 1]
-noncomputable def PowersOfPrimes (n : ℕ) : ℕ := nth PrimePower (n - 1)
+noncomputable def PowersOfPrimes : ℕ → ℕ
+  | 0 => 1
+  | 1 => 1
+  | n + 1 => nth IsPrimePow (n - 1)
 
-theorem not_PrimePower_zero : ¬PrimePower 0 := by
-  simp [PrimePower]
-  rintro p e h hp
-  symm at h
-  rw [Nat.pow_eq_zero] at h
-  linarith [Nat.Prime.pos hp]
+theorem PowersOfPrimes_one : PowersOfPrimes 1 = 1 := rfl
 
-theorem PrimePower_one : PrimePower 1 := by
-  use 2, 0
-  simp [prime_two]
-
-theorem PrimePower_two : PrimePower 2 := by
-  use 2, 1
-  simp [prime_two]
-
-theorem PrimePower_three : PrimePower 3 := by
-  use 3, 1
-  simp [prime_three]
-
-theorem PrimePower_four : PrimePower 4 := by
-  use 2, 2
-  simp [prime_two]
-
-theorem PowersOfPrimes_one : PowersOfPrimes 1 = 1 := by
+theorem PowersOfPrimes_two : PowersOfPrimes 2 = 2 := by
   simp [PowersOfPrimes]
-  have h : count PrimePower 1 = 0 := count_of_forall_not (by simp [not_PrimePower_zero])
-  rw [← h]
-  apply nth_count PrimePower_one
+  rw [← (show count IsPrimePow 2 = 0 by decide)]
+  refine nth_count (by decide)
+
+theorem PowersOfPrimes_three : PowersOfPrimes 3 = 3 := by
+  simp [PowersOfPrimes]
+  rw [← (show count IsPrimePow 3 = 1 by decide)]
+  exact nth_count (by decide)
+
+theorem PowersOfPrimes_four : PowersOfPrimes 4 = 4 := by
+  simp [PowersOfPrimes]
+  rw [← (show count IsPrimePow 4 = 2 by decide)]
+  exact nth_count (by decide)
+
+theorem PowersOfPrimes_five : PowersOfPrimes 5 = 5 := by
+  simp [PowersOfPrimes]
+  rw [← (show count IsPrimePow 5 = 3 by decide)]
+  exact nth_count (by decide)
+
+theorem PowersOfPrimes_six : PowersOfPrimes 6 = 7 := by
+  simp [PowersOfPrimes]
+  rw [← (show count IsPrimePow 7 = 4 by decide)]
+  exact nth_count (by decide)

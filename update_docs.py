@@ -81,12 +81,22 @@ def insert(soup, mod, tags):
             decl_tag.string = clean_name(decl)
             decl = soup.new_tag("li")
             decl.append(decl_tag)
-            if thms:
-                value_thms = {k: v for (k, v) in thms.items() if v["type"] == "value"}
+            value_thms = {k: v for (k, v) in thms.items() if v["type"] == "value"}
+            if value_thms:
                 decl.append(": ")
                 decl.extend(
                     list(more_itertools.intersperse(", ", theorems(soup, value_thms)))
                 )
+            equiv_thms = {k: v for (k, v) in thms.items() if v["type"] == "equiv"}
+            if equiv_thms:
+                equiv_list = soup.new_tag("ul")
+                for thm_name, thm in equiv_thms.items():
+                    equiv_item = soup.new_tag("li")
+                    equiv_a = soup.new_tag("a", href=f"#{thm_name}")
+                    equiv_a.string = f"{clean_name(thm['seq1'])} = {clean_name(thm['seq2'])}"
+                    equiv_item.append(equiv_a)
+                    equiv_list.append(equiv_item)
+                decl.append(equiv_list)
             decl_list.append(decl)
         ul_tag.append(li_tag)
         ul_tag.append(decl_list)

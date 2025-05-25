@@ -10,29 +10,29 @@ import Sequencelib.Meta
 
 namespace Sequence
 
-/-
+/--
 The sequence corresponding to the Euler totient function, `phi(n)`; This function counts the
 number of numbers less than `n` and coprime with `n`; i.e., 1, 1, 2, 2, 4, 2, 6, ...
 -/
 @[OEIS := A000010, offset := 1]
-noncomputable def totient (n : ℕ) := Nat.totient n
+noncomputable def Totient (n : ℕ) := Nat.totient n
 
-theorem totient_one : totient 1 = 1 := by decide
+theorem Totient_one : Totient 1 = 1 := by decide
 
-theorem totient_two : totient 2 = 1 := by decide
+theorem Totient_two : Totient 2 = 1 := by decide
 
-theorem totient_three : totient 3 = 2 := by decide
+theorem Totient_three : Totient 3 = 2 := by decide
 
-theorem totient_four : totient 4 = 2 := by decide
+theorem Totient_four : Totient 4 = 2 := by decide
 
-theorem totient_five : totient 5 = 4 := by decide
+theorem Totient_five : Totient 5 = 4 := by decide
 
-theorem totient_six : totient 6 = 2 := by decide
+theorem Totient_six : Totient 6 = 2 := by decide
 
-theorem totient_seven : totient 7 = 6 := by decide
+theorem Totient_seven : Totient 7 = 6 := by decide
 
-theorem totient_eight : totient 8 = 4 := by decide
+theorem Totient_eight : Totient 8 = 4 := by decide
 
-theorem totient_nine : totient 9 = 6 := by decide
+theorem Totient_nine : Totient 9 = 6 := by decide
 
-theorem totient_ten : totient 10 = 4 := by decide
+theorem Totient_ten : Totient 10 = 4 := by decide

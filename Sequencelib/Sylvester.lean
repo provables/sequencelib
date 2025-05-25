@@ -36,26 +36,26 @@ open Nat
 
 /-- Sylvester's sequence. -/
 @[OEIS := A000058]
-def sylvester : ℕ → ℕ
+def Sylvester : ℕ → ℕ
   | 0 => 2
-  | n + 1 => (sylvester n) * (sylvester n - 1) + 1
+  | n + 1 => (Sylvester n) * (Sylvester n - 1) + 1
 
 @[simp]
-theorem sylvester_zero : sylvester 0 = 2 := rfl
+theorem Sylvester_zero : Sylvester 0 = 2 := rfl
 
 @[simp]
-theorem sylvester_one : sylvester 1 = 3 := rfl
+theorem Sylvester_one : Sylvester 1 = 3 := rfl
 
 @[simp]
-theorem sylvester_two : sylvester 2 = 7 := rfl
+theorem Sylvester_two : Sylvester 2 = 7 := rfl
 
 @[simp]
-theorem sylvester_three : sylvester 3 = 43 := rfl
+theorem Sylvester_three : Sylvester 3 = 43 := rfl
 
-theorem two_le_sylvester (n : ℕ) : 2 ≤ sylvester n := by
+theorem two_le_sylvester (n : ℕ) : 2 ≤ Sylvester n := by
   induction' n with n ih
   · simp
-  · simp only [sylvester, reduceLeDiff]
+  · simp only [Sylvester, reduceLeDiff]
     exact one_le_mul_of_one_le_of_one_le (by linarith) (by omega)
 
 /--
@@ -66,37 +66,37 @@ $$
 assuming the product over the empty set to be 1.
 -/
 theorem sylvester_prod_finset_add_one {n : ℕ} :
-    sylvester n = ∏ i ∈ Finset.range n, sylvester i + 1 := by
-  rw [Finset.prod_range_induction _ (fun n => sylvester n - 1)]
+    Sylvester n = ∏ i ∈ Finset.range n, Sylvester i + 1 := by
+  rw [Finset.prod_range_induction _ (fun n => Sylvester n - 1)]
   · exact (Nat.sub_one_add_one (by linarith [two_le_sylvester n])).symm
   · norm_num
-  · simp [sylvester, mul_comm]
+  · simp [Sylvester, mul_comm]
 
-theorem sylvester_strictMono : StrictMono sylvester := by
+theorem sylvester_strictMono : StrictMono Sylvester := by
   apply strictMono_nat_of_lt_succ
   intro n
-  simp only [sylvester]
+  simp only [Sylvester]
   calc
-    sylvester n * (sylvester n - 1) + 1 >
-      sylvester n * (sylvester n - 1) := by linarith
-    _ ≥ sylvester n := Nat.le_mul_of_pos_right _ <| le_sub_one_of_lt <| two_le_sylvester n
+    Sylvester n * (Sylvester n - 1) + 1 >
+      Sylvester n * (Sylvester n - 1) := by linarith
+    _ ≥ Sylvester n := Nat.le_mul_of_pos_right _ <| le_sub_one_of_lt <| two_le_sylvester n
 
 /-!
 ### Coprimality
 -/
 
 theorem sylvester_mod_eq_one {m n : ℕ} (h : m < n) :
-    sylvester n % sylvester m = 1 := by
+    Sylvester n % Sylvester m = 1 := by
   rw [sylvester_prod_finset_add_one, ← mod_add_mod,
     dvd_iff_mod_eq_zero.mp (Finset.dvd_prod_of_mem _ <| Finset.mem_range.mpr h)]
   exact Nat.mod_eq_of_lt <| two_le_sylvester _
 
 private theorem sylvester_coprime_of_lt {m n : ℕ} (h : m < n) :
-    Coprime (sylvester m) (sylvester n) := by
+    Coprime (Sylvester m) (Sylvester n) := by
   rw [Coprime, Nat.gcd_rec, sylvester_mod_eq_one h, gcd_one_left]
 
 theorem sylvester_coprime {m n : ℕ} (h : m ≠ n) :
-    Coprime (sylvester m) (sylvester n) := by
+    Coprime (Sylvester m) (Sylvester n) := by
   rcases h.lt_or_lt with c | c
   · exact sylvester_coprime_of_lt c
   · exact (sylvester_coprime_of_lt c).symm
@@ -111,11 +111,11 @@ theorem sylvester_coprime {m n : ℕ} (h : m ≠ n) :
 -- that `sylvesterBelow n < sylvesterAbove m` for any `n`, and `m`, and then defining the constant
 -- `E` as the limit of `sylvesterBelow n`.
 private noncomputable def sylvesterBelow (n : ℕ) : ℝ :=
-  (sylvester n - 2⁻¹) ^ (((2 : ℝ) ^ (n + 1))⁻¹)
+  (Sylvester n - 2⁻¹) ^ (((2 : ℝ) ^ (n + 1))⁻¹)
 private noncomputable def sylvesterAbove (n : ℕ) : ℝ :=
-  (sylvester n + 2⁻¹) ^ (((2 : ℝ) ^ (n + 1))⁻¹)
+  (Sylvester n + 2⁻¹) ^ (((2 : ℝ) ^ (n + 1))⁻¹)
 
-private theorem cast_one_lt_sylvester (n : ℕ) : (1 : ℝ) < sylvester n :=
+private theorem cast_one_lt_sylvester (n : ℕ) : (1 : ℝ) < Sylvester n :=
   Nat.one_lt_cast.mpr <| two_le_sylvester n
 
 private theorem sylvesterBelow_pos (n : ℕ) : 0 < sylvesterBelow n :=
@@ -129,7 +129,7 @@ private theorem sylvesterBelow_monotone : Monotone sylvesterBelow := by
   refine (Real.rpow_le_rpow_iff ?_ ?_ ((by positivity) : 0 < (2 : ℝ) ^ (m + 2))).mp ?_
   any_goals exact Real.rpow_nonneg (by linarith) _
   rw [← Real.rpow_mul, ← Real.rpow_mul, inv_mul_cancel_of_invertible, mul_comm, ← pow_sub₀,
-    ← Nat.eq_sub_of_add_eq' (c := 1), pow_one, Real.rpow_one, sylvester, cast_add, cast_mul,
+    ← Nat.eq_sub_of_add_eq' (c := 1), pow_one, Real.rpow_one, Sylvester, cast_add, cast_mul,
     cast_pred (by linarith [two_le_sylvester m]), Real.rpow_two] <;> linarith
 
 private theorem sylvesterAbove_strictAnti : StrictAnti sylvesterAbove := by
@@ -140,7 +140,7 @@ private theorem sylvesterAbove_strictAnti : StrictAnti sylvesterAbove := by
   refine (Real.rpow_lt_rpow_iff ?_ ?_ ((by positivity) : 0 < (2 : ℝ) ^ (m + 2))).mp ?_
   any_goals exact Real.rpow_nonneg (by linarith) _
   rw [← Real.rpow_mul, ← Real.rpow_mul, inv_mul_cancel_of_invertible, mul_comm, ← pow_sub₀,
-    ← Nat.eq_sub_of_add_eq' (c := 1), pow_one, Real.rpow_one, sylvester, cast_add, cast_mul,
+    ← Nat.eq_sub_of_add_eq' (c := 1), pow_one, Real.rpow_one, Sylvester, cast_add, cast_mul,
     cast_pred (by linarith [two_le_sylvester m]), Real.rpow_two] <;> linarith
 
 private theorem sylvesterBelow_le_sylvesterAbove (n m : ℕ) :
@@ -172,13 +172,13 @@ theorem sylvesterConstant_pos : 0 < sylvesterConstant := by
   exact le_ciSup sylvesterBelow_bddAbove 0
 
 private theorem sylvester_le_const_pow {n : ℕ} :
-    sylvester n ≤ sylvesterConstant ^ (2 ^ (n + 1)) + 1 / 2 := by
+    Sylvester n ≤ sylvesterConstant ^ (2 ^ (n + 1)) + 1 / 2 := by
   rw [← tsub_le_iff_right, one_div]
   exact_mod_cast (Real.rpow_inv_le_iff_of_pos (by linarith [cast_one_lt_sylvester n])
     (by linarith! [sylvesterConstant_pos]) (by positivity)).mp <| le_ciSup sylvesterBelow_bddAbove _
 
 private theorem const_pow_lt_sylvester_add_one {n : ℕ} :
-    sylvesterConstant ^ (2 ^ (n + 1)) + 1 / 2 < sylvester n + 1 := by
+    sylvesterConstant ^ (2 ^ (n + 1)) + 1 / 2 < Sylvester n + 1 := by
   rw [← lt_tsub_iff_right, add_sub_assoc, sub_self_div_two, one_div]
   exact_mod_cast (Real.lt_rpow_inv_iff_of_pos
     (by linarith! [sylvesterConstant_pos]) (by positivity) (by positivity)).mp
@@ -194,7 +194,7 @@ $$
 for all natural $n$.
 -/
 theorem sylvester_eq_floor_constant_pow {n : ℕ} :
-    sylvester n = ⌊sylvesterConstant ^ (2 ^ (n + 1)) + 1 / 2⌋₊ := by
+    Sylvester n = ⌊sylvesterConstant ^ (2 ^ (n + 1)) + 1 / 2⌋₊ := by
   refine ((Nat.floor_eq_iff ?_).mpr ?_).symm
   · linarith [pow_pos sylvesterConstant_pos (2 ^ (n + 1))]
   · exact ⟨sylvester_le_const_pow, const_pow_lt_sylvester_add_one⟩
@@ -206,7 +206,7 @@ theorem sylvester_eq_floor_constant_pow {n : ℕ} :
 /--
 Partial sums of the series `∑ 1/(sylvester i)`.
 -/
-def PartialSumsSylvester (n : ℕ) := ∑ i ∈ Finset.range n, (1 : ℚ) / sylvester i
+def PartialSumsSylvester (n : ℕ) := ∑ i ∈ Finset.range n, (1 : ℚ) / Sylvester i
 
 example : PartialSumsSylvester 4 = (1805 : ℚ) / 1806 := by
   unfold PartialSumsSylvester
@@ -220,7 +220,7 @@ $$
 $$
 -/
 theorem partialSums_sylvester_eq_one_minus_one_div_pred (j : ℕ) :
-    PartialSumsSylvester j = 1 - (1 : ℚ) / (sylvester j - 1) := by
+    PartialSumsSylvester j = 1 - (1 : ℚ) / (Sylvester j - 1) := by
   induction j
   case zero =>
     simp [PartialSumsSylvester]
@@ -229,20 +229,20 @@ theorem partialSums_sylvester_eq_one_minus_one_div_pred (j : ℕ) :
     unfold PartialSumsSylvester at *
     rw [Finset.sum_range_succ, ih]
     clear ih
-    field_simp [sylvester]
+    field_simp [Sylvester]
 
-    have h1 : sylvester j ≠ 0 := by
+    have h1 : Sylvester j ≠ 0 := by
       linarith [two_le_sylvester j]
-    have h3 : ((sylvester j) : ℚ)  - 1 ≠ 0 := by
-      linarith [show (2 : ℚ) ≤ sylvester j by exact_mod_cast two_le_sylvester j]
+    have h3 : ((Sylvester j) : ℚ)  - 1 ≠ 0 := by
+      linarith [show (2 : ℚ) ≤ Sylvester j by exact_mod_cast two_le_sylvester j]
 
-    apply_fun (fun x : ℚ ↦ ((sylvester j) * (sylvester j - 1)) * x)
+    apply_fun (fun x : ℚ ↦ ((Sylvester j) * (Sylvester j - 1)) * x)
     case inj =>
-      have : (((sylvester j) * (sylvester j - 1)) : ℚ) ≠ 0 := by positivity
+      have : (((Sylvester j) * (Sylvester j - 1)) : ℚ) ≠ 0 := by positivity
       exact mul_right_injective₀ this
     dsimp
-    rw [mul_add, mul_sub, mul_one, mul_assoc ((sylvester j) : ℚ),
-      mul_sub (((sylvester j) : ℚ) * (sylvester j - 1)), cast_pred (by positivity)]
+    rw [mul_add, mul_sub, mul_one, mul_assoc ((Sylvester j) : ℚ),
+      mul_sub (((Sylvester j) : ℚ) * (Sylvester j - 1)), cast_pred (by positivity)]
     field_simp
 
 end Sequence

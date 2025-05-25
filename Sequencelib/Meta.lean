@@ -173,64 +173,68 @@ def getOEISInfo : MetaM OEISInfo := do
     ⟩)
   ))
 
--- def showOEISInfo : Command.CommandElabM Unit := do
---   let info ← Command.liftTermElabM getOEISInfo
---   let mut msgs := #[]
---   for (mod, tagsForMod) in info do
---     msgs := msgs.push m!"Module: {mod}"
---     for (tag, declsForTag) in tagsForMod do
---       msgs := msgs.push m!".. tag: {tag}"
---       for (decl, thmsForDecl) in declsForTag do
---         msgs := msgs.push m!".... {decl}"
---         for thm in thmsForDecl do
---           msgs := msgs.push m!"...... {repr thm}"
---   logInfo <| MessageData.joinSep msgs.toList "\n"
+def OEISInfoToMod (info : OEISInfo) :
+    Std.HashMap Name (Std.HashMap Tag (Std.HashMap Name (Array Thm))) :=
+  info.fold (fun acc tag oeisTag =>
+    let mod := oeisTag.sequences[0]? |>.map (·.module) |>.getD `no_module
+    let tagsForMod := acc.get? mod |>.getD ∅
+    let declsForTagWithThms := oeisTag.sequences.foldl (fun accs seq =>
+      accs.insert seq.definition seq.theorems
+    ) <| tagsForMod.get? tag |>.getD ∅
+    acc.insert mod <| tagsForMod.insert tag declsForTagWithThms
+  ) ∅
 
--- def OEISTagToJson (tag : OEISTag) : Json :=
---   Json.mkObj [
---     ("declaration", Json.str <| tag.declName.toString),
---     ("module", Json.str <| tag.module.toString),
---     ("oeis_tag", tag.oeisTag),
---   ]
+def showOEISInfo : Command.CommandElabM Unit := do
+  let info ← Command.liftTermElabM getOEISInfo
+  let mut msgs := #[]
+  for (mod, tagsForMod) in OEISInfoToMod info do
+    msgs := msgs.push m!"Module: {mod}"
+    for (tag, declsForTag) in tagsForMod do
+      msgs := msgs.push m!".. tag: {tag}"
+      for (decl, thmsForDecl) in declsForTag do
+        msgs := msgs.push m!".... {decl}"
+        for thm in thmsForDecl do
+          msgs := msgs.push m!"...... {repr thm}"
+  logInfo <| MessageData.joinSep msgs.toList "\n"
 
--- def ThmToJson (thm : Thm) : Json :=
---   match thm with
---   | .Value thmName declName index value =>
---     Json.mkObj [
---       ("type", "value"),
---       ("declaration", Json.str declName.toString),
---       ("theorem", Json.str thmName.toString),
---       ("index", Json.num index),
---       ("value", Json.num value)
---     ]
---   | .Equiv thmName seq1 seq2 =>
---     Json.mkObj [
---       ("type", "equiv"),
---       ("theorem", thmName.toString),
---       ("seq1", seq1.toString),
---       ("seq2", seq2.toString)
---     ]
+def ThmToJson (thm : Thm) : Json :=
+  match thm with
+  | .Value thmName declName index value =>
+    Json.mkObj [
+      ("type", "value"),
+      ("declaration", Json.str declName.toString),
+      ("theorem", Json.str thmName.toString),
+      ("index", Json.num index),
+      ("value", Json.num value)
+    ]
+  | .Equiv thmName seq1 seq2 =>
+    Json.mkObj [
+      ("type", "equiv"),
+      ("theorem", thmName.toString),
+      ("seq1", seq1.toString),
+      ("seq2", seq2.toString)
+    ]
 
--- def ThmToName (thm : Thm) : Name :=
---   match thm with
---   | .Value n _ _ _ => n
---   | .Equiv n _ _ => n
+def ThmToName (thm : Thm) : Name :=
+  match thm with
+  | .Value n _ _ _ => n
+  | .Equiv n _ _ => n
 
--- def OEISInfoToJson (info : OEISInfo) : Json :=
---   Json.mkObj <| info.toList.map (fun (mod, tagsForMod) =>
---     (mod.toString, Json.mkObj <| tagsForMod.toList.map (fun (tag, declsForTag) =>
---       (tag, Json.mkObj <| declsForTag.toList.map (fun (decl, thmsForDecl) =>
---         (decl.toString, Json.mkObj <| thmsForDecl.toList.map (fun thm =>
---           (ThmToName thm |>.toString, ThmToJson thm)
---         ))
---       ))
---     ))
---   )
+def OEISInfoToJson (info : OEISInfo) : Json :=
+  Json.mkObj <| OEISInfoToMod info |>.toList.map (fun (mod, tagsForMod) =>
+    (mod.toString, Json.mkObj <| tagsForMod.toList.map (fun (tag, declsForTag) =>
+      (tag, Json.mkObj <| declsForTag.toList.map (fun (decl, thmsForDecl) =>
+        (decl.toString, Json.mkObj <| thmsForDecl.toList.map (fun thm =>
+          (ThmToName thm |>.toString, ThmToJson thm)
+        ))
+      ))
+    ))
+  )
 
--- elab (name := oeisInfo) "#oeis_info" : command =>
---   showOEISInfo
+elab (name := oeisInfo) "#oeis_info" : command =>
+  showOEISInfo
 
--- elab (name := oeisTags) "#oeis_info_json" : command => do
---   let info ← Command.liftTermElabM getOEISInfo
---   let result := OEISInfoToJson info
---   logInfo m!"{result}"
+elab (name := oeisTags) "#oeis_info_json" : command => do
+  let info ← Command.liftTermElabM getOEISInfo
+  let result := OEISInfoToJson info
+  logInfo m!"{result}"

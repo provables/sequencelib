@@ -111,3 +111,8 @@ tasks:
     desc: Update nolints
     cmds:
       - lake exe batteries/runLinter --update
+
+  sort-root:
+    desc: Sort imports in Sequencelib.lean
+    cmds:
+      - sort -o Sequencelib.lean Sequencelib.lean

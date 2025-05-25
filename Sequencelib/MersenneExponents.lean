@@ -22,16 +22,14 @@ namespace Sequence
 
 open Classical
 
-#check Decidable
-
 /--
-A prime number, `p`, is a Mersenne exponent if 2^p - 1 is also prime. In this case,
-the 2^p - 1 is called a Mersenne prime.
+A prime number, `p`, is a Mersenne exponent if `2^p - 1` is also prime. In this case,
+the `2^p - 1` is called a Mersenne prime.
 -/
-def IsMersenneExponent (p : ℕ) : Prop := Nat.Prime p ∧ Nat.Prime (2^p - 1)
+def IsMersenneExponent (p : ℕ) : Prop := Nat.Prime p ∧ Nat.Prime (2 ^ p - 1)
 
-theorem power_sub_one_prime_implies_prime (p : ℕ) (h2: Nat.Prime (2^p - 1))
-    : Nat.Prime p := by
+theorem power_sub_one_prime_implies_prime (p : ℕ) (h2: Nat.Prime (2 ^ p - 1)) :
+    Nat.Prime p := by
   have h1: p ≠ 1 := by
     by_contra h
     simp [h] at h2
@@ -39,7 +37,7 @@ theorem power_sub_one_prime_implies_prime (p : ℕ) (h2: Nat.Prime (2^p - 1))
   let T := (@Nat.prime_of_pow_sub_one_prime 2 p h1 h2).right
   exact T
 
-theorem mersenne_exp_if_prime (p : ℕ) (h: Nat.Prime (2^p - 1)) : IsMersenneExponent p := by
+theorem mersenne_exp_if_prime (p : ℕ) (h: Nat.Prime (2 ^ p - 1)) : IsMersenneExponent p := by
   unfold IsMersenneExponent
   constructor
   · apply power_sub_one_prime_implies_prime
@@ -56,6 +54,8 @@ theorem MersenneExponent_three : IsMersenneExponent 3 := by decide
 
 theorem MersenneExponent_five : IsMersenneExponent 5 := by decide
 
+theorem MersenneExponent_seven : IsMersenneExponent 7 := by decide
+
 /--
 The sequence of MersenneExponents.
 -/
@@ -67,5 +67,29 @@ theorem MersenneExponents_one : MersenneExponents 1 = 2 := by
   simp
   have h1: count IsMersenneExponent 2 = 0 := by decide
   let T := nth_count MersenneExponent_two
+  rw[h1] at T
+  exact T
+
+theorem MersenneExponents_two : MersenneExponents 2 = 3 := by
+  unfold MersenneExponents
+  simp
+  have h1: count IsMersenneExponent 3 = 1 := by decide
+  let T := nth_count MersenneExponent_three
+  rw[h1] at T
+  exact T
+
+theorem MersenneExponents_three : MersenneExponents 3 = 5 := by
+  unfold MersenneExponents
+  simp
+  have h1: count IsMersenneExponent 5 = 2 := by decide
+  let T := nth_count MersenneExponent_five
+  rw[h1] at T
+  exact T
+
+theorem MersenneExponents_four : MersenneExponents 4 = 7 := by
+  unfold MersenneExponents
+  simp
+  have h1: count IsMersenneExponent 7 = 3 := by decide
+  let T := nth_count MersenneExponent_seven
   rw[h1] at T
   exact T

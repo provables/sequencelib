@@ -106,3 +106,8 @@ tasks:
         task: get-cache-for-dir
         vars:
           DIR: '{{ .ITEM }}'
+
+  update-nolints:
+    desc: Update nolints
+    cmds:
+      - lake exe batteries/runLinter --update

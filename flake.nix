@@ -35,6 +35,7 @@
             ipython
             more-itertools
             requests
+            appdirs
         ];
 
         pythonImportsCheck = [ "leanblueprint" ];

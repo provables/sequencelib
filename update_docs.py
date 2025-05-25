@@ -5,6 +5,9 @@ import json
 import pathlib
 import re
 
+from pathlib import Path
+
+import appdirs
 import more_itertools
 import requests
 from bs4 import BeautifulSoup
@@ -137,11 +140,30 @@ def process_all(info):
         process_mod(mod, tags)
 
 
+def load_cache():
+    cache_dir = Path(appdirs.user_cache_dir()) / "sequencelib"
+    try:
+        with open(cache_dir / "oeis_titles.json") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+
+def save_cache(result):
+    cache_dir = Path(appdirs.user_cache_dir()) / "sequencelib"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    with open(cache_dir / "oeis_titles.json", "w") as f:
+        json.dump(result, f)
+
+
 def get_titles(info):
-    result = {}
+    result = load_cache() 
     for tags in info.values():
         for tag in tags:
             print(f"Getting title for {tag}...")
+            if tag in result:
+                print(f".. [from cache] {result[tag]}")
+                continue
             resp = requests.get(f"https://oeis.org/search?q=id:{tag}&fmt=text")
             resp.raise_for_status()
             m = re.search(
@@ -151,6 +173,7 @@ def get_titles(info):
                 raise ValueError("%N field not found")
             result[tag] = m.groups()[1]
             print(f".. {result[tag]}")
+    save_cache(result)
     return result
 
 

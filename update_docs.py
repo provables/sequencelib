@@ -172,7 +172,7 @@ def create_index(info, titles):
             p = mod_to_path(mod)
             cleaned = clean_name(decl)
             out_lines.append(
-                f"    * [{cleaned}](https://provables.github.io/sequencelib/docs/{p}#{decl})"
+                f"    * [{cleaned}]({{{{ site.url }}}}/docs/{p}#{decl})"
             )
     out.write_text("\n".join(out_lines))
 

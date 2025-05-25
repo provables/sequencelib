@@ -1,15 +1,14 @@
--- This module serves as the root of the `Sequencelib` library.
 -- Import modules here that should be built as part of the library.
+-- This module serves as the root of the `Sequencelib` library.
 import Sequencelib.Basic
-import Sequencelib.Meta
-import Sequencelib.Sylvester
-import Sequencelib.FiniteGroups
-import Sequencelib.Primes
-import Sequencelib.PowersOfPrimes
-import Sequencelib.MersenneExponents
-import Sequencelib.Fib
 import Sequencelib.Divisors
-import Sequencelib.Partitions
-import Sequencelib.Totient
-import Sequencelib.Parity
+import Sequencelib.Fib
+import Sequencelib.FiniteGroups
 import Sequencelib.Lucas
+import Sequencelib.MersenneExponents
+import Sequencelib.Parity
+import Sequencelib.Partitions
+import Sequencelib.PowersOfPrimes
+import Sequencelib.Primes
+import Sequencelib.Sylvester
+import Sequencelib.Totient

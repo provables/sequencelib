@@ -25,6 +25,7 @@ tasks:
       - ./**/*.lean
       - ./**/lakefile.toml
       - ./update_docs.py
+      - ./values.html.j2
       - exclude: ./**/.lake
     generates:
       - .lake/build/doc/Sequencelib.html

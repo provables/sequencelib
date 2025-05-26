@@ -11,7 +11,11 @@ import appdirs
 import more_itertools
 import requests
 from bs4 import BeautifulSoup
+from jinja2 import Template, Environment, FileSystemLoader 
 import html5lib
+
+
+MAX_VALUE = 20
 
 
 def get_oeis_info():
@@ -66,6 +70,31 @@ def theorems(soup, thms):
         yield thm_tag
 
 
+def get_template():
+    env = Environment(loader=FileSystemLoader(Path(".").resolve()))
+    return env.get_template('values.html.j2')
+
+
+def values_table(tag, tags):
+    template = get_template()
+    offset, decls = tags[tag]
+    data = []
+    for seq, thms in decls.items():
+        d = {'label': clean_name(seq), 'max': 0}
+        values = ['']*MAX_VALUE
+        for thm in thms.values():
+            if thm['type'] != 'value':
+                continue
+            values[thm['index']] = thm['value']
+            d['max'] = max(d['max'], thm['index'])
+        d['values'] = values
+        data.append(d) 
+    max_n = max([row['max'] for row in data])
+    headers = ['n'] + list(range(offset, max_n+1))
+    table = template.render(headers=headers, data=data, offset=offset, max_n=max_n, tag=tag)
+    return BeautifulSoup(table, 'html5lib')
+
+
 def insert(soup, mod, tags):
     old = soup.find("div", class_="sequencelib")
     if old:
@@ -74,35 +103,7 @@ def insert(soup, mod, tags):
     p_tag.append("OEIS sequences formalized in this file:")
     ul_tag = soup.new_tag("ul")
     for tag, (offset, decls) in tags.items():
-        oeis_tag = soup.new_tag("a", href=f"https://oeis.org/{tag}")
-        oeis_tag.string = tag
-        li_tag = soup.new_tag("li")
-        li_tag.append(oeis_tag)
-        decl_list = soup.new_tag("ul")
-        for decl, thms in decls.items():
-            decl_tag = soup.new_tag("a", href=f"#{decl}")
-            decl_tag.string = clean_name(decl)
-            decl = soup.new_tag("li")
-            decl.append(decl_tag)
-            value_thms = {k: v for (k, v) in thms.items() if v["type"] == "value"}
-            if value_thms:
-                decl.append(": ")
-                decl.extend(
-                    list(more_itertools.intersperse(", ", theorems(soup, value_thms)))
-                )
-            equiv_thms = {k: v for (k, v) in thms.items() if v["type"] == "equiv"}
-            if equiv_thms:
-                equiv_list = soup.new_tag("ul")
-                for thm_name, thm in equiv_thms.items():
-                    equiv_item = soup.new_tag("li")
-                    equiv_a = soup.new_tag("a", href=f"#{thm_name}")
-                    equiv_a.string = f"{clean_name(thm['seq1'])} = {clean_name(thm['seq2'])}"
-                    equiv_item.append(equiv_a)
-                    equiv_list.append(equiv_item)
-                decl.append(equiv_list)
-            decl_list.append(decl)
-        ul_tag.append(li_tag)
-        ul_tag.append(decl_list)
+        ul_tag.append(values_table(tag, tags))
     h1_tag = soup.find("h1", class_="markdown-heading")
     if not h1_tag:
         m = soup.find("main")

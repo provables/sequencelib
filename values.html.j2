@@ -1,0 +1,22 @@
+<li>
+  <p>
+    <a href="{{ oeis_link }}">{{ tag }}</a>, offset = {{ offset }}
+  </p>
+  <table style="border-collapse: collapse; border: 1px solid var(--text-color);">
+    <tr>
+      <td style="font-weight: bold; border: 1px solid var(--text-color); padding: 8px;">{{ headers[0] }}</td>
+      {% for header in headers[1:] %}
+      <td style="text-align: right; font-weight: bold; border: 1px solid var(--text-color); padding: 8px;">{{ header }}
+      </td>
+      {% endfor %}
+    </tr>
+    {% for row in data %}
+    <tr>
+      <td style="font-weight: bold; border: 1px solid var(--text-color); padding: 8px;">{{ row.label }}</td>
+      {% for value in row['values'][offset:max_n+1] %}
+      <td style="text-align: right; border: 1px solid var(--tags-border-color); padding: 8px;">{{ value }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+</li>

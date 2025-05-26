@@ -16,7 +16,9 @@
         <a href="#{{ row.seq }}">{{ row.label }}</a>
       </td>
       {% for value in row['values'][offset:max_n+1] %}
-      <td style="text-align: right; border: 1px solid var(--tags-border-color); padding: 8px;">{{ value }}</td>
+      <td style="text-align: right; border: 1px solid var(--tags-border-color); padding: 8px;">
+        <a href="#{{ value.thm }}">{{ value.value }}</a>
+      </td>
       {% endfor %}
     </tr>
     {% endfor %}

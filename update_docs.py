@@ -97,7 +97,7 @@ def values_table(tag, tags, mod):
                 continue
             if thm["type"] != "value":
                 continue
-            values[thm["index"]] = thm["value"]
+            values[thm["index"]] = {"value": thm["value"], "thm": thm["theorem"]}
             d["max"] = max(d["max"], thm["index"])
         d["values"] = values
         data.append(d)
@@ -110,7 +110,7 @@ def values_table(tag, tags, mod):
         max_n=max_n,
         tag=tag,
         equivalences=equivalences,
-        mod=mod
+        mod=mod,
     )
     return BeautifulSoup(table, "html5lib")
 

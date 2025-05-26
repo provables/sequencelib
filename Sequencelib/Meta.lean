@@ -177,13 +177,13 @@ def getOEISInfo : MetaM OEISInfo := do
   ))
 
 def OEISInfoToMod (info : OEISInfo) :
-    Std.HashMap Name (Std.HashMap Tag (Std.HashMap Name (Array Thm))) :=
+    Std.HashMap Name (Std.HashMap Tag (Nat × Std.HashMap Name (Array Thm))) :=
   info.fold (fun acc tag oeisTag =>
     let mod := oeisTag.sequences[0]? |>.map (·.module) |>.getD `no_module
     let tagsForMod := acc.get? mod |>.getD ∅
     let declsForTagWithThms := oeisTag.sequences.foldl (fun accs seq =>
-      accs.insert seq.definition seq.theorems
-    ) <| tagsForMod.get? tag |>.getD ∅
+      ⟨seq.offset, accs.2.insert seq.definition seq.theorems⟩
+    ) <| tagsForMod.get? tag |>.getD ⟨0, ∅⟩
     acc.insert mod <| tagsForMod.insert tag declsForTagWithThms
   ) ∅
 
@@ -193,8 +193,8 @@ def showOEISInfo : Command.CommandElabM Unit := do
   for (mod, tagsForMod) in OEISInfoToMod info do
     msgs := msgs.push m!"Module: {mod}"
     for (tag, declsForTag) in tagsForMod do
-      msgs := msgs.push m!".. tag: {tag}"
-      for (decl, thmsForDecl) in declsForTag do
+      msgs := msgs.push m!".. tag: {tag}, offset: {declsForTag.1}"
+      for (decl, thmsForDecl) in declsForTag.2 do
         msgs := msgs.push m!".... {decl}"
         for thm in thmsForDecl do
           msgs := msgs.push m!"...... {repr thm}"
@@ -226,11 +226,14 @@ def ThmToName (thm : Thm) : Name :=
 def OEISInfoToJson (info : OEISInfo) : Json :=
   Json.mkObj <| OEISInfoToMod info |>.toList.map (fun (mod, tagsForMod) =>
     (mod.toString, Json.mkObj <| tagsForMod.toList.map (fun (tag, declsForTag) =>
-      (tag, Json.mkObj <| declsForTag.toList.map (fun (decl, thmsForDecl) =>
-        (decl.toString, Json.mkObj <| thmsForDecl.toList.map (fun thm =>
-          (ThmToName thm |>.toString, ThmToJson thm)
-        ))
-      ))
+      (tag, Json.arr #[
+        Json.num declsForTag.1,
+        Json.mkObj <| declsForTag.2.toList.map (fun (decl, thmsForDecl) =>
+          (decl.toString, Json.mkObj <| thmsForDecl.toList.map (fun thm =>
+            (ThmToName thm |>.toString, ThmToJson thm)
+          )))
+        ]
+      )
     ))
   )
 

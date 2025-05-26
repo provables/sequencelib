@@ -62,7 +62,7 @@ def theorems(soup, thms):
     for thm in sorted(thms, key=key):
         thm_data = thms[thm]
         thm_tag = soup.new_tag("a", href=f"#{thm}")
-        thm_tag.string = str(thm_data["value"])
+        thm_tag.string = f"{thm_data['index']} ⇒ {thm_data['value']}"
         yield thm_tag
 
 
@@ -73,7 +73,7 @@ def insert(soup, mod, tags):
     p_tag = soup.new_tag("p")
     p_tag.append("OEIS sequences formalized in this file:")
     ul_tag = soup.new_tag("ul")
-    for tag, decls in tags.items():
+    for tag, (offset, decls) in tags.items():
         oeis_tag = soup.new_tag("a", href=f"https://oeis.org/{tag}")
         oeis_tag.string = tag
         li_tag = soup.new_tag("li")
@@ -181,7 +181,7 @@ def create_index(info, titles):
     out = pathlib.Path("home_page/sequences.md")
     lines = {}
     for mod, tags in info.items():
-        for tag, decls in tags.items():
+        for tag, (_, decls) in tags.items():
             decls_for_tag = lines.setdefault(tag, {})
             for decl in decls:
                 decls_for_tag[decl] = mod

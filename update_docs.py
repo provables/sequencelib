@@ -8,10 +8,9 @@ import re
 from pathlib import Path
 
 import appdirs
-import more_itertools
 import requests
 from bs4 import BeautifulSoup
-from jinja2 import Template, Environment, FileSystemLoader 
+from jinja2 import Environment, FileSystemLoader
 import html5lib
 
 
@@ -29,35 +28,37 @@ def get_oeis_info():
     return json.loads(result.stdout)
 
 
-keys = dict([
-    ("zero", 0),
-    ("one", 1),
-    ("two", 2),
-    ("three", 3),
-    ("four", 4),
-    ("five", 5),
-    ("six", 6),
-    ("seven", 7),
-    ("eight", 8),
-    ("nine", 9),
-    ("ten", 10),
-    ("eleven", 11),
-    ("twelve", 12),
-    ("thirteen", 13),
-    ("fourteen", 14),
-    ("fifteen", 15),
-    ("sixteen", 16),
-    ("seventeen", 17),
-    ("eighteen", 18),
-    ("nineteen", 19),
-    ("twenty", 20),
-])
+keys = dict(
+    [
+        ("zero", 0),
+        ("one", 1),
+        ("two", 2),
+        ("three", 3),
+        ("four", 4),
+        ("five", 5),
+        ("six", 6),
+        ("seven", 7),
+        ("eight", 8),
+        ("nine", 9),
+        ("ten", 10),
+        ("eleven", 11),
+        ("twelve", 12),
+        ("thirteen", 13),
+        ("fourteen", 14),
+        ("fifteen", 15),
+        ("sixteen", 16),
+        ("seventeen", 17),
+        ("eighteen", 18),
+        ("nineteen", 19),
+        ("twenty", 20),
+    ]
+)
 
 
 def clean_name(name):
-    fst, *lst = name.split('.')
+    fst, *lst = name.split(".")
     if fst == "Sequence":
-        return '.'.join(lst)
+        return ".".join(lst)
     return name
 
 
@@ -72,27 +73,46 @@ def theorems(soup, thms):
 
 def get_template():
     env = Environment(loader=FileSystemLoader(Path(".").resolve()))
-    return env.get_template('values.html.j2')
+    return env.get_template("values.html.j2")
 
 
-def values_table(tag, tags):
+def values_table(tag, tags, mod):
     template = get_template()
     offset, decls = tags[tag]
     data = []
+    equivalences = []
     for seq, thms in decls.items():
-        d = {'label': clean_name(seq), 'max': 0}
-        values = ['']*MAX_VALUE
+        d = {"label": clean_name(seq), "seq": seq, "max": 0}
+        values = [""] * MAX_VALUE
         for thm in thms.values():
-            if thm['type'] != 'value':
+            if thm["type"] == "equiv":
+                equivalences.append(
+                    {
+                        "thm": thm["theorem"],
+                        "clean_thm": clean_name(thm["theorem"]),
+                        "seq1": clean_name(thm["seq1"]),
+                        "sec2": clean_name(thm["seq2"]),
+                    }
+                )
                 continue
-            values[thm['index']] = thm['value']
-            d['max'] = max(d['max'], thm['index'])
-        d['values'] = values
-        data.append(d) 
-    max_n = max([row['max'] for row in data])
-    headers = ['n'] + list(range(offset, max_n+1))
-    table = template.render(headers=headers, data=data, offset=offset, max_n=max_n, tag=tag)
-    return BeautifulSoup(table, 'html5lib')
+            if thm["type"] != "value":
+                continue
+            values[thm["index"]] = thm["value"]
+            d["max"] = max(d["max"], thm["index"])
+        d["values"] = values
+        data.append(d)
+    max_n = max([row["max"] for row in data])
+    headers = ["n"] + list(range(offset, max_n + 1))
+    table = template.render(
+        headers=headers,
+        data=data,
+        offset=offset,
+        max_n=max_n,
+        tag=tag,
+        equivalences=equivalences,
+        mod=mod
+    )
+    return BeautifulSoup(table, "html5lib")
 
 
 def insert(soup, mod, tags):
@@ -103,7 +123,7 @@ def insert(soup, mod, tags):
     p_tag.append("OEIS sequences formalized in this file:")
     ul_tag = soup.new_tag("ul")
     for tag, (offset, decls) in tags.items():
-        ul_tag.append(values_table(tag, tags))
+        ul_tag.append(values_table(tag, tags, mod))
     h1_tag = soup.find("h1", class_="markdown-heading")
     if not h1_tag:
         m = soup.find("main")
@@ -158,7 +178,7 @@ def save_cache(result):
 
 
 def get_titles(info):
-    result = load_cache() 
+    result = load_cache()
     for tags in info.values():
         for tag in tags:
             print(f"Getting title for {tag}...")
@@ -195,9 +215,7 @@ def create_index(info, titles):
             mod = decls[decl]
             p = mod_to_path(mod)
             cleaned = clean_name(decl)
-            out_lines.append(
-                f"    * [{cleaned}]({{{{ site.url }}}}/docs/{p}#{decl})"
-            )
+            out_lines.append(f"    * [{cleaned}]({{{{ site.url }}}}/docs/{p}#{decl})")
     out.write_text("\n".join(out_lines))
 
 

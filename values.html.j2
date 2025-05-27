@@ -30,7 +30,7 @@
     {% for equiv in equivalences %}
     <li>
       <a href="#{{ equiv['thm'] }}">
-        {{ equiv['clean_thm'] }}
+        {{ equiv.seq1 }} = {{ equiv.seq2 }}
       </a>
     </li>
     {% endfor %}

@@ -20,6 +20,7 @@ theorems about them.
 
 * If you are adding a **new sequence**, please, 
   1. Add the copyright statement as a Lean comment at the top of the file and include all authors.  For example:
+
      ```
      /-
      Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
@@ -29,24 +30,33 @@ theorems about them.
      ```
 
   2. Ensure you add the definition in the `Sequence` namespace. Tag the definition with the attribute `@[OEIS := ANNNNNN, offset := N]`, following the values given by [OEIS](https://oeis.org). For example:
+
      ```lean4
      namespace Sequence
 
      @[OEIS := A000108, offset := 0]
      def Catalan (n : ℕ) : ℕ := sorry
      ```
+
      Note that you will need to add `import Sequencelib.Meta` for this step.
 
 * For adding proofs of new values, please, add theorems of the form:
+
   ```lean4
   def Catalan_three : Catalan 3 = 5 := by sorry
+  ```
+
+  For proving that two definitions of a sequence coincide, please, add a theorem of the form:
+
+  ```lean4
+  def Seq1_eq_Seq2 : Seq1 = Seq2 := by sorry
   ```
 
 * For any other theorems, we strive to follow 
   Mathlib guidelines, for [naming](https://leanprover-community.github.io/contribute/naming.html) 
   and [style](https://leanprover-community.github.io/contribute/style.html).
   We do, however, welcome deviations and we accept proofs about the sequences even
-  if they are not in the most general form required by Mathlib. 
+  if they are not in the most general form required by Mathlib. $$\int x\,dx$$.
     
 * Before submitting a PR, please, ensure that `lake build` and `lake lint` both succeed
   (or, alternatively, `task lint` if you are in the Nix environment).

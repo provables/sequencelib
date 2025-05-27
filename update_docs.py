@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections import OrderedDict
 import subprocess
 import json
 import pathlib
@@ -79,37 +80,35 @@ def get_template():
 def values_table(tag, tags, mod):
     template = get_template()
     offset, decls = tags[tag]
-    data = []
-    equivalences = []
+    data = OrderedDict()
+    equivalences = OrderedDict()
     for seq, thms in decls.items():
         d = {"label": clean_name(seq), "seq": seq, "max": 0}
         values = [""] * MAX_VALUE
         for thm in thms.values():
             if thm["type"] == "equiv":
-                equivalences.append(
-                    {
-                        "thm": thm["theorem"],
-                        "clean_thm": clean_name(thm["theorem"]),
-                        "seq1": clean_name(thm["seq1"]),
-                        "sec2": clean_name(thm["seq2"]),
-                    }
-                )
+                equivalences[thm["seq1"], thm["seq2"]] = {
+                    "thm": thm["theorem"],
+                    "clean_thm": clean_name(thm["theorem"]),
+                    "seq1": clean_name(thm["seq1"]),
+                    "seq2": clean_name(thm["seq2"]),
+                }
                 continue
             if thm["type"] != "value":
                 continue
             values[thm["index"]] = {"value": thm["value"], "thm": thm["theorem"]}
             d["max"] = max(d["max"], thm["index"])
         d["values"] = values
-        data.append(d)
-    max_n = max([row["max"] for row in data])
+        data[seq] = d
+    max_n = max([row["max"] for row in data.values()])
     headers = ["n"] + list(range(offset, max_n + 1))
     table = template.render(
         headers=headers,
-        data=data,
+        data=data.values(),
         offset=offset,
         max_n=max_n,
         tag=tag,
-        equivalences=equivalences,
+        equivalences=equivalences.values(),
         mod=mod,
     )
     return BeautifulSoup(table, "html5lib")

@@ -12,6 +12,7 @@ import appdirs
 import requests
 from bs4 import BeautifulSoup
 from jinja2 import Environment, FileSystemLoader
+import networkx as nx
 import html5lib
 
 
@@ -77,6 +78,12 @@ def get_template():
     return env.get_template("values.html.j2")
 
 
+def all_equivalences(equivalences):
+    g = nx.DiGraph()
+    g.add_edges_from(equivalences)
+    return nx.transitive_closure(g).edges
+
+
 def values_table(tag, tags, mod):
     template = get_template()
     offset, decls = tags[tag]
@@ -100,6 +107,16 @@ def values_table(tag, tags, mod):
             d["max"] = max(d["max"], thm["index"])
         d["values"] = values
         data[seq] = d
+
+    for seq1, seq2 in all_equivalences(equivalences):
+        for idx, (value1, value2) in enumerate(
+            zip(data[seq1]["values"], data[seq2]["values"])
+        ):
+            if "thm" in value1 and "thm" not in value2:
+                data[seq2]["values"][idx] = {"value": value1["value"]}
+            if "thm" not in value1 and "thm" in value2:
+                data[seq1]["values"][idx] = {"value": value2["value"]}
+
     max_n = max([row["max"] for row in data.values()])
     headers = ["n"] + list(range(offset, max_n + 1))
     table = template.render(

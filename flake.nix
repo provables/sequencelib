@@ -36,6 +36,7 @@
             more-itertools
             requests
             appdirs
+            networkx
         ];
 
         pythonImportsCheck = [ "leanblueprint" ];

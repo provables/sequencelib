@@ -56,7 +56,7 @@ theorems about them.
   Mathlib guidelines, for [naming](https://leanprover-community.github.io/contribute/naming.html) 
   and [style](https://leanprover-community.github.io/contribute/style.html).
   We do, however, welcome deviations and we accept proofs about the sequences even
-  if they are not in the most general form required by Mathlib. $$\int x\,dx$$.
+  if they are not in the most general form required by Mathlib.
     
 * Before submitting a PR, please, ensure that `lake build` and `lake lint` both succeed
   (or, alternatively, `task lint` if you are in the Nix environment).

@@ -31,7 +31,7 @@ tasks:
       - .lake/build/doc/Sequencelib.html
     cmds:
       - DOCGEN_SRC="file" lake -R -Kenv=dev build Sequencelib:docs
-      - python update_docs.py
+      - python scripts/update_docs.py
     deps:
       - get-cache
 

@@ -11,7 +11,11 @@ You can also find more detailed instructions for developing, building, and contr
 
 This project is a standard [Lake](https://lean-lang.org/documentation/setup/) project, so a running 
 Lean installation is enough for building and 
-[contributing](https://provables.github.io/sequencelib/contributing.html).
+[contributing](https://provables.github.io/sequencelib/contributing.html). If you are able to
+use Lean from VSCode, you are ready to use this project by cloning it and opening the root folder 
+in the editor.
+
+### Alternative Setup
 
 Alternatively, we also packed a full Lean installation together with the tools needed for 
 building, linting, indexing, and generating the website, in a [Nix](https://nixos.org/) environment.

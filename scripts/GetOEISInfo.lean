@@ -12,7 +12,4 @@ def main : IO Unit := do
   let ctx := {fileName := "", fileMap := default}
   let state := {env}
   Prod.fst <$> (Meta.MetaM.toIO · ctx state) do
-    let e ← getOEISInfo
-    let j := OEISInfoToJson e
-    IO.println s!"{j}"
-    pure ()
+    IO.println <| OEISInfoToJson (← getOEISInfo)

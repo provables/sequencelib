@@ -29,6 +29,7 @@ tasks:
       - exclude: ./**/.lake
     generates:
       - .lake/build/doc/Sequencelib.html
+      - home/sequences.md
     cmds:
       - DOCGEN_SRC="file" lake -R -Kenv=dev build Sequencelib:docs
       - python scripts/update_docs.py

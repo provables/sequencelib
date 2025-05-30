@@ -13,8 +13,8 @@
         src = pkgs.fetchFromGitHub {
           repo = "leanblueprint";
           owner = "PatrickMassot";
-          rev = "v0.0.17";
-          sha256 = "sha256-MXEk60DI4gUhUZf56uWyo9CaTGUhsrcFBdXKgBCcPBI=";
+          rev = "v0.0.18";
+          sha256 = "sha256-kikeLc0huJHe4Fq207U8sdRrH26bzpo+IVKjsLnrWgY=";
         };
         build-system = [
           pkgs.python311Packages.setuptools

@@ -120,16 +120,11 @@ def ThmToJson (thm : Thm) : Json :=
       ("seq1", seq1.toString),
       ("seq2", seq2.toString)
     ]
-  | .Dbg e => Json.mkObj [
-      ("type", "debug"),
-      ("theorem", e.dbgToString)
-  ]
 
 def ThmToName (thm : Thm) : Name :=
   match thm with
   | .Value n _ _ _ => n
   | .Equiv n _ _ => n
-  | .Dbg _ => `dbg
 
 def OEISInfoToJson (info : OEISInfo) : Json :=
   Json.mkObj <| OEISInfoToMod info |>.toList.map (fun (mod, tagsForMod) =>

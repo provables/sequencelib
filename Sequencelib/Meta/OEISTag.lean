@@ -13,7 +13,6 @@ abbrev Tag := String
 inductive Thm : Type where
   | Value (thmName : Name) (seq : Name) (index : Nat) (value : Nat) : Thm
   | Equiv (thmName : Name) (seq1 : Name) (seq2 : Name) : Thm
-  | Dbg (e : Expr) : Thm
   deriving BEq, Hashable, Repr
 
 structure Sequence where

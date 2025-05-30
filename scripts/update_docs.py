@@ -15,13 +15,14 @@ from jinja2 import Environment, FileSystemLoader
 import networkx as nx
 import html5lib
 
-
+HERE = Path(__file__).parent.resolve()
 MAX_VALUE = 20
 
 
 def get_oeis_info():
     result = subprocess.run(
-        ["./run_meta.sh"],
+        ["lake", "exe", "oeisinfo"],
+        cwd=HERE / "..",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -74,7 +75,7 @@ def theorems(soup, thms):
 
 
 def get_template():
-    env = Environment(loader=FileSystemLoader(Path(".").resolve()))
+    env = Environment(loader=FileSystemLoader(HERE))
     return env.get_template("values.html.j2")
 
 
@@ -167,7 +168,7 @@ def mod_to_path(mod):
 
 
 def process_mod(mod, tags):
-    html_file = pathlib.Path(".lake/build/doc") / mod_to_path(mod)
+    html_file = HERE / "../.lake/build/doc" / mod_to_path(mod)
     out = process(html_file, mod, tags)
     html_file.write_text(out)
 
@@ -215,7 +216,7 @@ def get_titles(info):
 
 
 def create_index(info, titles):
-    out = pathlib.Path("home_page/sequences.md")
+    out = HERE / "../home_page/sequences.md"
     lines = {}
     for mod, tags in info.items():
         for tag, (_, decls) in tags.items():

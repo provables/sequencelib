@@ -1,4 +1,4 @@
-import Sequencelib.Meta.Basic
+import Sequencelib.Meta
 import Lean
 
 open Lean Elab Meta

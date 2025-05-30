@@ -12,7 +12,7 @@ linter.missingDocs = false
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.18.0"
+rev = "v4.19.0"
 
 [[require]]
 name = "checkdecls"
@@ -21,12 +21,17 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 [[require]]
 name = "«doc-gen4»"
 git = "https://github.com/leanprover/doc-gen4"
-rev = "v4.18.0"
+rev = "v4.19.0"
 
 [[require]]
 name = "REPL"
 git = "https://github.com/leanprover-community/repl"
-rev = "v4.18.0"
+rev = "v4.19.0"
+
+[[lean_exe]]
+name = "oeisinfo"
+root = "scripts.GetOEISInfo"
+supportInterpreter = true
 
 [[lean_lib]]
 name = "Sequencelib"

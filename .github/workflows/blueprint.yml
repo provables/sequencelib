@@ -76,7 +76,7 @@ jobs:
           source venv/bin/activate
           pip install beautifulsoup4 html5lib more-itertools requests appdirs networkx
           export PATH=.:~/.elan/bin:$PATH
-          update_docs.py
+          python3 scripts/update_docs.py
 
       - name: Build blueprint and copy to `home_page/blueprint`
         uses: xu-cheng/texlive-action@v2

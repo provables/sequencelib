@@ -38,6 +38,8 @@ theorem Fibonacci_nine : Fibonacci 9 = 34 := by decide
 
 theorem Fibonacci_ten : Fibonacci 10 = 55 := by decide
 
+open Nat
+
 -- Identity 1 (page 2) from Proofs that Really Count
 example
   (n : ℕ)
@@ -63,39 +65,3 @@ example
     rw [cast_pred (by simp)]
     rw [cast_add]
     ring
-
-
--- Identity 16 (page 13) from Proofs that Really Count
-theorem two_mul_fib_n
-  (n : ℕ)
-  (hn : 2 ≤ n)
-: 2 * Fibonacci n = Fibonacci (n + 1) + Fibonacci (n - 2) := by
-  unfold Fibonacci
-  rw [fib_add_one (by omega)]
-  suffices : fib n = fib (n - 1) + fib (n - 2)
-  omega
-  rw [show fib n = fib (n - 1 + 1) by congr; omega]
-  rw [fib_add_one (by omega)]
-  rw [show n - 1 - 1 = n - 2 by omega]
-  ac_rfl
-
--- Identity 7 (page 6) from Proofs that Really Count
-theorem three_mul_fib_n
-  (n : ℕ)
-  (hn : 2 ≤ n)
-: 3 * Fibonacci n = Fibonacci (n + 2) + Fibonacci (n - 2) := by
-  unfold Fibonacci
-  rw [fib_add_one (by omega)]
-  simp
-  have := two_mul_fib_n n hn
-  unfold Fibonacci at this
-  omega
-
--- Identity 18 (page 13) from Proofs that Really Count
-theorem four_mul_fib_n
-  (n : ℕ)
-  (hn : 2 ≤ n)
-: 4 * fib n = fib (n + 2) + fib n + fib (n - 2) := by
-  have := three_mul_fib_n n hn
-  unfold Fibonacci at this
-  omega

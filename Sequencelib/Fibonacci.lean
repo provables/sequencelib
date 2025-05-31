@@ -38,7 +38,6 @@ theorem Fibonacci_nine : Fibonacci 9 = 34 := by decide
 
 theorem Fibonacci_ten : Fibonacci 10 = 55 := by decide
 
-
 -- Identity 1 (page 2) from Proofs that Really Count
 theorem sum_fib
   (n : ℕ)
@@ -65,7 +64,7 @@ theorem sum_fib
     ring
 
 
--- Example 16
+-- Identity 16 (page 13) from Proofs that Really Count
 theorem two_mul_fib_n
   (n : ℕ)
   (hn : 2 ≤ n)
@@ -78,7 +77,7 @@ theorem two_mul_fib_n
   rw [show n - 1 - 1 = n - 2 by omega]
   ac_rfl
 
--- Identity 7
+-- Identity 7 (page 6) from Proofs that Really Count
 theorem three_mul_fib_n
   (n : ℕ)
   (hn : 2 ≤ n)
@@ -88,7 +87,7 @@ theorem three_mul_fib_n
   have := two_mul_fib_n n hn
   omega
 
--- Identity 18
+-- Identity 18 (page 13) from Proofs that Really Count
 theorem four_mul_fib_n
   (n : ℕ)
   (hn : 2 ≤ n)

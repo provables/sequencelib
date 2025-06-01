@@ -9,8 +9,8 @@ theorems about them.
 
 ## Guidelines
 
-* Fork this repository in [Github](https://github.com/provables/sequencelib). It is a standard
-  Lake project, so the general instructions for 
+* Fork or clone this repository in [Github](https://github.com/provables/sequencelib). It is a 
+  standard Lake project, so the general instructions for 
   [Setting Up Lean](https://lean-lang.org/documentation/setup/) apply.
 
 * [Optional] If you want a more complete environment that can also render the website, you can
@@ -18,7 +18,7 @@ theorems about them.
   root level of this repository. Once in the environment, run `task -a` to list all the available
   actions.
 
-* If you are adding a **new sequence**, please, 
+* If you are adding a **new sequence**, please: 
   1. Add the copyright statement as a Lean comment at the top of the file and include all authors.  For example:
 
      ```
@@ -38,7 +38,10 @@ theorems about them.
      def Catalan (n : ℕ) : ℕ := sorry
      ```
 
-     Note that you will need to add `import Sequencelib.Meta` for this step.
+     Note that you will need to add `import Sequencelib.Meta` for this step. Ideally, sequences with
+     the same OEIS tag should go in the same file, containing proofs that the definitions coincide.
+     For sequences with a new tag, please, create a new file and add the import to `Sequencelib.lean`
+     at root level.
 
 * For adding proofs of new values, please, add theorems of the form:
 
@@ -58,5 +61,8 @@ theorems about them.
   We do, however, welcome deviations and we accept proofs about the sequences even
   if they are not in the most general form required by Mathlib.
     
-* Before submitting a PR, please, ensure that `lake build` and `lake lint` both succeed
-  (or, alternatively, `task lint` if you are in the Nix environment).
+* Before submitting a PR, please: 
+  1. ensure that `lake build` and `lake lint` both succeed (or, alternatively, `task lint` if you 
+     are in the Nix environment),
+  2. if you added a new sequence in a new file, ensure the imports in `Sequencelib.lean` are 
+     up-to-date and sorted (if you are in the Nix environment, run `task sort-root`).

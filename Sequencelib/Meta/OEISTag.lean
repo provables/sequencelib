@@ -10,11 +10,12 @@ open Lean Meta Elab Qq
 
 abbrev Tag := String
 
+instance : Inhabited Tag := inferInstanceAs (Inhabited String)
+
 inductive Thm : Type where
   | Value (thmName : Name) (seq : Name) (index : Nat) (value : Nat) : Thm
   | Equiv (thmName : Name) (seq1 : Name) (seq2 : Name) : Thm
-  | Dbg (e : Expr) : Thm
-  deriving BEq, Hashable, Repr
+  deriving BEq, Hashable, Repr, Inhabited
 
 structure Sequence where
   tagName : Tag
@@ -22,15 +23,17 @@ structure Sequence where
   module : Name
   theorems : Array Thm
   offset : Nat
-  deriving Repr
+  deriving Repr, Inhabited
 
 structure OEISTag where
   tagName : Tag
   sequences : Array Sequence
   offset : Nat
-  deriving Repr
+  deriving Repr, Inhabited
 
 abbrev OEISInfo := Std.HashMap Tag OEISTag
+
+instance : Inhabited OEISInfo := inferInstanceAs (Inhabited <| Std.HashMap _ _)
 
 def addOEISInfo (info : OEISInfo) (tag : OEISTag) : OEISInfo :=
   let (prev, info) := info.getThenInsertIfNew? tag.tagName tag

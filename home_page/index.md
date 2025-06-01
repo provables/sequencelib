@@ -8,8 +8,13 @@ usemathjax: true
 
 # Sequencelib
 
-A collection of formalizations of sequences from the 
+A platform for formalizing sequences from
 [The On-Line Encyclopedia of Integer Sequences (OEIS)](https://oeis.org/).
+
+This site contains the formalization in Lean 4 of a collection of sequences from OEIS. It includes
+metaprogramming tools that [index](#index) the sequences, display values 
+([example]({{ site.url }}/docs/Sequencelib/Fibonacci.html)), and 
+display equivalences among them ([example]({{ site.url }}/docs/Sequencelib/Catalan.html)).
 
 ## Contributing
 

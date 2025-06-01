@@ -44,9 +44,8 @@ open Nat
 F_0 + F_1 + ... + F_n = F_{n+3} - 1
 This is Identity 1 (page 2) from Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and Jennifer J. Quinn
 -/
-theorem sum_range_fib_eq_fib
-  (n : ℕ)
-: ∑ i ∈ Finset.range (n + 1), Fibonacci (i + 1) = Fibonacci (n + 3) - 1 := by
+theorem sum_range_fib_eq_fib (n : ℕ) :
+    ∑ i ∈ Finset.range (n + 1), Fibonacci (i + 1) = Fibonacci (n + 3) - 1 := by
   unfold Fibonacci
   induction n
   case zero =>

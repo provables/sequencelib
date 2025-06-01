@@ -55,7 +55,7 @@ theorems about them.
   def Seq1_eq_Seq2 : Seq1 = Seq2 := by sorry
   ```
 
-* For any other theorems, we strive to follow 
+* Additionally, we strive to follow 
   Mathlib guidelines, for [naming](https://leanprover-community.github.io/contribute/naming.html) 
   and [style](https://leanprover-community.github.io/contribute/style.html).
   We do, however, welcome deviations and we accept proofs about the sequences even

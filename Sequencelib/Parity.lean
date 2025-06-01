@@ -7,6 +7,20 @@ Authors: Joe Stubbs, Walter Moreira
 import Mathlib
 import Sequencelib.Meta
 
+/-!
+# Parity Sequence
+
+This file introduces the parity sequence. It is a core sequence on the OEIS.
+
+## Implementation notes
+
+We implement the sequence definition using `Nat.mod` from Mathlib.
+
+## Main results
+
+- The basic definition and the first values of the sequence, up to `n=10` are given.
+
+-/
 
 namespace Sequence
 

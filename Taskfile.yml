@@ -18,14 +18,6 @@ tasks:
       - get-cache
       - build
 
-  test:
-    desc: Run tests
-    cmds:
-      - lake test
-    deps:
-      - get-cache
-      - build
-
   build-docs:
     desc: Build docs
     run: once

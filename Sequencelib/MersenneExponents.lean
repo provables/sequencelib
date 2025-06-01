@@ -15,6 +15,19 @@ and the associated sequence: 2, 3, 5, 7, 13, 17, ...
 In this case, 2^p - 1 is called a Mersenne prime.
 
 This is sequence [A000043](https://oeis.org/A000043), a core sequence in the OEIS.
+
+## Implementation notes
+
+We follow the definition of the Mersenne Exponents seqeunce given on the OEIS which
+requires `p` and `2^p - 1` to be prime, but we prove that the second hypothesis is
+sufficient since it implies the first.
+
+## Main results
+
+- The basic definition of the sequence is given, and we show that if `2^p - 1` is prime,
+  then `p` is a Mersenne exponent.
+- We prove that 2, 3, 5, and 7 are Mersenne exponents.
+- The first values of the sequence up to `n=4` are given.
 -/
 
 open Nat
@@ -28,6 +41,9 @@ the `2^p - 1` is called a Mersenne prime.
 -/
 def IsMersenneExponent (p : ℕ) : Prop := Nat.Prime p ∧ Nat.Prime (2 ^ p - 1)
 
+/--
+For a Natural number `p`, if `2^p - 1` is prime then `p` is prime.
+-/
 theorem power_sub_one_prime_implies_prime (p : ℕ) (h2: Nat.Prime (2 ^ p - 1)) :
     Nat.Prime p := by
   have h1: p ≠ 1 := by
@@ -37,6 +53,9 @@ theorem power_sub_one_prime_implies_prime (p : ℕ) (h2: Nat.Prime (2 ^ p - 1)) 
   let T := (@Nat.prime_of_pow_sub_one_prime 2 p h1 h2).right
   exact T
 
+/--
+For a Natural number `p`, if `2^p - 1` is prime, then `p` is a Mersenne exponent.
+-/
 theorem mersenne_exp_if_prime (p : ℕ) (h: Nat.Prime (2 ^ p - 1)) : IsMersenneExponent p := by
   unfold IsMersenneExponent
   constructor

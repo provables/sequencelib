@@ -90,10 +90,8 @@ theorem two_mul_fib_n_eq_fib
 3 F_n = F_{n+2} + F_{n-2}
 This is Identity 7 (page 6) from Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and Jennifer J. Quinn
 -/
-theorem three_mul_fib_n_eq_fib
-  (n : ℕ)
-  (hn : 2 ≤ n)
-: 3 * Fibonacci n = Fibonacci (n + 2) + Fibonacci (n - 2) := by
+theorem three_mul_fib_n (n : ℕ) (hn : 2 ≤ n) :
+    3 * Fibonacci n = Fibonacci (n + 2) + Fibonacci (n - 2) := by
   unfold Fibonacci
   rw [fib_add_one (by omega)]
   simp

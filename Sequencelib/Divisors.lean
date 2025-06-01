@@ -7,6 +7,22 @@ Authors: Joe Stubbs, Walter Moreira
 import Mathlib
 import Sequencelib.Meta
 
+/-!
+
+# Divisors sequence
+
+This file introduces the divisors sequence, also called `d(n)` or `tau(n)` or `sigma_0(n)`.
+
+## Implementation notes
+
+The sequence definition uses `Nat.divisors` from Mathlib.
+
+## Main results
+
+- The basic definition and the first terms of the sequence up to `n=10` are given.
+
+-/
+
 
 namespace Sequence
 

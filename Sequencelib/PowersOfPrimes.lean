@@ -11,8 +11,16 @@ import Sequencelib.Meta
 # Powers of Primes
 
 This file introduces the powers of primes integer sequence, 1, 2, 3, 4, 5, 7, 8, 9, ...
-
 This is sequence [A000961](https://oeis.org/A000961), a core sequence in the OEIS.
+
+## Implementation notes
+
+The sequence is defined using the `IsPrimePow` predicate from Mathlib.
+
+## Main results
+
+- The basic definition and the first values of the sequence are given, up to `n=6`.
+
 -/
 
 open Nat

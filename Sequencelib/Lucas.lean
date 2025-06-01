@@ -7,6 +7,22 @@ Authors: Joe Stubbs, Walter Moreira
 import Mathlib
 import Sequencelib.Meta
 
+/-!
+# Lucas sequence
+
+This file introduces the Lucas sequence, a core sequence on the OEIS.
+
+## Implementation notes
+
+We define the Lucas sequence using a stream iterator, very similar to how Mathlib defines
+the [Fibonacci sequence](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Data/Nat/Fib/Basic.html#Nat.fib).
+
+
+## Main results
+
+- The basic definition and the first values of the sequence, up to `n=10` are given.
+
+-/
 
 namespace Sequence
 

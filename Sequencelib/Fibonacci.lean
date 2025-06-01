@@ -103,10 +103,8 @@ theorem three_mul_fib_n (n : ℕ) (hn : 2 ≤ n) :
 4 F_n = F_{n+2} + F_n + F_{n-2}
 This is Identity 18 (page 13) from Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and Jennifer J. Quinn
 -/
-theorem four_mul_fib_n_eq_fib
-  (n : ℕ)
-  (hn : 2 ≤ n)
-: 4 * fib n = fib (n + 2) + fib n + fib (n - 2) := by
+theorem four_mul_fib_n (n : ℕ) (hn : 2 ≤ n) :
+    4 * fib n = fib (n + 2) + fib n + fib (n - 2) := by
   have := three_mul_fib_n_eq_fib n hn
   unfold Fibonacci at this
   omega

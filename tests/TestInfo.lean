@@ -29,12 +29,12 @@ info: Std.HashMap.ofList [("A02",
   { tagName := "A02",
     sequences := #[{ tagName := "A02",
                      definition := `bar,
-                     module := `tests.OEISInfo,
+                     module := `Tests.TestInfo,
                      theorems := #[Thm.Value `bar_one `bar 1 1],
                      offset := 0 },
                    { tagName := "A02",
                      definition := `baz,
-                     module := `tests.OEISInfo,
+                     module := `Tests.TestInfo,
                      theorems := #[Thm.Equiv `baz_eq_bar `baz `bar],
                      offset := 0 }],
     offset := 0 }),
@@ -42,7 +42,7 @@ info: Std.HashMap.ofList [("A02",
   { tagName := "A01",
     sequences := #[{ tagName := "A01",
                      definition := `foo,
-                     module := `tests.OEISInfo,
+                     module := `Tests.TestInfo,
                      theorems := #[Thm.Value `foo_five `foo 5 6, Thm.Value `foo_seven `foo 7 7],
                      offset := 3 }],
     offset := 3 })]
@@ -53,7 +53,7 @@ run_meta do
   logInfo m!"{repr info}"
 
 /--
-info: {"tests.OEISInfo":
+info: {"Tests.TestInfo":
  {"A02":
   [0,
    {"baz": {"baz_eq_bar": {"type": "equiv", "theorem": "baz_eq_bar", "seq2": "bar", "seq1": "baz"}},

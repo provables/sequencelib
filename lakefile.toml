@@ -1,9 +1,8 @@
 name = "sequencelib"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["Sequencelib"]
+defaultTargets = ["Sequencelib", "Tests"]
 lintDriver = "batteries/runLinter"
-testDriver = "runTests"
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
@@ -35,8 +34,7 @@ root = "scripts.GetOEISInfo"
 supportInterpreter = true
 
 [[lean_lib]]
-name = "runTests"
-globs = ["tests.+"]
+name = "Tests"
 
 [[lean_lib]]
 name = "Sequencelib"

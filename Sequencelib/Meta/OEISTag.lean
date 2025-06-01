@@ -84,7 +84,7 @@ initialize registerBuiltinAttribute {
         ]
         addDocStringCore decl <| "\n\n".intercalate <| newDoc.filter (· ≠ "")
         addOEISEntry decl mod seqStr offst
-        let tagDeclName := Name.mkStr decl "OEIS"
+        let tagDeclName := Name.append decl <| Name.mkSimple "OEIS"
         let tagDecl := Declaration.defnDecl {
           name := tagDeclName
           levelParams := []
@@ -94,7 +94,7 @@ initialize registerBuiltinAttribute {
           safety := DefinitionSafety.safe
         }
         addDocStringCore tagDeclName "OEIS Identifier"
-        let offsetDeclName := Name.mkStr decl "offset"
+        let offsetDeclName := Name.append decl <| Name.mkSimple "offset"
         let offsetDecl := Declaration.defnDecl {
           name := offsetDeclName
           levelParams := []

@@ -21,7 +21,6 @@ value theorems are proved using `Nat.nth_count`.
 - The basic definition and the first values of the sequence are given, up to `n=5`.
 
 
-
 -/
 
 namespace Sequence

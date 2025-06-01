@@ -7,12 +7,27 @@ Authors: Joe Stubbs, Walter Moreira
 import Mathlib
 import Sequencelib.Meta
 
+/-!
+
+# Totient sequence
+
+The sequence corresponding to the Euler totient function, `phi(n)`; This function counts the
+number of numbers less than `n` and coprime with `n`; i.e., 1, 1, 2, 2, 4, 2, 6, ...
+
+## Implementation notes
+
+The sequence is defined using the `Nat.totient` function from Mathlib.
+
+## Main results
+
+- The basic definition and the first values of the sequence are given, up to `n=10`.
+
+-/
 
 namespace Sequence
 
 /--
-The sequence corresponding to the Euler totient function, `phi(n)`; This function counts the
-number of numbers less than `n` and coprime with `n`; i.e., 1, 1, 2, 2, 4, 2, 6, ...
+The Totient sequence
 -/
 @[OEIS := A000010, offset := 1]
 noncomputable def Totient (n : ℕ) := Nat.totient n

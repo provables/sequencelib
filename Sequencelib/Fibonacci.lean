@@ -73,10 +73,8 @@ theorem sum_range_fib_eq_fib (n : ℕ) :
 2 F_n = F_{n+1} + F_{n-2}
 This Identity 16 (page 13) from Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and Jennifer J. Quinn
 -/
-theorem two_mul_fib_n_eq_fib
-  (n : ℕ)
-  (hn : 2 ≤ n)
-: 2 * Fibonacci n = Fibonacci (n + 1) + Fibonacci (n - 2) := by
+theorem sum_range_fib_eq_fib (n : ℕ) :
+    ∑ i ∈ Finset.range (n + 1), Fibonacci (i + 1) = Fibonacci (n + 3) - 1 := by
   unfold Fibonacci
   rw [fib_add_one (by omega)]
   suffices : fib n = fib (n - 1) + fib (n - 2)

@@ -8,6 +8,20 @@ import Sequencelib.Meta
 
 /-!
 # The prime numbers
+
+This file introduces the prime numbers sequence, a core sequence on the OEIS.
+
+## Implementation notes
+
+The sequence is defined using `Nat.nth` and `Nat.Prime` from Mathlib. THe sequence
+value theorems are proved using `Nat.nth_count`.
+
+## Main results
+
+- The basic definition and the first values of the sequence are given, up to `n=5`.
+
+
+
 -/
 
 namespace Sequence

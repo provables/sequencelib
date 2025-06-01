@@ -11,6 +11,15 @@ import Sequencelib.Meta
 
 This file introduces the number of non-isomorphic groups of order `n`.
 
+## Implementation notes
+
+We implement two definitions for the sequence and prove they agree. First, we define
+the non-isomorphic groups of order `n` directly using objects in the category `Grp`
+from Mathlib. Then, we define the non-isomorphic subgroups of order `n` of `S_n`, the
+symmetric group on `n` letters, defined as `Equiv.Perm (Fin n)`, following
+Mathlib. The key point in showing the equivalence is
+[Cayley's theorem](https://leanprover-community.github.io/mathlib4_docs/Mathlib/GroupTheory/Perm/Subgroup.html#Equiv.Perm.subgroupOfMulAction).
+
 ## Main results
 
 - `NonIsoGrpOfOrder n`: counts the number of non-isomorphic groups of order `n`.

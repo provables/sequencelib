@@ -7,6 +7,21 @@ Authors: Joe Stubbs, Walter Moreira
 import Mathlib
 import Sequencelib.Meta
 
+/-!
+# Partitions
+
+This file introduces the Partitions sequence, a core sequence on the OEIS.
+
+## Implementation notes
+
+The sequence is defined as the cardinality of `Nat.Partition` structure from Mathlib.
+
+## Main results
+
+- The basic definition and the first two values of the sequence are given.
+
+
+-/
 
 namespace Sequence
 

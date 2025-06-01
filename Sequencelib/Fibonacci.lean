@@ -74,7 +74,7 @@ theorem sum_range_fib_eq_fib
 2 F_n = F_{n+1} + F_{n-2}
 This Identity 16 (page 13) from Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and Jennifer J. Quinn
 -/
-theorem two_mul_fib_n
+theorem two_mul_fib_n_eq_fib
   (n : ℕ)
   (hn : 2 ≤ n)
 : 2 * Fibonacci n = Fibonacci (n + 1) + Fibonacci (n - 2) := by
@@ -91,25 +91,25 @@ theorem two_mul_fib_n
 3 F_n = F_{n+2} + F_{n-2}
 This is Identity 7 (page 6) from Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and Jennifer J. Quinn
 -/
-theorem three_mul_fib_n
+theorem three_mul_fib_n_eq_fib
   (n : ℕ)
   (hn : 2 ≤ n)
 : 3 * Fibonacci n = Fibonacci (n + 2) + Fibonacci (n - 2) := by
   unfold Fibonacci
   rw [fib_add_one (by omega)]
   simp
-  have := two_mul_fib_n n hn
+  have := two_mul_fib_n_eq_fib n hn
   unfold Fibonacci at this
   omega
 
 /--
 4 F_n = F_{n+2} + F_n + F_{n-2}
-This is Identity 18 (page 13) from Proofs that Really Count
+This is Identity 18 (page 13) from Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and Jennifer J. Quinn
 -/
-theorem four_mul_fib_n
+theorem four_mul_fib_n_eq_fib
   (n : ℕ)
   (hn : 2 ≤ n)
 : 4 * fib n = fib (n + 2) + fib n + fib (n - 2) := by
-  have := three_mul_fib_n n hn
+  have := three_mul_fib_n_eq_fib n hn
   unfold Fibonacci at this
   omega

@@ -94,6 +94,7 @@ initialize registerBuiltinAttribute {
           safety := DefinitionSafety.safe
         }
         addDocStringCore tagDeclName "OEIS Identifier"
+        addDeclarationRangesFromSyntax tagDeclName stx
         let offsetDeclName := Name.append decl <| Name.mkSimple "offset"
         let offsetDecl := Declaration.defnDecl {
           name := offsetDeclName
@@ -104,6 +105,7 @@ initialize registerBuiltinAttribute {
           safety := DefinitionSafety.safe
         }
         addDocStringCore offsetDeclName "OEIS sequence offset"
+        addDeclarationRangesFromSyntax offsetDeclName stx
         Lean.addAndCompile tagDecl
         Lean.addAndCompile offsetDecl
       | _ => throwError "invalid OEIS attribute syntax"

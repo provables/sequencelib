@@ -3,15 +3,35 @@ Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Joe Stubbs, Walter Moreira, Li Xuanji
 -/
-
 import Mathlib
 import Sequencelib.Meta
 
+/-!
+# Fibonacci numbers
+
+This file introduces the Fibonacci sequence.
+
+## Implementations notes
+
+We use the definition from Mathlib.
+
+## Main results
+
+- Initial values.
+- `sum_range_fib_eq_fib`: compute the partial sums of the sequence.
+- `two_mul_fib_n`, `three_mul_fib_n`, `four_mul_fib_n`: identities for
+  calculating `i * Fibonacci n`.
+
+## References
+
+* Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and
+  Jennifer J. Quinn
+-/
 
 namespace Sequence
 
 /-
-The Fibonacci sequence, 0, 1, 1, 2, 3, 5, 8, ...
+The Fibonacci sequence: `F n = F (n - 1) + F (n - 2)`.
 -/
 @[OEIS := A000045, offset := 0]
 def Fibonacci := Nat.fib
@@ -41,8 +61,10 @@ theorem Fibonacci_ten : Fibonacci 10 = 55 := by decide
 open Nat
 
 /--
-F_0 + F_1 + ... + F_n = F_{n+3} - 1
-This is Identity 1 (page 2) from Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and Jennifer J. Quinn
+`F_0 + F_1 + ... + F_n = F_{n+3} - 1`.
+
+This is Identity 1 (page 2) from Proofs that Really Count: The Art of Combinatorial Proof by
+Arthur T. Benjamin and Jennifer J. Quinn.
 -/
 theorem sum_range_fib_eq_fib (n : ℕ) :
     ∑ i ∈ Finset.range (n + 1), Fibonacci (i + 1) = Fibonacci (n + 3) - 1 := by
@@ -68,13 +90,14 @@ theorem sum_range_fib_eq_fib (n : ℕ) :
     rw [cast_add]
     ring
 
-
 /--
-2 F_n = F_{n+1} + F_{n-2}
-This Identity 16 (page 13) from Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and Jennifer J. Quinn
+`2 F_n = F_{n+1} + F_{n-2}`.
+
+This Identity 16 (page 13) from Proofs that Really Count: The Art of Combinatorial Proof by
+Arthur T. Benjamin and Jennifer J. Quinn.
 -/
-theorem  two_mul_fib_n (n : ℕ) (hn : 2 ≤ n)
-: 2 * Fibonacci n = Fibonacci (n + 1) + Fibonacci (n - 2) := by
+theorem  two_mul_fib_n (n : ℕ) (hn : 2 ≤ n) :
+    2 * Fibonacci n = Fibonacci (n + 1) + Fibonacci (n - 2) := by
   unfold Fibonacci
   rw [fib_add_one (by omega)]
   suffices : fib n = fib (n - 1) + fib (n - 2)
@@ -85,8 +108,10 @@ theorem  two_mul_fib_n (n : ℕ) (hn : 2 ≤ n)
   ac_rfl
 
 /--
-3 F_n = F_{n+2} + F_{n-2}
-This is Identity 7 (page 6) from Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and Jennifer J. Quinn
+`3 F_n = F_{n+2} + F_{n-2}`.
+
+This is Identity 7 (page 6) from Proofs that Really Count: The Art of Combinatorial Proof by
+Arthur T. Benjamin and Jennifer J. Quinn.
 -/
 theorem three_mul_fib_n (n : ℕ) (hn : 2 ≤ n) :
     3 * Fibonacci n = Fibonacci (n + 2) + Fibonacci (n - 2) := by
@@ -98,11 +123,14 @@ theorem three_mul_fib_n (n : ℕ) (hn : 2 ≤ n) :
   omega
 
 /--
-4 F_n = F_{n+2} + F_n + F_{n-2}
-This is Identity 18 (page 13) from Proofs that Really Count: The Art of Combinatorial Proof by Arthur T. Benjamin and Jennifer J. Quinn
+`4 F_n = F_{n+2} + F_n + F_{n-2}`.
+
+This is Identity 18 (page 13) from Proofs that Really Count: The Art of Combinatorial Proof by
+Arthur T. Benjamin and Jennifer J. Quinn.
 -/
 theorem four_mul_fib_n (n : ℕ) (hn : 2 ≤ n) :
-    4 * fib n = fib (n + 2) + fib n + fib (n - 2) := by
+    4 * Fibonacci n = Fibonacci (n + 2) + Fibonacci n + Fibonacci (n - 2) := by
+  unfold Fibonacci
   have := three_mul_fib_n n hn
   unfold Fibonacci at this
   omega

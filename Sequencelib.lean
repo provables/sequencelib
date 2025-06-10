@@ -5,9 +5,9 @@ import Sequencelib.Catalan
 import Sequencelib.Divisors
 import Sequencelib.Fibonacci
 import Sequencelib.FiniteGroups
-import Sequencelib.MersenneNumbers
 import Sequencelib.Lucas
 import Sequencelib.MersenneExponents
+import Sequencelib.MersenneNumbers
 import Sequencelib.Parity
 import Sequencelib.Partitions
 import Sequencelib.PowersOfPrimes

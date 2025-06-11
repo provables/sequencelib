@@ -1,0 +1,15 @@
+<div id="Index">
+    <h2 class="markdown-heading">Index</h2>
+    <ul>
+        {% for tag in lines|sort %}
+        <li>
+            <a href="{{ lines[tag].local_path }}">{{ tag }}</a>: {{ lines[tag]["title"] }}
+            <ul>
+                {% for decl in lines[tag]["decls"]|sort %}
+                <li><a href="{{ lines[tag].local_path }}#Sequence.{{ decl }}">{{ decl }}</a></li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ul>
+</div>

@@ -167,6 +167,10 @@ def mod_to_path(mod):
     return mod.replace(".", "/") + ".html"
 
 
+def mod_to_local_path(mod):
+    return mod.split(".")[-1] + ".html"
+
+
 def process_mod(mod, tags):
     html_file = HERE / "../.lake/build/doc" / mod_to_path(mod)
     out = process(html_file, mod, tags)
@@ -215,32 +219,60 @@ def get_titles(info):
     return result
 
 
-def create_index(info, titles):
-    out = HERE / "../home_page/sequences.md"
+def info_to_index(info, titles):
     lines = {}
     for mod, tags in info.items():
         for tag, (_, decls) in tags.items():
-            decls_for_tag = lines.setdefault(tag, {})
+            decls_for_tag = lines.setdefault(
+                tag,
+                {
+                    "decls": [],
+                    "title": titles[tag],
+                    "mod": mod,
+                    "path": mod_to_path(mod),
+                    "local_path": mod_to_local_path(mod)
+                },
+            )
             for decl in decls:
-                decls_for_tag[decl] = mod
+                decls_for_tag["decls"].append(clean_name(decl))
+    return lines
+
+
+def create_index(info, titles, out_file):
+    lines = info_to_index(info, titles)
     out_lines = []
     for tag in sorted(lines):
         title = titles[tag]
         out_lines.append(f"* [{tag}](https://oeis.org/{tag}): {title}")
-        decls = lines[tag]
+        decls = lines[tag]["decls"]
+        p = lines[tag]["path"]
         for decl in sorted(decls):
-            mod = decls[decl]
-            p = mod_to_path(mod)
             cleaned = clean_name(decl)
             out_lines.append(f"    * [{cleaned}]({{{{ site.url }}}}/docs/{p}#{decl})")
-    out.write_text("\n".join(out_lines))
+    out_file.write_text("\n".join(out_lines))
+
+
+def create_doc_index(info, titles, doc_file):
+    lines = info_to_index(info, titles)
+    env = Environment(loader=FileSystemLoader(HERE))
+    template = env.get_template("doc_index.html.j2")
+    f = open(doc_file)
+    soup = BeautifulSoup(f, "html5lib")
+    old = soup.find("div", id="Index")
+    if old:
+        old.extract()
+    div = soup.find("div", class_="mod_doc")
+    print(lines)
+    div.append(BeautifulSoup(template.render(lines=lines), "html5lib").find("div"))
+    doc_file.write_text(str(soup))
 
 
 def main():
     info = get_oeis_info()
     titles = get_titles(info)
     process_all(info)
-    create_index(info, titles)
+    create_index(info, titles, HERE / "../home_page/sequences.md")
+    create_doc_index(info, titles, HERE / "../.lake/build/doc/Sequencelib/Basic.html")
 
 
 if __name__ == "__main__":

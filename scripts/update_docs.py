@@ -244,7 +244,7 @@ def create_index(info, titles, out_file):
     for tag in sorted(lines):
         title = titles[tag]
         p = lines[tag]["path"]
-        out_lines.append(f"* [{tag}]({{{{ site.url }}}}/docs/{p}) [[OEIS ➚](https://oeis.org/{tag})]: {title}")
+        out_lines.append(f"* [{tag}]({{{{ site.url }}}}/docs/{p}) [[OEIS ➚](https://oeis.org/{tag}){{:target=\"_blank\"}}]: {title}")
         decls = lines[tag]["decls"]
         for decl in sorted(decls):
             cleaned = clean_name(decl)

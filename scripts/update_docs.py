@@ -271,7 +271,7 @@ def main():
     titles = get_titles(info)
     process_all(info)
     create_index(info, titles, HERE / "../home_page/sequences.md")
-    create_doc_index(info, titles, HERE / "../.lake/build/doc/Sequencelib/Basic.html")
+    create_doc_index(info, titles, HERE / "../.lake/build/doc/Sequencelib.html")
 
 
 if __name__ == "__main__":

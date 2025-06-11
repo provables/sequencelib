@@ -3,7 +3,9 @@
     <ul>
         {% for tag in lines|sort %}
         <li>
-            <a href="{{ lines[tag].local_path }}">{{ tag }}</a>: {{ lines[tag]["title"] }}
+            <a href="{{ lines[tag].local_path }}">{{ tag }}</a> 
+            [<a target="_blank" href="https://oeis.org/{{ tag }}">OEIS ➚</a>]: 
+            {{ lines[tag]["title"] }}
             <ul>
                 {% for decl in lines[tag]["decls"]|sort %}
                 <li><a href="{{ lines[tag].local_path }}#Sequence.{{ decl }}">{{ decl }}</a></li>

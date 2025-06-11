@@ -243,9 +243,9 @@ def create_index(info, titles, out_file):
     out_lines = []
     for tag in sorted(lines):
         title = titles[tag]
-        out_lines.append(f"* [{tag}](https://oeis.org/{tag}): {title}")
-        decls = lines[tag]["decls"]
         p = lines[tag]["path"]
+        out_lines.append(f"* [{tag}]({{{{ site.url }}}}/docs/{p}) [[OEIS ➚](https://oeis.org/{tag})]: {title}")
+        decls = lines[tag]["decls"]
         for decl in sorted(decls):
             cleaned = clean_name(decl)
             out_lines.append(f"    * [{cleaned}]({{{{ site.url }}}}/docs/{p}#{decl})")
@@ -262,7 +262,6 @@ def create_doc_index(info, titles, doc_file):
     if old:
         old.extract()
     div = soup.find("div", class_="mod_doc")
-    print(lines)
     div.append(BeautifulSoup(template.render(lines=lines), "html5lib").find("div"))
     doc_file.write_text(str(soup))
 

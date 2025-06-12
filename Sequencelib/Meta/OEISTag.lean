@@ -23,6 +23,7 @@ structure Sequence where
   module : Name
   theorems : Array Thm
   offset : Nat
+  isComputable : Bool
   deriving Repr, Inhabited
 
 structure OEISTag where
@@ -56,10 +57,11 @@ initialize oeisExt : SimplePersistentEnvExtension OEISTag OEISInfo ←
   }
 
 def addOEISEntry {m : Type → Type} [MonadEnv m]
-    (declName : Name) (module : Name) (oeisTag : String) (offset : Nat) : m Unit :=
+    (declName : Name) (module : Name) (oeisTag : String) (offset : Nat) :
+    m Unit :=
   modifyEnv (oeisExt.addEntry · {
     tagName := oeisTag,
-    sequences := #[⟨oeisTag, declName, module, #[], offset⟩],
+    sequences := #[⟨oeisTag, declName, module, #[], offset, default⟩],
     offset := offset
   })
 

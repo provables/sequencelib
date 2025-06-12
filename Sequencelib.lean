@@ -3,6 +3,7 @@
 import Sequencelib.Basic
 import Sequencelib.Catalan
 import Sequencelib.Divisors
+import Sequencelib.DoubleFactorial
 import Sequencelib.Fibonacci
 import Sequencelib.FiniteGroups
 import Sequencelib.Lucas

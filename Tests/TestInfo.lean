@@ -79,5 +79,3 @@ info: {"Tests.TestInfo":
 run_meta do
   let info := OEISInfoToJson <| ← getOEISInfo
   logInfo m!"{info}"
-
-#oeis_info_json

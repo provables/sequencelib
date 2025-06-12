@@ -87,10 +87,11 @@ def all_equivalences(equivalences):
 
 def values_table(tag, tags, mod):
     template = get_template()
-    offset, decls = tags[tag]
+    decls = tags[tag]
     data = OrderedDict()
     equivalences = OrderedDict()
-    for seq, thms in decls.items():
+    for seq, decl_info in decls["decls"].items():
+        thms = decl_info["thms"]
         d = {"label": clean_name(seq), "seq": seq, "max": 0}
         values = [""] * MAX_VALUE
         for thm in thms.values():
@@ -119,11 +120,11 @@ def values_table(tag, tags, mod):
                 data[seq1]["values"][idx] = {"value": value2["value"]}
 
     max_n = max([row["max"] for row in data.values()])
-    headers = ["n"] + list(range(offset, max_n + 1))
+    headers = ["n"] + list(range(decls["offset"], max_n + 1))
     table = template.render(
         headers=headers,
         data=data.values(),
-        offset=offset,
+        offset=decls["offset"],
         max_n=max_n,
         tag=tag,
         equivalences=equivalences.values(),
@@ -139,7 +140,7 @@ def insert(soup, mod, tags):
     p_tag = soup.new_tag("p")
     p_tag.append("OEIS sequences formalized in this file:")
     ul_tag = soup.new_tag("ul")
-    for tag, (offset, decls) in tags.items():
+    for tag in tags:
         ul_tag.append(values_table(tag, tags, mod))
     h1_tag = soup.find("h1", class_="markdown-heading")
     if not h1_tag:
@@ -222,7 +223,8 @@ def get_titles(info):
 def info_to_index(info, titles):
     lines = {}
     for mod, tags in info.items():
-        for tag, (_, decls) in tags.items():
+        for tag, decls_info in tags.items():
+            decls = decls_info["decls"]
             decls_for_tag = lines.setdefault(
                 tag,
                 {
@@ -230,11 +232,21 @@ def info_to_index(info, titles):
                     "title": titles[tag],
                     "mod": mod,
                     "path": mod_to_path(mod),
-                    "local_path": mod_to_local_path(mod)
+                    "local_path": mod_to_local_path(mod),
                 },
             )
             for decl in decls:
-                decls_for_tag["decls"].append(clean_name(decl))
+                decls_for_tag["decls"].append(
+                    {
+                        "clean_name": clean_name(decl),
+                        "name": decl,
+                        "isComputable": (
+                            "computable"
+                            if decls[decl]["isComputable"]
+                            else "non-computable"
+                        ),
+                    }
+                )
     return lines
 
 
@@ -244,11 +256,18 @@ def create_index(info, titles, out_file):
     for tag in sorted(lines):
         title = titles[tag]
         p = lines[tag]["path"]
-        out_lines.append(f"* [{tag}]({{{{ site.url }}}}/docs/{p}) [[OEIS ➚](https://oeis.org/{tag}){{:target=\"_blank\"}}]: {title}")
+        out_lines.append(
+            f'* [{tag}]({{{{ site.url }}}}/docs/{p}) [[OEIS ➚](https://oeis.org/{tag}){{:target="_blank"}}]: {title}'
+        )
         decls = lines[tag]["decls"]
-        for decl in sorted(decls):
-            cleaned = clean_name(decl)
-            out_lines.append(f"    * [{cleaned}]({{{{ site.url }}}}/docs/{p}#Sequence.{decl})")
+        for decl in sorted(decls, key=lambda x: x["clean_name"]):
+            out_lines.append(
+                f"    * [{decl['clean_name']}]({{{{ site.url }}}}/docs/{p}#{decl['name']}) "
+                '<span style="background: #3b82f6; color: white; padding: 2px 8px; '
+                'border-radius: 12px; font-size: 11px; display: inline-block; margin: 2px;">'
+                f'{decl["isComputable"]}'
+                "</span>"
+            )
     out_file.write_text("\n".join(out_lines))
 
 

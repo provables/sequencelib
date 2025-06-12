@@ -130,10 +130,10 @@ def ThmToName (thm : Thm) : Name :=
 
 def OEISInfoToJson (info : OEISInfo) : Json :=
   Json.mkObj <| OEISInfoToMod info |>.toList.map (fun (mod, tagsForMod) =>
-    (mod.toString, Json.mkObj <| tagsForMod.toList.map (fun (tag, declsForTag) =>
+    (mod.toString, Json.mkObj <| tagsForMod.toList.map (fun (tag, ⟨offst, declsForTag⟩) =>
       (tag, Json.mkObj [
-        ("offset", Json.num declsForTag.1),
-        ("decls", Json.mkObj <| declsForTag.2.toList.map (fun (decl, ⟨isComputable, thmsForDecl⟩) =>
+        ("offset", Json.num offst),
+        ("decls", Json.mkObj <| declsForTag.toList.map (fun (decl, ⟨isComputable, thmsForDecl⟩) =>
           (decl.toString, Json.mkObj <| [
             ("isComputable", Json.bool isComputable),
             ("thms", Json.mkObj <| thmsForDecl.toList.map

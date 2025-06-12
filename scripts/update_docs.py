@@ -248,7 +248,7 @@ def create_index(info, titles, out_file):
         decls = lines[tag]["decls"]
         for decl in sorted(decls):
             cleaned = clean_name(decl)
-            out_lines.append(f"    * [{cleaned}]({{{{ site.url }}}}/docs/{p}#{decl})")
+            out_lines.append(f"    * [{cleaned}]({{{{ site.url }}}}/docs/{p}#Sequence.{decl})")
     out_file.write_text("\n".join(out_lines))
 
 

@@ -38,10 +38,8 @@ def Catalan₁ (n : ℕ) : ℕ := (Nat.centralBinom n) / (n + 1)
 theorem Catalan_eq_Catalan₁ : Catalan = Catalan₁ :=
   funext (catalan_eq_centralBinom_div ·)
 
-theorem Catalan₁_four : Catalan₁ 4 = 14 := by
-  rw [Catalan₁]
-  norm_num [catalan_eq_centralBinom_div, Nat.centralBinom, Nat.choose]
+theorem Catalan₁_four : Catalan₁ 4 = 14 := by decide
 
-theorem Catalan₁_five : Catalan₁ 5 = 42 := by
-  rw [Catalan₁]
-  norm_num [catalan_eq_centralBinom_div, Nat.centralBinom, Nat.choose]
+theorem Catalan₁_five : Catalan₁ 5 = 42 := by decide
+
+theorem Catalan₁_six : Catalan₁ 6 = 132 := by decide

@@ -10,7 +10,7 @@
                 {% for decl in lines[tag]["decls"]|sort(attribute='clean_name') %}
                 <li>
                     <a href="{{ lines[tag].path }}#{{ decl.name }}">{{ decl["clean_name"] }}</a>
-                    <span style="background: var(--tags-border-color); color: var(--body-bg); padding: 2px 8px; border-radius: 12px; font-size: 11px; display: inline-block; margin: 2px;">
+                    <span style="background: var(--{{ colors[decl['isComputable']] }}); color: var(--body-bg); padding: 2px 8px; border-radius: 12px; font-size: 11px; display: inline-block; margin: 2px;">
                     {{ decl["isComputable"] }}
                     </span>
                 </li>

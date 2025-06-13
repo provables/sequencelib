@@ -250,6 +250,13 @@ def info_to_index(info, titles):
     return lines
 
 
+TAG_COLORS = {"computable": "B4CDF8", "non-computable": "E0D1F1"}
+DOC_TAG_COLORS = {
+    "computable": "tags-border-color",
+    "non-computable": "hamburger-border-color",
+}
+
+
 def create_index(info, titles, out_file):
     lines = info_to_index(info, titles)
     out_lines = []
@@ -263,7 +270,7 @@ def create_index(info, titles, out_file):
         for decl in sorted(decls, key=lambda x: x["clean_name"]):
             out_lines.append(
                 f"    * [{decl['clean_name']}]({{{{ site.url }}}}/docs/{p}#{decl['name']}) "
-                '<span style="background: #3b82f6; color: white; padding: 2px 8px; '
+                f'<span style="background: #{TAG_COLORS[decl["isComputable"]]}; color: black; padding: 2px 8px; '
                 'border-radius: 12px; font-size: 11px; display: inline-block; margin: 2px;">'
                 f'{decl["isComputable"]}'
                 "</span>"
@@ -281,7 +288,11 @@ def create_doc_index(info, titles, doc_file):
     if old:
         old.extract()
     div = soup.find("div", class_="mod_doc")
-    div.append(BeautifulSoup(template.render(lines=lines), "html5lib").find("div"))
+    div.append(
+        BeautifulSoup(
+            template.render(lines=lines, colors=DOC_TAG_COLORS), "html5lib"
+        ).find("div")
+    )
     doc_file.write_text(str(soup))
 
 

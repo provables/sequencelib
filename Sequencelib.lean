@@ -1,5 +1,3 @@
--- Import modules here that should be built as part of the library.
--- This module serves as the root of the `Sequencelib` library.
 import Sequencelib.Basic
 import Sequencelib.Catalan
 import Sequencelib.Divisors

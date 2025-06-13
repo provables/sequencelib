@@ -34,11 +34,9 @@ theorem DoubleFactorial_five : DoubleFactorial 5 = 15 := rfl
 theorem DoubleFactorial_def {n : ℕ} :
     DoubleFactorial (n + 1) = (n + 1) * DoubleFactorial (n - 1) := by
   by_cases h : 1 ≤ n
-  · have : n + 1 = (n - 1) + 2 := by omega
-    rw [this]
+  · rw [show n + 1 = (n - 1) + 2 by omega]
     simp [DoubleFactorial]
-  · push_neg at h
-    rw [Nat.lt_one_iff] at h
+  · simp [Nat.lt_one_iff] at h
     simp [h, DoubleFactorial]
 
 theorem mul_DoubleFactorial_eq_Factorial (n : ℕ) :

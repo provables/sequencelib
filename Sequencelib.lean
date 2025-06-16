@@ -10,6 +10,7 @@ import Sequencelib.MersenneExponents
 import Sequencelib.MersenneNumbers
 import Sequencelib.Parity
 import Sequencelib.Partitions
+import Sequencelib.Pentagonal
 import Sequencelib.PowersOfPrimes
 import Sequencelib.Primes
 import Sequencelib.Sylvester

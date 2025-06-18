@@ -262,6 +262,7 @@ def create_index(info, titles, out_file):
     out_lines = []
     for tag in sorted(lines):
         title = titles[tag]
+        title = re.sub(r'([\*_])', r'\\\1', title)
         p = lines[tag]["path"]
         out_lines.append(
             f'* [{tag}]({{{{ site.url }}}}/docs/{p}) [[OEIS ➚](https://oeis.org/{tag}){{:target="_blank"}}]: {title}'

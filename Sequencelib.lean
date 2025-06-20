@@ -15,6 +15,7 @@ import Sequencelib.PowersOfPrimes
 import Sequencelib.Primes
 import Sequencelib.Sylvester
 import Sequencelib.Totient
+import Sequencelib.TriangleOfPartitions
 import Sequencelib.Triangular
 
 /-!

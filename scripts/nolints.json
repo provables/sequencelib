@@ -26,6 +26,7 @@
  ["docBlame", "OEISTag.sequences"],
  ["docBlame", "OEISTag.tagName"],
  ["docBlame", "Sequence.definition"],
+ ["docBlame", "Sequence.isComputable"],
  ["docBlame", "Sequence.module"],
  ["docBlame", "Sequence.offset"],
  ["docBlame", "Sequence.tagName"],

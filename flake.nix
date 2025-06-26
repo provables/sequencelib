@@ -69,6 +69,7 @@
           ruby
           rsync
           jq
+          moreutils
         ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
       };
     }

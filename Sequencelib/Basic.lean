@@ -11,4 +11,5 @@ A collection of formalizations of sequences from the
 [The On-Line Encyclopedia of Integer Sequences (OEIS)](https://oeis.org/).
 
 - [Main website](https://provables.github.io/sequencelib/)
+
 -/

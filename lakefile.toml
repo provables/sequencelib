@@ -1,9 +1,8 @@
 name = "sequencelib"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["Sequencelib"]
+defaultTargets = ["Sequencelib", "Tests"]
 lintDriver = "batteries/runLinter"
-testDriver = "runTests"
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
@@ -13,7 +12,7 @@ linter.missingDocs = false
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.19.0"
+rev = "v4.20.1"
 
 [[require]]
 name = "checkdecls"
@@ -22,12 +21,12 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 [[require]]
 name = "«doc-gen4»"
 git = "https://github.com/leanprover/doc-gen4"
-rev = "v4.19.0"
+rev = "v4.20.1"
 
 [[require]]
 name = "REPL"
 git = "https://github.com/leanprover-community/repl"
-rev = "v4.19.0"
+#rev = "v4.20.1"
 
 [[lean_exe]]
 name = "oeisinfo"
@@ -35,8 +34,7 @@ root = "scripts.GetOEISInfo"
 supportInterpreter = true
 
 [[lean_lib]]
-name = "runTests"
-globs = ["tests.+"]
+name = "Tests"
 
 [[lean_lib]]
 name = "Sequencelib"

@@ -23,6 +23,7 @@ structure Sequence where
   module : Name
   theorems : Array Thm
   offset : Nat
+  isComputable : Bool
   deriving Repr, Inhabited
 
 structure OEISTag where
@@ -56,10 +57,11 @@ initialize oeisExt : SimplePersistentEnvExtension OEISTag OEISInfo ←
   }
 
 def addOEISEntry {m : Type → Type} [MonadEnv m]
-    (declName : Name) (module : Name) (oeisTag : String) (offset : Nat) : m Unit :=
+    (declName : Name) (module : Name) (oeisTag : String) (offset : Nat) :
+    m Unit :=
   modifyEnv (oeisExt.addEntry · {
     tagName := oeisTag,
-    sequences := #[⟨oeisTag, declName, module, #[], offset⟩],
+    sequences := #[⟨oeisTag, declName, module, #[], offset, default⟩],
     offset := offset
   })
 
@@ -84,7 +86,7 @@ initialize registerBuiltinAttribute {
         ]
         addDocStringCore decl <| "\n\n".intercalate <| newDoc.filter (· ≠ "")
         addOEISEntry decl mod seqStr offst
-        let tagDeclName := Name.mkStr decl "OEIS"
+        let tagDeclName := Name.append decl <| Name.mkSimple "OEIS"
         let tagDecl := Declaration.defnDecl {
           name := tagDeclName
           levelParams := []
@@ -94,7 +96,8 @@ initialize registerBuiltinAttribute {
           safety := DefinitionSafety.safe
         }
         addDocStringCore tagDeclName "OEIS Identifier"
-        let offsetDeclName := Name.mkStr decl "offset"
+        addDeclarationRangesFromSyntax tagDeclName stx
+        let offsetDeclName := Name.append decl <| Name.mkSimple "offset"
         let offsetDecl := Declaration.defnDecl {
           name := offsetDeclName
           levelParams := []
@@ -104,6 +107,7 @@ initialize registerBuiltinAttribute {
           safety := DefinitionSafety.safe
         }
         addDocStringCore offsetDeclName "OEIS sequence offset"
+        addDeclarationRangesFromSyntax offsetDeclName stx
         Lean.addAndCompile tagDecl
         Lean.addAndCompile offsetDecl
       | _ => throwError "invalid OEIS attribute syntax"

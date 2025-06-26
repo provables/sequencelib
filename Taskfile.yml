@@ -117,4 +117,4 @@ tasks:
   sort-root:
     desc: Sort imports in Sequencelib.lean
     cmds:
-      - sort -o Sequencelib.lean Sequencelib.lean
+      - cat <(grep '^import' Sequencelib.lean|sort) <(grep -v '^import' Sequencelib.lean) | sponge Sequencelib.lean

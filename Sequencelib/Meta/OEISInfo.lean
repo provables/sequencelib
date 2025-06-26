@@ -73,19 +73,20 @@ def getOEISInfo : MetaM OEISInfo := do
       ← oeisTag.sequences.mapM (fun seq => do
         let new_thms := (← findValueTheorems seq.definition)
           |>.append (← findEquivTheorems seq.definition <| oeisTag.sequences.map (·.definition))
-        return {seq with theorems := seq.theorems.append new_thms}
+        let isComputable := !isNoncomputable env seq.definition
+        return {seq with theorems := seq.theorems.append new_thms, isComputable := isComputable}
       ),
       oeisTag.offset
     ⟩)
   ))
 
 def OEISInfoToMod (info : OEISInfo) :
-    Std.HashMap Name (Std.HashMap Tag (Nat × Std.HashMap Name (Array Thm))) :=
+    Std.HashMap Name (Std.HashMap Tag (Nat × Std.HashMap Name (Bool × Array Thm))) :=
   info.fold (fun acc tag oeisTag =>
     let mod := oeisTag.sequences[0]? |>.map (·.module) |>.getD `no_module
     let tagsForMod := acc.get? mod |>.getD ∅
     let declsForTagWithThms := oeisTag.sequences.foldl (fun accs seq =>
-      ⟨seq.offset, accs.2.insert seq.definition seq.theorems⟩
+      ⟨seq.offset, accs.2.insert seq.definition ⟨seq.isComputable, seq.theorems⟩⟩
     ) <| tagsForMod.get? tag |>.getD ⟨0, ∅⟩
     acc.insert mod <| tagsForMod.insert tag declsForTagWithThms
   ) ∅
@@ -97,8 +98,9 @@ def showOEISInfo : Command.CommandElabM Unit := do
     msgs := msgs.push m!"Module: {mod}"
     for (tag, declsForTag) in tagsForMod do
       msgs := msgs.push m!".. tag: {tag}, offset: {declsForTag.1}"
-      for (decl, thmsForDecl) in declsForTag.2 do
-        msgs := msgs.push m!".... {decl}"
+      for (decl, ⟨isComputable, thmsForDecl⟩) in declsForTag.2 do
+        let computable := if isComputable then "computable" else "noncomputable"
+        msgs := msgs.push m!".... [{computable}] {decl}"
         for thm in thmsForDecl do
           msgs := msgs.push m!"...... {repr thm}"
   logInfo <| MessageData.joinSep msgs.toList "\n"
@@ -128,17 +130,19 @@ def ThmToName (thm : Thm) : Name :=
 
 def OEISInfoToJson (info : OEISInfo) : Json :=
   Json.mkObj <| OEISInfoToMod info |>.toList.map (fun (mod, tagsForMod) =>
-    (mod.toString, Json.mkObj <| tagsForMod.toList.map (fun (tag, declsForTag) =>
-      (tag, Json.arr #[
-        Json.num declsForTag.1,
-        Json.mkObj <| declsForTag.2.toList.map (fun (decl, thmsForDecl) =>
-          (decl.toString, Json.mkObj <| thmsForDecl.toList.map (fun thm =>
-            (ThmToName thm |>.toString, ThmToJson thm)
-          )))
-        ]
-      )
-    ))
+    (mod.toString, Json.mkObj <| tagsForMod.toList.map (fun (tag, ⟨offst, declsForTag⟩) =>
+      (tag, Json.mkObj [
+        ("offset", Json.num offst),
+        ("decls", Json.mkObj <| declsForTag.toList.map (fun (decl, ⟨isComputable, thmsForDecl⟩) =>
+          (decl.toString, Json.mkObj <| [
+            ("isComputable", Json.bool isComputable),
+            ("thms", Json.mkObj <| thmsForDecl.toList.map
+              (fun thm => (ThmToName thm |>.toString, ThmToJson thm)))
+          ])))
+        ])
+    )
   )
+)
 
 elab (name := oeisInfo) "#oeis_info" : command =>
   showOEISInfo

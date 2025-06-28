@@ -105,14 +105,18 @@ example : 1 = 2 := by
 #check Eq
 #check Prop
 #check false
+
 def proveSequenceValue (decl : Name ) (idx : Nat) (value : Nat) :
     CoreM Unit := do
   let env ← getEnv
+  let f : Q(ℕ → ℕ) := mkConst decl
   let thmDecl := Declaration.thmDecl {
     name := `foo
     levelParams := []
-    type := .app (.app (.app (.const ``Eq [1]) (.const ``Nat [])) (.app (.const decl []) (.lit (.natVal idx)))) (.lit (.natVal value))
-    value := .app (.app (.const ``sorryAx [1]) (.const ``Prop [])) (.const `Bool.false [])
+    type := q($f $(idx) = $(value))
+    --type := .app (.app (.app (.const ``Eq [1]) (.const ``Nat [])) (.app (.const decl []) (.lit (.natVal idx)))) (.lit (.natVal value))
+    value := q(sorryAx ($f $(idx) = $(value)) false)
+    --value := .app (.app (.const ``sorryAx [1]) q(Prop)) (.const `Bool.false [])
   }
   Lean.addAndCompile thmDecl
 

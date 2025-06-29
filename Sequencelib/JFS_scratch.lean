@@ -5,11 +5,6 @@ import Qq
 
 open Lean Expr Elab Term Tactic Meta Qq
 
-def bar (n : ℕ) : ℕ :=
-  match n with
-  | 0 => 0
-  | n + 1 => bar (n - 1)
-
 #check Lean.Meta.throwTacticEx
 
 elab "oeis_tactic" : tactic =>
@@ -28,9 +23,7 @@ elab "oeis_tactic" : tactic =>
         evalTactic (← `(tactic| try rfl))
         evalTactic (← `(tactic| try decide))
         dbg_trace f!"After decide"
-        let f_stx ← exprToSyntax (mkConst name)
-        dbg_trace f!"f_stx = {f_stx}"
-        evalTactic (← `(tactic| try simp [$f_stx:ident]))
+        evalTactic (← `(tactic| try simp [$(mkIdent name):ident]))
         dbg_trace f!"After try simp"
       | _ =>
         dbg_trace "bad"
@@ -54,6 +47,11 @@ def proveSequenceValue (decl : Name ) (proof: Expr) (idx : Nat) (value : Nat) :
   }
   Lean.addAndCompile thmDecl
 
+
+def bar (n : ℕ) : ℕ :=
+  match n with
+  | 0 => 0
+  | n + 1 => bar (n - 1)
 
 #eval bar 1
 

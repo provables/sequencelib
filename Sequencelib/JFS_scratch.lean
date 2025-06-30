@@ -33,7 +33,6 @@ elab "oeis_tactic" : tactic =>
 
 def proveSequenceValue (decl : Name ) (proof: Expr) (idx : Nat) (value : Nat) :
     CoreM Unit := do
-  let env ← getEnv
   let f : Q(ℕ → ℕ) := mkConst decl
   let thmDecl := Declaration.thmDecl {
     name := `baz
@@ -47,6 +46,31 @@ def proveSequenceValue (decl : Name ) (proof: Expr) (idx : Nat) (value : Nat) :
   }
   Lean.addAndCompile thmDecl
 
+#check sorryAx
+def createThm (decl : Name) (idx value : ℕ) : TermElabM Unit := do
+  -- TODO: try Term.elabTerm (← `(term| ...write term here )
+  let f : Q(ℕ → ℕ) := mkConst decl
+  let thm := q($f $(idx) = $(value))
+  let proof ← Term.elabTerm (← `(term| by rfl)) (some thm)
+  Term.synthesizeSyntheticMVarsNoPostponing
+  let r ← instantiateMVars proof
+  let z := getAppFn r
+  dbg_trace f!"foo: {repr <| getAppFn r}"
+  -- TODO: check if q is sorryAx, that means it failed
+  match z with
+  | .const ``sorryAx _ => dbg_trace "sorry"
+  | _ => dbg_trace "good"
+  let thmDecl := Declaration.thmDecl {
+    name := `baz2
+    levelParams := []
+    type := ← instantiateMVars thm
+    --type := .app (.app (.app (.const ``Eq [1]) (.const ``Nat [])) (.app (.const decl []) (.lit (.natVal idx)))) (.lit (.natVal value))
+    value := ← instantiateMVars proof
+    --value := q(@rfl ℕ $(value))
+    -- value := q(sorryAx ($f $(idx) = $(value)) false)
+    --value := .app (.app (.const ``sorryAx [1]) q(Prop)) (.const `Bool.false [])
+  }
+  Lean.addAndCompile thmDecl
 
 def bar (n : ℕ) : ℕ :=
   match n with
@@ -55,7 +79,15 @@ def bar (n : ℕ) : ℕ :=
 
 #eval bar 1
 
-theorem woo : bar 1 = 0 := by oeis_tactic
+theorem woo : bar 1 =  0 := by oeis_tactic
+
+def baz (n : ℕ) : ℕ := 0
+theorem wii : baz 1 = 0 := by oeis_tactic
+
+run_elab do
+  createThm `baz 1 0
+
+#print baz2
 #print woo
 #check simp
 #check evalTactic

@@ -6,6 +6,8 @@ Authors: Walter Moreira
 import Lean
 import Qq
 import Batteries
+import Sequencelib.Meta.DeriveTheorems
+
 open Lean Meta Elab Qq
 
 abbrev Tag := String
@@ -70,7 +72,7 @@ syntax (name := OEIS) "OEIS" ":=" ident ("," "offset" ":=" num)?: attr
 initialize registerBuiltinAttribute {
     name := `OEIS
     descr := "Apply an OEIS tag to a definition."
-    applicationTime := AttributeApplicationTime.beforeElaboration
+    applicationTime := AttributeApplicationTime.afterCompilation
     add := fun decl stx kind => do
       match stx with
       | `(attr|OEIS := $seq $[, offset := $n]?) => do
@@ -110,5 +112,8 @@ initialize registerBuiltinAttribute {
         addDeclarationRangesFromSyntax offsetDeclName stx
         Lean.addAndCompile tagDecl
         Lean.addAndCompile offsetDecl
+        liftCommandElabM <| Command.liftTermElabM <| deriveTheorems decl
       | _ => throwError "invalid OEIS attribute syntax"
   }
+
+#check CoreM

@@ -33,8 +33,10 @@ namespace Sequence
 /-
 The Fibonacci sequence: `F n = F (n - 1) + F (n - 2)`.
 -/
-@[OEIS := A000045, offset := 0]
+@[OEIS := A000045, offset := 0, maxIndex := 10]
 def Fibonacci := Nat.fib
+
+#print Fibonacci_6
 
 theorem Fibonacci_zero : Fibonacci 0 = 0 := Nat.fib_zero
 

@@ -51,7 +51,7 @@ def createThm (decl : Name) (idx value : ℕ) : TermElabM Unit := do
   -- TODO: try Term.elabTerm (← `(term| ...write term here )
   let f : Q(ℕ → ℕ) := mkConst decl
   let thm := q($f $(idx) = $(value))
-  let proof ← Term.elabTerm (← `(term| by rfl)) (some thm)
+  let proof ← Term.elabTerm (← `(term| by oeis_tactic)) (some thm)
   Term.synthesizeSyntheticMVarsNoPostponing
   let r ← instantiateMVars proof
   let z := getAppFn r

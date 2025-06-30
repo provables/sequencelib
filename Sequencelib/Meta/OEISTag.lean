@@ -67,7 +67,7 @@ def addOEISEntry {m : Type → Type} [MonadEnv m]
     offset := offset
   })
 
-syntax (name := OEIS) "OEIS" ":=" ident ("," "offset" ":=" num)?: attr
+syntax (name := OEIS) "OEIS" ":=" ident ("," "offset" ":=" num)? : attr
 
 initialize registerBuiltinAttribute {
     name := `OEIS
@@ -112,7 +112,7 @@ initialize registerBuiltinAttribute {
         addDeclarationRangesFromSyntax offsetDeclName stx
         Lean.addAndCompile tagDecl
         Lean.addAndCompile offsetDecl
-        liftCommandElabM <| Command.liftTermElabM <| deriveTheorems decl
+        liftCommandElabM <| Command.liftTermElabM <| deriveTheorems decl offst 10
       | _ => throwError "invalid OEIS attribute syntax"
   }
 

@@ -6,6 +6,7 @@ Authors: Walter Moreira
 import Lean
 import Qq
 import Batteries
+import Sequencelib.Meta.Defs
 import Sequencelib.Meta.DeriveTheorems
 
 open Lean Meta Elab Qq
@@ -67,7 +68,59 @@ def addOEISEntry {m : Type → Type} [MonadEnv m]
     offset := offset
   })
 
-syntax (name := OEIS) "OEIS" ":=" ident ("," "offset" ":=" num)? : attr
+structure OEISOptions where
+  offset : ℕ
+  derive : Bool
+  maxIndex : ℕ
+  deriving Repr, Inhabited
+
+def getOptions {m : Type → Type} [Monad m] [MonadError m]
+    (kwds : Array Syntax) (opts : Array Syntax) : m OEISOptions := do
+  let mut os : OEISOptions := default
+  for (kwd, val) in kwds.zip opts do
+    match kwd.getKind with
+    | `token.offset =>
+      let `($n:num) := val | throwError "offset should be a Nat"
+      os := {os with offset := n.getNat}
+    | `token.derive =>
+      let `($b:ident) := val | throwError "derive should be true or false"
+      let b ← match b.getId with
+        | `true => pure true
+        | `false => pure false
+        | _ => throwError "derive should be true or false"
+      os := {os with derive := b}
+    | `token.maxIndex =>
+      let `($n:num) := val | throwError "maxIndex should be a Nat"
+      os := {os with maxIndex := n.getNat}
+    | _ => throwError m!"unknown option {repr kwd}"
+  return os
+
+syntax (name := oeis_option) ("offset" <|> "derive" <|> "maxIndex") : term
+syntax (name := OEIS) "OEIS" ":=" ident ("," oeis_option ":=" term)* : attr
+
+--syntax (name := FOO) "FOO" ":=" ident ("," ("offset" <|> "derive" <|> "maxIndex") ":=" term)* : attr
+-- run_elab do
+--   let opts ← getOptions #[← `(term|offset), ← `(term|derive)]
+--     #[← `(term|1), ← `(term|$(mkIdent `true))]
+--   dbg_trace f!"opts := {repr opts}"
+
+
+-- initialize registerBuiltinAttribute {
+--   name := `FOO
+--   descr := "Test attr"
+--   applicationTime := AttributeApplicationTime.afterCompilation
+--   add := fun decl stx kind => do
+--     dbg_trace "In FOO"
+--     match stx with
+--     | `(attr|FOO := $s:ident $[, $e := $g]*) =>
+--       dbg_trace "matched {s} -- {e} -- {g}"
+--       let x ← getOptions e g
+--       dbg_trace f!"-- {repr x}"
+--     | _ => dbg_trace "rest"
+-- }
+
+-- syntax (name := OEIS) "OEIS" ":=" ident ("," "offset" ":=" num)? ("," "maxIndex" ":=" num)?
+--   : attr
 
 initialize registerBuiltinAttribute {
     name := `OEIS
@@ -75,9 +128,11 @@ initialize registerBuiltinAttribute {
     applicationTime := AttributeApplicationTime.afterCompilation
     add := fun decl stx kind => do
       match stx with
-      | `(attr|OEIS := $seq $[, offset := $n]?) => do
+      | `(attr|OEIS := $seq $[, $e := $t]*) => do
         let seqStr := seq.getId.toString
-        let offst := n.map (·.getNat) |>.getD 0
+        let opts ← getOptions e t
+        let offst := opts.offset
+        let maxIdx := opts.maxIndex
         let env ← getEnv
         let mod ← getMainModule
         let oldDoc := (← findDocString? env decl).getD ""
@@ -112,7 +167,8 @@ initialize registerBuiltinAttribute {
         addDeclarationRangesFromSyntax offsetDeclName stx
         Lean.addAndCompile tagDecl
         Lean.addAndCompile offsetDecl
-        liftCommandElabM <| Command.liftTermElabM <| deriveTheorems decl offst 10
+        if opts.derive then
+          liftCommandElabM <| Command.liftTermElabM <| deriveTheorems decl offst maxIdx
       | _ => throwError "invalid OEIS attribute syntax"
   }
 

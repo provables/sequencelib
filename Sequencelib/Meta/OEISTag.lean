@@ -98,30 +98,6 @@ def getOptions {m : Type → Type} [Monad m] [MonadError m]
 syntax (name := oeis_option) ("offset" <|> "derive" <|> "maxIndex") : term
 syntax (name := OEIS) "OEIS" ":=" ident ("," oeis_option ":=" term)* : attr
 
---syntax (name := FOO) "FOO" ":=" ident ("," ("offset" <|> "derive" <|> "maxIndex") ":=" term)* : attr
--- run_elab do
---   let opts ← getOptions #[← `(term|offset), ← `(term|derive)]
---     #[← `(term|1), ← `(term|$(mkIdent `true))]
---   dbg_trace f!"opts := {repr opts}"
-
-
--- initialize registerBuiltinAttribute {
---   name := `FOO
---   descr := "Test attr"
---   applicationTime := AttributeApplicationTime.afterCompilation
---   add := fun decl stx kind => do
---     dbg_trace "In FOO"
---     match stx with
---     | `(attr|FOO := $s:ident $[, $e := $g]*) =>
---       dbg_trace "matched {s} -- {e} -- {g}"
---       let x ← getOptions e g
---       dbg_trace f!"-- {repr x}"
---     | _ => dbg_trace "rest"
--- }
-
--- syntax (name := OEIS) "OEIS" ":=" ident ("," "offset" ":=" num)? ("," "maxIndex" ":=" num)?
---   : attr
-
 initialize registerBuiltinAttribute {
     name := `OEIS
     descr := "Apply an OEIS tag to a definition."
@@ -168,8 +144,6 @@ initialize registerBuiltinAttribute {
         Lean.addAndCompile tagDecl
         Lean.addAndCompile offsetDecl
         if opts.derive then
-          liftCommandElabM <| Command.liftTermElabM <| deriveTheorems decl offst maxIdx
+          liftCommandElabM <| Command.liftTermElabM <| deriveTheorems decl offst maxIdx stx
       | _ => throwError "invalid OEIS attribute syntax"
   }
-
-#check CoreM

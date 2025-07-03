@@ -24,7 +24,7 @@ elab "oeis_tactic" : tactic =>
         Lean.Meta.throwTacticEx `oeis_tactic goal
            (m!"invalid goal type")
 
-def deriveTheorem (decl : Name) (idx value : Nat) : TermElabM Unit := do
+def deriveTheorem (decl : Name) (idx value : Nat) (stx : Syntax) : TermElabM Unit := do
   let f : Q(Nat → Nat) := mkConst decl
   let thm := q($f $(idx) = $(value))
   let proof ← Term.elabTerm (← `(term| by oeis_tactic)) (some thm)
@@ -32,15 +32,22 @@ def deriveTheorem (decl : Name) (idx value : Nat) : TermElabM Unit := do
   if (getAppFn (← instantiateMVars proof) |>.constName) == `sorryAx then
     return
   let some idxName := Suffixes[idx]? | return
+  let thmDeclName := Name.appendAfter decl s!"_{idxName}"
   let thmDecl := Declaration.thmDecl {
-    name := Name.appendAfter decl s!"_{idxName}"
+    name := thmDeclName
     levelParams := []
     type := ← instantiateMVars thm
     value := ← instantiateMVars proof
   }
+  addDocStringCore thmDeclName s!"(Auto-generated theorem for Sequence: {decl})"
+  let originalRange := stx.getRange? |>.getD default
+  let newRange := {originalRange with
+    start := ⟨originalRange.start.byteIdx + idx + 2⟩,
+    stop := ⟨originalRange.stop.byteIdx + idx + 2⟩}
+  addDeclarationRangesFromSyntax thmDeclName (Syntax.ofRange newRange)
   Lean.addAndCompile thmDecl
 
-def deriveTheorems (decl : Name) (offset maxIndex : Nat) : TermElabM Unit := do
+def deriveTheorems (decl : Name) (offset maxIndex : Nat) (stx : Syntax) : TermElabM Unit := do
   let env ← getEnv
   let some (_ : Q(Nat → Nat)) := env.find? decl |>.map (·.type) | return
   if Lean.isNoncomputable env decl then
@@ -50,5 +57,5 @@ def deriveTheorems (decl : Name) (offset maxIndex : Nat) : TermElabM Unit := do
     let value ← instantiateMVars (
       ← Term.elabTerm (← `(term|$(mkIdent decl):ident $(quote idx))) (some q(Nat)))
     Term.synthesizeSyntheticMVarsNoPostponing
-    deriveTheorem decl idx (← unsafe evalExpr Nat q(Nat) value)
+    deriveTheorem decl idx (← unsafe evalExpr Nat q(Nat) value) stx
   return

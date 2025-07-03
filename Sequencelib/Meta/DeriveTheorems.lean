@@ -1,5 +1,4 @@
 import Lean
-import Mathlib
 import Qq
 import Sequencelib.Meta.Defs
 
@@ -11,7 +10,7 @@ elab "oeis_tactic" : tactic =>
     let goalDecl ← goal.getDecl
     let goalType := goalDecl.type
     match (← inferTypeQ goalType) with
-      | ⟨1, ~q(Prop), ~q(Eq (($f : ℕ → ℕ) $idx) $value)⟩  =>
+      | ⟨1, ~q(Prop), ~q(Eq (($f : Nat → Nat) $idx) $value)⟩  =>
         let name := f.constName
         evalTactic (← `(tactic| try rfl))
         evalTactic (← `(tactic| try decide))
@@ -20,8 +19,8 @@ elab "oeis_tactic" : tactic =>
         Lean.Meta.throwTacticEx `oeis_tactic goal
            (m!"invalid goal type")
 
-def deriveTheorem (decl : Name) (idx value : ℕ) : TermElabM Unit := do
-  let f : Q(ℕ → ℕ) := mkConst decl
+def deriveTheorem (decl : Name) (idx value : Nat) : TermElabM Unit := do
+  let f : Q(Nat → Nat) := mkConst decl
   let thm := q($f $(idx) = $(value))
   let proof ← Term.elabTerm (← `(term| by oeis_tactic)) (some thm)
   Term.synthesizeSyntheticMVarsNoPostponing
@@ -36,15 +35,15 @@ def deriveTheorem (decl : Name) (idx value : ℕ) : TermElabM Unit := do
   }
   Lean.addAndCompile thmDecl
 
-def deriveTheorems (decl : Name) (offset maxIndex : ℕ) : TermElabM Unit := do
+def deriveTheorems (decl : Name) (offset maxIndex : Nat) : TermElabM Unit := do
   let env ← getEnv
-  let some (_ : Q(ℕ → ℕ)) := env.find? decl |>.map (·.type) | return
+  let some (_ : Q(Nat → Nat)) := env.find? decl |>.map (·.type) | return
   if Lean.isNoncomputable env decl then
     dbg_trace f!"skipping derivation of theorems for noncomputable function {decl}"
     return
   for idx in [offset:maxIndex+1] do
     let value ← instantiateMVars (
-      ← Term.elabTerm (← `(term|$(mkIdent decl):ident $(quote idx))) (some q(ℕ)))
+      ← Term.elabTerm (← `(term|$(mkIdent decl):ident $(quote idx))) (some q(Nat)))
     Term.synthesizeSyntheticMVarsNoPostponing
-    deriveTheorem decl idx (← unsafe evalExpr ℕ q(ℕ) value)
+    deriveTheorem decl idx (← unsafe evalExpr Nat q(Nat) value)
   return

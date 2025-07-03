@@ -69,9 +69,9 @@ def addOEISEntry {m : Type → Type} [MonadEnv m]
   })
 
 structure OEISOptions where
-  offset : ℕ
+  offset : Nat
   derive : Bool
-  maxIndex : ℕ
+  maxIndex : Nat
   deriving Repr, Inhabited
 
 def getOptions {m : Type → Type} [Monad m] [MonadError m]

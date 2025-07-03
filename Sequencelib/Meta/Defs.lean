@@ -1,4 +1,4 @@
-import Mathlib
+import Std.Data.HashMap.Basic
 
 -- Maximum index to try deriving theorems
 -- (override with the option `maxIndex := n` in the `@[OEIS]` attribute)

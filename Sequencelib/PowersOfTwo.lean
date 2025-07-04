@@ -8,8 +8,18 @@ import Sequencelib.Meta
 
 namespace Sequence
 
-/-!
+/--
 Powers of 2: `a(n) = 2^n`.
 -/
 @[OEIS := A000079, maxIndex := 10, derive := true]
 def PowersOfTwo (n : ℕ) : ℕ := 2 ^ n
+
+/--
+Number of subsets of a set of cardinality `n`.
+-/
+@[OEIS := A000079]
+def Powerset (n : ℕ) : ℕ := (Finset.range n).powerset.card
+
+theorem Powerset_eq_PowersOfTwo : Powerset = PowersOfTwo := by
+  ext n
+  simp [Powerset, PowersOfTwo]

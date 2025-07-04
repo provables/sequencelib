@@ -24,12 +24,12 @@ tasks:
     sources:
       - ./**/*.lean
       - ./**/lakefile.toml
-      - ./update_docs.py
-      - ./values.html.j2
+      - ./scripts/update_docs.py
+      - ./scripts/values.html.j2
       - exclude: ./**/.lake
     generates:
       - .lake/build/doc/Sequencelib.html
-      - home/sequences.md
+      - home_page/sequences.md
     cmds:
       - DOCGEN_SRC="file" lake -R -Kenv=dev build Sequencelib:docs
       - python scripts/update_docs.py

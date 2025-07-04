@@ -226,7 +226,7 @@ def create_index(info, titles, out_file):
     out_lines = []
     for tag in sorted(lines):
         title = titles[tag]
-        title = re.sub(r'([\*_])', r'\\\1', title)
+        title = re.sub(r"([\*_])", r"\\\1", title)
         p = lines[tag]["path"]
         out_lines.append(
             f'* [{tag}]({{{{ site.url }}}}/docs/{p}) [[OEIS ➚](https://oeis.org/{tag}){{:target="_blank"}}]: {title}'
@@ -253,11 +253,12 @@ def create_doc_index(info, titles, doc_file):
     if old:
         old.extract()
     div = soup.find("div", class_="mod_doc")
-    div.append(
-        BeautifulSoup(
+    if div is not None:
+        b = BeautifulSoup(
             template.render(lines=lines, colors=DOC_TAG_COLORS), "html5lib"
         ).find("div")
-    )
+        if b is not None:
+            div.append(b)
     doc_file.write_text(str(soup))
 
 

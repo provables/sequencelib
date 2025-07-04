@@ -31,47 +31,11 @@ def get_oeis_info():
     return json.loads(result.stdout)
 
 
-keys = dict(
-    [
-        ("zero", 0),
-        ("one", 1),
-        ("two", 2),
-        ("three", 3),
-        ("four", 4),
-        ("five", 5),
-        ("six", 6),
-        ("seven", 7),
-        ("eight", 8),
-        ("nine", 9),
-        ("ten", 10),
-        ("eleven", 11),
-        ("twelve", 12),
-        ("thirteen", 13),
-        ("fourteen", 14),
-        ("fifteen", 15),
-        ("sixteen", 16),
-        ("seventeen", 17),
-        ("eighteen", 18),
-        ("nineteen", 19),
-        ("twenty", 20),
-    ]
-)
-
-
 def clean_name(name):
     fst, *lst = name.split(".")
     if fst == "Sequence":
         return ".".join(lst)
     return name
-
-
-def theorems(soup, thms):
-    key = lambda thm: keys[thm.split("_")[1]]
-    for thm in sorted(thms, key=key):
-        thm_data = thms[thm]
-        thm_tag = soup.new_tag("a", href=f"#{thm}")
-        thm_tag.string = f"{thm_data['index']} ⇒ {thm_data['value']}"
-        yield thm_tag
 
 
 def get_template():

@@ -39,7 +39,7 @@ def deriveTheorem (decl : Name) (idx value : Nat) (stx : Syntax) : TermElabM Uni
     type := ← instantiateMVars thm
     value := ← instantiateMVars proof
   }
-  addDocStringCore thmDeclName s!"(Auto-generated theorem for Sequence: {decl})"
+  addDocStringCore thmDeclName s!"(Auto-generated theorem for `{decl}`)"
   let originalRange := stx.getRange? |>.getD default
   let newRange := {originalRange with
     start := ⟨originalRange.start.byteIdx + idx + 2⟩,

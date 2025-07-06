@@ -19,6 +19,7 @@ import Sequencelib.Pentagonal
 import Sequencelib.PowersOfPrimes
 import Sequencelib.PowersOfTwo
 import Sequencelib.Primes
+import Sequencelib.Recaman
 import Sequencelib.Sylvester
 import Sequencelib.Totient
 import Sequencelib.TriangleOfPartitions

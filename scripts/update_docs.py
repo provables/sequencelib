@@ -150,7 +150,7 @@ def process_all(info):
 def load_cache():
     cache_dir = Path(appdirs.user_cache_dir()) / "sequencelib"
     try:
-        with open(cache_dir / "oeis_titles.json") as f:
+        with open(cache_dir / "oeis_data.json") as f:
             return json.load(f)
     except FileNotFoundError:
         return {}
@@ -159,32 +159,34 @@ def load_cache():
 def save_cache(result):
     cache_dir = Path(appdirs.user_cache_dir()) / "sequencelib"
     cache_dir.mkdir(parents=True, exist_ok=True)
-    with open(cache_dir / "oeis_titles.json", "w") as f:
+    with open(cache_dir / "oeis_data.json", "w") as f:
         json.dump(result, f)
 
 
-def get_titles(info):
+def get_oeis_data(info):
     result = load_cache()
     for tags in info.values():
         for tag in tags:
-            print(f"Getting title for {tag}...")
+            print(f"Getting OEIS data for {tag}...")
             if tag in result:
-                print(f".. [from cache] {result[tag]}")
+                print(f".. [from cache] {result[tag]['title']}")
                 continue
-            resp = requests.get(f"https://oeis.org/search?q=id:{tag}&fmt=text")
+            resp = requests.get(f"https://oeis.org/search?q=id:{tag}&fmt=json")
             resp.raise_for_status()
-            m = re.search(
-                "^%N (\w*) (.*)$", resp.content.decode("utf-8"), flags=re.MULTILINE
-            )
-            if not m:
-                raise ValueError("%N field not found")
-            result[tag] = m.groups()[1]
-            print(f".. {result[tag]}")
+            data = resp.json()
+            if not data:
+                raise ValueError(f"Empty response for {tag}")
+            data = data[0]
+            result[tag] = {
+                "title": data["name"],
+                "keywords": data["keyword"].split(","),
+                "values": data["data"],
+            }
     save_cache(result)
     return result
 
 
-def info_to_index(info, titles):
+def info_to_index(info, data):
     lines = {}
     for mod, tags in info.items():
         for tag, decls_info in tags.items():
@@ -193,7 +195,7 @@ def info_to_index(info, titles):
                 tag,
                 {
                     "decls": [],
-                    "title": titles[tag],
+                    "title": data[tag]["title"],
                     "mod": mod,
                     "path": mod_to_path(mod),
                     "local_path": mod_to_local_path(mod),
@@ -221,11 +223,11 @@ DOC_TAG_COLORS = {
 }
 
 
-def create_index(info, titles, out_file):
-    lines = info_to_index(info, titles)
+def create_index(info, data, out_file):
+    lines = info_to_index(info, data)
     out_lines = []
     for tag in sorted(lines):
-        title = titles[tag]
+        title = data[tag]["title"]
         title = re.sub(r"([\*_])", r"\\\1", title)
         p = lines[tag]["path"]
         out_lines.append(
@@ -243,8 +245,8 @@ def create_index(info, titles, out_file):
     out_file.write_text("\n".join(out_lines))
 
 
-def create_doc_index(info, titles, doc_file):
-    lines = info_to_index(info, titles)
+def create_doc_index(info, data, doc_file):
+    lines = info_to_index(info, data)
     env = Environment(loader=FileSystemLoader(HERE))
     template = env.get_template("doc_index.html.j2")
     f = open(doc_file)
@@ -264,10 +266,10 @@ def create_doc_index(info, titles, doc_file):
 
 def main():
     info = get_oeis_info()
-    titles = get_titles(info)
+    data = get_oeis_data(info)
     process_all(info)
-    create_index(info, titles, HERE / "../home_page/sequences.md")
-    create_doc_index(info, titles, HERE / "../.lake/build/doc/Sequencelib.html")
+    create_index(info, data, HERE / "../home_page/sequences.md")
+    create_doc_index(info, data, HERE / "../.lake/build/doc/Sequencelib.html")
 
 
 if __name__ == "__main__":

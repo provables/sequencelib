@@ -26,7 +26,7 @@ def Recaman : ℕ → ℕ
   | 0 => 0
   | n + 1 =>
     let x := Recaman n - (n + 1)
-    if 0 ≤ x ∧ ∀ i : Fin (n + 1), x ≠ Recaman i then
+    if n + 1 ≤ Recaman n ∧ ∀ i : Fin (n + 1), x ≠ Recaman i then
       x
     else
       Recaman n + (n + 1)
@@ -43,10 +43,7 @@ theorem Recaman_zero : Recaman 0 = 0 := by simp only [Recaman]
 theorem Recaman_one : Recaman 1 = 1 := by simp [Recaman]
 
 @[simp]
-theorem Recaman_two : Recaman 2 = 3 := by
-  simp [Recaman]
-  use 0
-  exact Recaman_zero.symm
+theorem Recaman_two : Recaman 2 = 3 := by simp [Recaman]
 
 @[simp]
 theorem Recaman_three : Recaman 3 = 6 := by
@@ -62,10 +59,7 @@ theorem Recaman_four : Recaman 4 = 2 := by
   all_goals simp
 
 @[simp]
-theorem Recaman_five : Recaman 5 = 7 := by
-  simp [Recaman]
-  use 0
-  exact Recaman_zero.symm
+theorem Recaman_five : Recaman 5 = 7 := by simp [Recaman]
 
 @[simp]
 theorem Recaman_six : Recaman 6 = 13 := by

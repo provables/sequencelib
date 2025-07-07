@@ -78,3 +78,15 @@ theorem Recaman_eight : Recaman 8 = 12 := by
   intro x
   fin_cases x
   all_goals simp
+
+theorem Recaman_nonneg (n : ℕ) : 0 ≤ Recaman n := by simp
+
+theorem Recaman_abs (n : ℕ) : abs ((Recaman (n + 1) : ℤ) - Recaman n) = n + 1 := by
+  nth_rw 1 [Recaman]
+  split_ifs with ha
+  · simp [ha.left]
+    rw [← Int.neg_add, abs_neg, add_comm, abs_eq_self]
+    linarith
+  · push_cast
+    simp
+    linarith

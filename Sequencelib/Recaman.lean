@@ -10,6 +10,15 @@ import Sequencelib.Meta
 # Recamán's sequence
 
 The Recamán's sequence appears in the logo of the [OEIS](https://oeis.org).
+
+$$
+a(n) =
+\begin{cases}
+0, & \text{if } n = 0, \\
+a(n-1) - n, & \text{if } a(n-1) - n \ge 0 \text{ and not already in the sequence,} \\
+a(n-1) + n, & \text{otherwise.}
+\end{cases}
+$$
 -/
 
 @[OEIS := A005132, offset := 0]

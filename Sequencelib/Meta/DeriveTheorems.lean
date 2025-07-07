@@ -29,7 +29,7 @@ def deriveTheorem (decl : Name) (idx value : Nat) (stx : Syntax) : TermElabM Uni
   let thm := q($f $(idx) = $(value))
   let proof ← Term.elabTerm (← `(term| by oeis_tactic)) (some thm)
   Term.synthesizeSyntheticMVarsNoPostponing
-  if (getAppFn (← instantiateMVars proof) |>.constName) == `sorryAx then
+  if (← instantiateMVars proof).isSorry then
     return
   let some idxName := Suffixes[idx]? | return
   let thmDeclName := Name.appendAfter decl s!"_{idxName}"

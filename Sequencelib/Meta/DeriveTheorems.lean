@@ -51,7 +51,7 @@ def deriveTheorems (decl : Name) (offset maxIndex : Nat) (stx : Syntax) : TermEl
   let env ← getEnv
   let some (_ : Q(Nat → Nat)) := env.find? decl |>.map (·.type) | return
   if Lean.isNoncomputable env decl then
-    dbg_trace f!"skipping derivation of theorems for noncomputable function {decl}"
+    logWarning m!"Auto derivation of theorems not implemented for noncomputable function {decl}"
     return
   for idx in [offset:maxIndex+1] do
     let value ← instantiateMVars (

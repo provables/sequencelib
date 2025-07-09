@@ -32,27 +32,29 @@ theorem baz_eq_bar : baz = bar := rfl
 /--
 info: Std.HashMap.ofList [("A02",
   { tagName := "A02",
-    sequences := #[{ tagName := "A02",
-                     definition := `bar,
-                     module := `Tests.TestInfo,
-                     theorems := #[Thm.Value `bar_one `bar 1 1],
-                     offset := 0,
-                     isComputable := true },
-                   { tagName := "A02",
-                     definition := `baz,
-                     module := `Tests.TestInfo,
-                     theorems := #[Thm.Equiv `baz_eq_bar `baz `bar],
-                     offset := 0,
-                     isComputable := false }],
+    codomain := Codomain.Nat,
+    sequences := #[⟨Codomain.Nat, { tagName := "A02",
+                      definition := `bar,
+                      module := `Tests.TestInfo,
+                      theorems := #[[Nat] theorem bar_one : bar 1 = 1],
+                      offset := 0,
+                      isComputable := true }⟩,
+                   ⟨Codomain.Nat, { tagName := "A02",
+                      definition := `baz,
+                      module := `Tests.TestInfo,
+                      theorems := #[theorem baz_eq_bar : baz = bar],
+                      offset := 0,
+                      isComputable := false }⟩],
     offset := 0 }),
  ("A01",
   { tagName := "A01",
-    sequences := #[{ tagName := "A01",
-                     definition := `foo,
-                     module := `Tests.TestInfo,
-                     theorems := #[Thm.Value `foo_five `foo 5 6, Thm.Value `foo_seven `foo 7 7],
-                     offset := 3,
-                     isComputable := true }],
+    codomain := Codomain.Nat,
+    sequences := #[⟨Codomain.Nat, { tagName := "A01",
+                      definition := `foo,
+                      module := `Tests.TestInfo,
+                      theorems := #[[Nat] theorem foo_five : foo 5 = 6, [Nat] theorem foo_seven : foo 7 = 7],
+                      offset := 3,
+                      isComputable := true }⟩],
     offset := 3 })]
 -/
 #guard_msgs in
@@ -67,10 +69,12 @@ info: {"Tests.TestInfo":
    "decls":
    {"baz":
     {"thms": {"baz_eq_bar": {"type": "equiv", "theorem": "baz_eq_bar", "seq2": "bar", "seq1": "baz"}},
-     "isComputable": false},
+     "isComputable": false,
+     "codomain": "Codomain.Nat"},
     "bar":
     {"thms": {"bar_one": {"value": 1, "type": "value", "theorem": "bar_one", "index": 1, "declaration": "bar"}},
-     "isComputable": true}}},
+     "isComputable": true,
+     "codomain": "Codomain.Nat"}}},
   "A01":
   {"offset": 3,
    "decls":
@@ -78,7 +82,8 @@ info: {"Tests.TestInfo":
     {"thms":
      {"foo_seven": {"value": 7, "type": "value", "theorem": "foo_seven", "index": 7, "declaration": "foo"},
       "foo_five": {"value": 6, "type": "value", "theorem": "foo_five", "index": 5, "declaration": "foo"}},
-     "isComputable": true}}}}}
+     "isComputable": true,
+     "codomain": "Codomain.Nat"}}}}}
 -/
 #guard_msgs in
 run_meta do

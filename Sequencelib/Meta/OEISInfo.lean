@@ -11,17 +11,17 @@ import Sequencelib.Meta.OEISTag
 
 open Lean Meta Elab Qq
 
-def matchValueTheorem (e : Expr) (seq : Name) (n : Nat) : MetaM (Option Nat) := do
+def matchValueTheorem (c : Codomain) (e : Expr) (seq : Name) (n : Nat) :
+    MetaM (Option c) := do
   let ⟨_, _, z⟩ ← forallMetaTelescope e
   let t ← match z with
-  | .app (.app (.app (.const ``Eq _) (.const ``Nat _)) (.app (.const f _) (idx : Q(Nat))))
-        (value : Q(Nat)) =>
-    if f ≠ seq then
-      return none
+  | .app (.app (.app (.const ``Eq _) (.const co _)) (.app (.const f _) (idx : Q(Nat)))) value =>
     let some i := idx.nat? | return none
-    if i ≠ n then
+    if f ≠ seq || co ≠ toName c || i ≠ n then
       return none
-    return value.nat?
+    match c with
+    | .Nat => pure value.nat?
+    | .Int => pure value.int?
   | _ => pure none
 
 def matchEquivTheorem (e : Expr) (name1 : Name) (name2 : Name) : MetaM (Option Unit) := do
@@ -34,18 +34,20 @@ def matchEquivTheorem (e : Expr) (name1 : Name) (name2 : Name) : MetaM (Option U
       none
   | _ => pure none
 
-def findValueTheorems (decl : Name) (off : Nat := 0) : MetaM (Array Thm) := do
+def findValueTheorems {c : Codomain} (seq : Sequence c) (off : Nat := 0) :
+    MetaM (Array (Thm c)) := do
   let env ← getEnv
   let mut result := #[]
   for i in [off:SearchMaxIndex + 1] do
     let some p := Suffixes[i]? | continue
-    let n := Name.appendAfter decl s!"_{p}"
+    let n := Name.appendAfter seq.definition s!"_{p}"
     let some type := env.find? n |>.map (·.type) | continue
-    let some value ← matchValueTheorem type decl i | continue
-    result := result.push <| .Value n decl i value
+    let some value ← matchValueTheorem c type seq.definition i | continue
+    result := result.push <| .Value n seq.definition i value
   return result
 
-def findEquivTheorems (decl : Name) (decls : Array Name) : MetaM (Array Thm) := do
+def findEquivTheorems {c : Codomain} (decl : Name) (decls : Array Name) :
+    MetaM (Array (Thm c)) := do
   let env ← getEnv
   let mut result := #[]
   for decl2 in decls do
@@ -61,23 +63,27 @@ def getOEISInfo : MetaM OEISInfo := do
   return .ofList (← info.toList.mapM (fun (tag, oeisTag) => do
     return (tag, ⟨
       tag,
-      ← oeisTag.sequences.mapM (fun seq => do
-        let new_thms := (← findValueTheorems seq.definition)
-          |>.append (← findEquivTheorems seq.definition <| oeisTag.sequences.map (·.definition))
+      oeisTag.codomain,
+      ← oeisTag.sequences.mapM (fun ⟨c, seq⟩ => do
+        let new_thms := (← findValueTheorems seq)
+          |>.append (← findEquivTheorems seq.definition <| oeisTag.sequences.map (·.snd.definition))
         let isComputable := !isNoncomputable env seq.definition
-        return {seq with theorems := seq.theorems.append new_thms, isComputable := isComputable}
+        return ⟨
+          c, {seq with theorems := seq.theorems.append new_thms, isComputable := isComputable}
+        ⟩
       ),
       oeisTag.offset
     ⟩)
   ))
 
 def OEISInfoToMod (info : OEISInfo) :
-    Std.HashMap Name (Std.HashMap Tag (Nat × Std.HashMap Name (Bool × Array Thm))) :=
+    Std.HashMap Name
+      (Std.HashMap Tag (Nat × Std.HashMap Name (Bool × (c : Codomain) × Array (Thm c)))) :=
   info.fold (fun acc tag oeisTag =>
-    let mod := oeisTag.sequences[0]? |>.map (·.module) |>.getD `no_module
+    let mod := oeisTag.sequences[0]? |>.map (·.snd.module) |>.getD `no_module
     let tagsForMod := acc.get? mod |>.getD ∅
-    let declsForTagWithThms := oeisTag.sequences.foldl (fun accs seq =>
-      ⟨seq.offset, accs.2.insert seq.definition ⟨seq.isComputable, seq.theorems⟩⟩
+    let declsForTagWithThms := oeisTag.sequences.foldl (fun accs ⟨c, seq⟩ =>
+      ⟨seq.offset, accs.2.insert seq.definition ⟨seq.isComputable, ⟨c, seq.theorems⟩⟩⟩
     ) <| tagsForMod.get? tag |>.getD ⟨0, ∅⟩
     acc.insert mod <| tagsForMod.insert tag declsForTagWithThms
   ) ∅
@@ -87,16 +93,16 @@ def showOEISInfo : Command.CommandElabM Unit := do
   let mut msgs := #[]
   for (mod, tagsForMod) in OEISInfoToMod info do
     msgs := msgs.push m!"Module: {mod}"
-    for (tag, declsForTag) in tagsForMod do
-      msgs := msgs.push m!".. tag: {tag}, offset: {declsForTag.1}"
-      for (decl, ⟨isComputable, thmsForDecl⟩) in declsForTag.2 do
+    for (tag, ⟨offst, declsForTag⟩) in tagsForMod do
+      msgs := msgs.push m!".. tag: {tag}, offset: {offst}"
+      for (decl, ⟨isComputable, cod, thmsForDecl⟩) in declsForTag do
         let computable := if isComputable then "computable" else "noncomputable"
-        msgs := msgs.push m!".... [{computable}] {decl}"
+        msgs := msgs.push m!".... [{computable}] {decl} : {repr cod}"
         for thm in thmsForDecl do
           msgs := msgs.push m!"...... {repr thm}"
   logInfo <| MessageData.joinSep msgs.toList "\n"
 
-def ThmToJson (thm : Thm) : Json :=
+def ThmToJson {c : Codomain} (thm : Thm c) : Json :=
   match thm with
   | .Value thmName declName index value =>
     Json.mkObj [
@@ -104,7 +110,11 @@ def ThmToJson (thm : Thm) : Json :=
       ("declaration", Json.str declName.toString),
       ("theorem", Json.str thmName.toString),
       ("index", Json.num index),
-      ("value", Json.num value)
+      ("value", Json.num (by
+        cases c with
+        | Nat => exact ↑value
+        | Int => exact ↑value
+      ))
     ]
   | .Equiv thmName seq1 seq2 =>
     Json.mkObj [
@@ -114,7 +124,7 @@ def ThmToJson (thm : Thm) : Json :=
       ("seq2", seq2.toString)
     ]
 
-def ThmToName (thm : Thm) : Name :=
+def ThmToName {c : Codomain} (thm : Thm c) : Name :=
   match thm with
   | .Value n _ _ _ => n
   | .Equiv n _ _ => n
@@ -124,9 +134,10 @@ def OEISInfoToJson (info : OEISInfo) : Json :=
     (mod.toString, Json.mkObj <| tagsForMod.toList.map (fun (tag, ⟨offst, declsForTag⟩) =>
       (tag, Json.mkObj [
         ("offset", Json.num offst),
-        ("decls", Json.mkObj <| declsForTag.toList.map (fun (decl, ⟨isComputable, thmsForDecl⟩) =>
+        ("decls", Json.mkObj <| declsForTag.toList.map (fun (decl, ⟨isComputable, cod, thmsForDecl⟩) =>
           (decl.toString, Json.mkObj <| [
             ("isComputable", Json.bool isComputable),
+            ("codomain", s!"{repr cod}"),
             ("thms", Json.mkObj <| thmsForDecl.toList.map
               (fun thm => (ThmToName thm |>.toString, ThmToJson thm)))
           ])))

@@ -15,35 +15,74 @@ abbrev Tag := String
 
 instance : Inhabited Tag := inferInstanceAs (Inhabited String)
 
-inductive Thm : Type where
-  | Value (thmName : Name) (seq : Name) (index : Nat) (value : Nat) : Thm
-  | Equiv (thmName : Name) (seq1 : Name) (seq2 : Name) : Thm
-  deriving BEq, Hashable, Repr, Inhabited
+inductive Codomain : Type where
+  | Nat
+  | Int
+  deriving BEq, Hashable, Repr, Inhabited, DecidableEq
 
-structure Sequence where
+instance : Coe Codomain Type where
+  coe
+  | .Nat => Nat
+  | .Int => Int
+
+def toName : Codomain → Name
+  | .Nat => `Nat
+  | .Int => `Int
+
+inductive Thm (c : Codomain) : Type where
+  | Value (thmName : Name) (seq : Name) (index : Nat) (value : ↑c) : Thm c
+  | Equiv (thmName : Name) (seq1 : Name) (seq2 : Name) : Thm c
+  deriving Inhabited
+
+instance {c : Codomain} : Repr (c : Type) where
+  reprPrec t _ := by
+    cases c with
+    | Nat => exact s!"{t} : Nat".toFormat
+    | Int => exact s!"{t} : Int".toFormat
+
+instance {c : Codomain} : Repr (Thm c) where
+  reprPrec t _ :=
+    match t with
+    | .Value n s i v => by
+      cases c with
+      | Nat => exact s!"[Nat] theorem {n} : {s} {i} = {v}".toFormat
+      | Int => exact s!"[Int] theorem {n} : {s} {i} = {v}".toFormat
+    | .Equiv n s1 s2 => s!"theorem {n} : {s1} = {s2}"
+
+structure Sequence (c : Codomain) where
   tagName : Tag
   definition : Name
   module : Name
-  theorems : Array Thm
+  theorems : Array (Thm c)
   offset : Nat
   isComputable : Bool
-  deriving Repr, Inhabited
+  deriving Inhabited, Repr
 
 structure OEISTag where
   tagName : Tag
-  sequences : Array Sequence
+  codomain: Codomain
+  -- We allow different codomains for the sequences associated to a tag because the extension
+  -- doesn't allow raising or easily returning errors. We validate this during collection
+  -- of the data.
+  sequences : Array ((c : Codomain) × Sequence c)
   offset : Nat
-  deriving Repr, Inhabited
+  deriving Inhabited, Repr
 
 abbrev OEISInfo := Std.HashMap Tag OEISTag
 
 instance : Inhabited OEISInfo := inferInstanceAs (Inhabited <| Std.HashMap _ _)
 
+def codomainOf {m : Type → Type} [Monad m] [MonadError m] (e : Expr) : m Codomain := do
+  match e with
+  | .forallE _ (.const ``Nat _) (.const ``Nat _) _ => pure .Nat
+  | .forallE _ (.const ``Nat _) (.const ``Int _) _ => pure .Int
+  | _ => throwError "Only functions of type ℕ → ℕ or ℕ → ℤ are supported"
+
 def addOEISInfo (info : OEISInfo) (tag : OEISTag) : OEISInfo :=
   let (prev, info) := info.getThenInsertIfNew? tag.tagName tag
   match prev with
-    | some v => info.insert tag.tagName {v with sequences := v.sequences.append tag.sequences}
-    | _ => info
+  | some v => info.insert tag.tagName {v with sequences := v.sequences.append tag.sequences}
+  | _ => info
 
 def addOEISInfoFn (as : Array (Array OEISTag)) : OEISInfo :=
   let result := ∅
@@ -60,11 +99,12 @@ initialize oeisExt : SimplePersistentEnvExtension OEISTag OEISInfo ←
   }
 
 def addOEISEntry {m : Type → Type} [MonadEnv m]
-    (declName : Name) (module : Name) (oeisTag : String) (offset : Nat) :
+    (declName : Name) (module : Name) (oeisTag : String) (codomain: Codomain) (offset : Nat) :
     m Unit :=
   modifyEnv (oeisExt.addEntry · {
     tagName := oeisTag,
-    sequences := #[⟨oeisTag, declName, module, #[], offset, default⟩],
+    codomain := codomain,
+    sequences := #[⟨.Nat, ⟨oeisTag, declName, module, #[], offset, default⟩⟩],
     offset := offset
   })
 
@@ -110,6 +150,8 @@ initialize registerBuiltinAttribute {
         let offst := opts.offset
         let maxIdx := opts.maxIndex
         let env ← getEnv
+        let declType := env.find? decl |>.getD default |>.type
+        let c ← codomainOf declType
         let mod ← getMainModule
         let oldDoc := (← findDocString? env decl).getD ""
         let newDoc := [s!
@@ -118,7 +160,7 @@ initialize registerBuiltinAttribute {
           oldDoc
         ]
         addDocStringCore decl <| "\n\n".intercalate <| newDoc.filter (· ≠ "")
-        addOEISEntry decl mod seqStr offst
+        addOEISEntry decl mod seqStr c offst
         let tagDeclName := Name.append decl <| Name.mkSimple "OEIS"
         let tagDecl := Declaration.defnDecl {
           name := tagDeclName

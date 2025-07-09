@@ -17,6 +17,9 @@ def bar (n : Nat) : Nat := n
 @[OEIS := A02]
 noncomputable def baz (n : Nat) : Nat := n
 
+@[OEIS := A03]
+def bazSign (n : Nat) : Int := -n
+
 /--
 warning: declaration uses 'sorry'
 -/
@@ -46,6 +49,16 @@ info: Std.HashMap.ofList [("A02",
                       offset := 0,
                       isComputable := false }⟩],
     offset := 0 }),
+ ("A03",
+  { tagName := "A03",
+    codomain := Codomain.Int,
+    sequences := #[⟨Codomain.Int, { tagName := "A03",
+                      definition := `bazSign,
+                      module := `Tests.TestInfo,
+                      theorems := #[],
+                      offset := 0,
+                      isComputable := true }⟩],
+    offset := 0 }),
  ("A01",
   { tagName := "A01",
     codomain := Codomain.Nat,
@@ -64,7 +77,8 @@ run_meta do
 
 /--
 info: {"Tests.TestInfo":
- {"A02":
+ {"A03": {"offset": 0, "decls": {"bazSign": {"thms": {}, "isComputable": true, "codomain": "Codomain.Int"}}},
+  "A02":
   {"offset": 0,
    "decls":
    {"baz":

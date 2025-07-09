@@ -104,7 +104,7 @@ def addOEISEntry {m : Type → Type} [MonadEnv m]
   modifyEnv (oeisExt.addEntry · {
     tagName := oeisTag,
     codomain := codomain,
-    sequences := #[⟨.Nat, ⟨oeisTag, declName, module, #[], offset, default⟩⟩],
+    sequences := #[⟨codomain, ⟨oeisTag, declName, module, #[], offset, default⟩⟩],
     offset := offset
   })
 

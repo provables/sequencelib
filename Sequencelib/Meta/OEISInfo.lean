@@ -17,7 +17,7 @@ def matchValueTheorem (c : Codomain) (e : Expr) (seq : Name) (n : Nat) :
   let t ← match z with
   | .app (.app (.app (.const ``Eq _) (.const co _)) (.app (.const f _) (idx : Q(Nat)))) value =>
     let some i := idx.nat? | return none
-    if f ≠ seq || co ≠ toName c || i ≠ n then
+    if f ≠ seq || co ≠ c || i ≠ n then
       return none
     match c with
     | .Nat => pure value.nat?

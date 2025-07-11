@@ -15,30 +15,10 @@ abbrev Tag := String
 
 instance : Inhabited Tag := inferInstanceAs (Inhabited String)
 
-inductive Codomain : Type where
-  | Nat
-  | Int
-  deriving BEq, Hashable, Repr, Inhabited, DecidableEq
-
-instance : Coe Codomain Type where
-  coe
-  | .Nat => Nat
-  | .Int => Int
-
-def toName : Codomain → Name
-  | .Nat => `Nat
-  | .Int => `Int
-
 inductive Thm (c : Codomain) : Type where
   | Value (thmName : Name) (seq : Name) (index : Nat) (value : ↑c) : Thm c
   | Equiv (thmName : Name) (seq1 : Name) (seq2 : Name) : Thm c
   deriving Inhabited
-
-instance {c : Codomain} : Repr (c : Type) where
-  reprPrec t _ := by
-    cases c with
-    | Nat => exact s!"{t} : Nat".toFormat
-    | Int => exact s!"{t} : Int".toFormat
 
 instance {c : Codomain} : Repr (Thm c) where
   reprPrec t _ :=
@@ -71,12 +51,6 @@ structure OEISTag where
 abbrev OEISInfo := Std.HashMap Tag OEISTag
 
 instance : Inhabited OEISInfo := inferInstanceAs (Inhabited <| Std.HashMap _ _)
-
-def codomainOf {m : Type → Type} [Monad m] [MonadError m] (e : Expr) : m Codomain := do
-  match e with
-  | .forallE _ (.const ``Nat _) (.const ``Nat _) _ => pure .Nat
-  | .forallE _ (.const ``Nat _) (.const ``Int _) _ => pure .Int
-  | _ => throwError "Only functions of type ℕ → ℕ or ℕ → ℤ are supported"
 
 def addOEISInfo (info : OEISInfo) (tag : OEISTag) : OEISInfo :=
   let (prev, info) := info.getThenInsertIfNew? tag.tagName tag

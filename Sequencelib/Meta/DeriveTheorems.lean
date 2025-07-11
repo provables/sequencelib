@@ -19,27 +19,33 @@ elab "oeis_tactic" : tactic =>
         if c.constName != `Nat && c.constName != `Int then
           Lean.Meta.throwTacticEx `oeis_tactic goal m!"wrong codomain {c}"
         let name := f.constName
-        evalTactic (← `(tactic| try rfl))
-        evalTactic (← `(tactic| try decide))
-        evalTactic (← `(tactic| try simp [$(mkIdent name):ident]))
-        evalTactic (← `(tactic| try simp [$(mkIdent name):ident] <;> decide))
+        evalTactic (← `(tactic|
+          first
+          | rfl
+          | decide
+          | simp [$(mkIdent name):ident]
+          | simp [$(mkIdent name):ident] <;> decide
+        ))
       | _ =>
         Lean.Meta.throwTacticEx `oeis_tactic goal
            (m!"invalid goal type")
 
 def deriveTheorem {c : Codomain} (decl : Name) (idx : Nat) (value : ↑c) (stx : Syntax) :
-    TermElabM Unit := do
+    TermElabM (Option String) := do
+  let some idxName := Suffixes[idx]? |
+    return some s!"Maximum index not supported above 100"
   let declConst : Expr := .const decl []
   let idxExpr : Expr := toExpr idx
   let lhsExpr := mkApp declConst idxExpr
   let valueExpr := toExpr value
   let cTypeExpr : Expr := .const c []
-  let eqExpr := mkApp3 (.const `Eq [1]) cTypeExpr lhsExpr valueExpr
+  let eqExpr ← instantiateMVars <| mkApp3 (.const `Eq [1]) cTypeExpr lhsExpr valueExpr
+  let s ← saveState
   let proof ← Term.elabTerm (← `(term| by oeis_tactic)) (some eqExpr)
   Term.synthesizeSyntheticMVarsNoPostponing
-  if (← instantiateMVars proof).isSorry then
-    return
-  let some idxName := Suffixes[idx]? | return
+  if (← instantiateMVars proof).hasSorry then
+    s.restore
+    return some s!"Auto derivation failed for theorem: {decl} {idx} = {value}"
   let thmDeclName := Name.appendAfter decl s!"_{idxName}"
   let thmDecl := Declaration.thmDecl {
     name := thmDeclName
@@ -54,17 +60,23 @@ def deriveTheorem {c : Codomain} (decl : Name) (idx : Nat) (value : ↑c) (stx :
     stop := ⟨originalRange.stop.byteIdx + idx + 2⟩}
   addDeclarationRangesFromSyntax thmDeclName (Syntax.ofRange newRange)
   Lean.addAndCompile thmDecl
+  return none
 
 def deriveTheorems (decl : Name) (offset maxIndex : Nat) (stx : Syntax) : TermElabM Unit := do
   let env ← getEnv
   let some f := env.find? decl |>.map (·.type) | return
   let cod ← codomainOf f
   if Lean.isNoncomputable env decl then
-    logWarning m!"Auto derivation of theorems not implemented for noncomputable function {decl}"
+    logError m!"Auto derivation of theorems not implemented for noncomputable function {decl}"
     return
+  let mut errors := #[]
   for idx in [offset:maxIndex+1] do
     let value ← instantiateMVars (
       ← Term.elabTerm (← `(term|$(mkIdent decl):ident $(quote idx))) (some (mkConst cod [])))
     Term.synthesizeSyntheticMVarsNoPostponing
     let z ← unsafe evalExpr cod (mkConst cod []) value
-    deriveTheorem decl idx z stx
+    let x ← deriveTheorem decl idx z stx
+    if let some msg := x then
+      errors := errors.push s!"{msg}"
+  if !errors.isEmpty then
+    logError (String.intercalate "\n" errors.toList)

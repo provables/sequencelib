@@ -13,6 +13,7 @@ import Sequencelib.FiniteGroups
 import Sequencelib.Lucas
 import Sequencelib.MersenneExponents
 import Sequencelib.MersenneNumbers
+import Sequencelib.Moebius
 import Sequencelib.Parity
 import Sequencelib.Partitions
 import Sequencelib.Pentagonal

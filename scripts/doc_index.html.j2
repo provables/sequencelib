@@ -3,15 +3,20 @@
     <ul>
         {% for tag in lines|sort %}
         <li>
-            <a href="{{ lines[tag].path }}">{{ tag }}</a> 
-            [<a target="_blank" href="https://oeis.org/{{ tag }}">OEIS ➚</a>]: 
+            <a href="{{ lines[tag].path }}">{{ tag }}</a>
+            [<a target="_blank" href="https://oeis.org/{{ tag }}">OEIS ➚</a>]:
             {{ lines[tag]["title"] }}
             <ul>
                 {% for decl in lines[tag]["decls"]|sort(attribute='clean_name') %}
                 <li>
                     <a href="{{ lines[tag].path }}#{{ decl.name }}">{{ decl["clean_name"] }}</a>
-                    <span style="background: var(--{{ colors[decl['isComputable']] }}); color: var(--body-bg); padding: 2px 8px; border-radius: 12px; font-size: 11px; display: inline-block; margin: 2px;">
-                    {{ decl["isComputable"] }}
+                    <span title="{{ decl.isComputable.1 }}"
+                        style="background: var(--{{ decl['isComputable'][3] }}); color: var(--body-bg); padding: 2px 8px; border-radius: 12px; font-size: 11px; display: inline-block; margin: 2px;">
+                        {{ decl["isComputable"][0] }}
+                    </span>
+                    <span title="{{ decl.codomain.1 }}"
+                        style="background: var(--{{ decl['codomain'][3] }}); color: var(--body-bg); padding: 2px 8px; border-radius: 12px; font-size: 11px; display: inline-block; margin: 2px;">
+                        {{ decl["codomain"][0] }}
                     </span>
                 </li>
                 {% endfor %}

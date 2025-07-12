@@ -202,6 +202,37 @@ def get_oeis_data(info):
     return result
 
 
+IS_COMPUTABLE = {
+    True: (
+        "computable",
+        "Lean definition is computable",
+        "B4CDF8",
+        "tags-border-color",
+    ),
+    False: (
+        "non-computable",
+        "Lean definition is tagged `noncomputable`",
+        "E0D1F1",
+        "hamburger-border-color",
+    ),
+}
+
+CODOMAIN = {
+    "Codomain.Nat": (
+        "&nbsp;&nbsp;ℕ&nbsp;&nbsp;",
+        "The sequence is non-negative",
+        "D4D4D8",
+        "tags-border-color",
+    ),
+    "Codomain.Int": (
+        "&nbsp;&nbsp;ℤ&nbsp;&nbsp;",
+        "The sequence is signed",
+        "D4D4D8",
+        "tags-border-color",
+    ),
+}
+
+
 def info_to_index(info, data):
     lines = {}
     for mod, tags in info.items():
@@ -222,21 +253,19 @@ def info_to_index(info, data):
                     {
                         "clean_name": clean_name(decl),
                         "name": decl,
-                        "isComputable": (
-                            "computable"
-                            if decls[decl]["isComputable"]
-                            else "non-computable"
-                        ),
+                        "isComputable": IS_COMPUTABLE[decls[decl]["isComputable"]],
+                        "codomain": CODOMAIN[decls[decl]["codomain"]],
                     }
                 )
     return lines
 
 
-TAG_COLORS = {"computable": "B4CDF8", "non-computable": "E0D1F1"}
-DOC_TAG_COLORS = {
-    "computable": "tags-border-color",
-    "non-computable": "hamburger-border-color",
-}
+def tag_html(text, bg, tooltip=None):
+    tt = f'title="{tooltip}"' if tooltip else ""
+    return (
+        f'<span {tt} style="background: #{bg}; color: black; padding: 2px 8px; '
+        f'border-radius: 12px; font-size: 11px; display: inline-block; margin: 2px;">{text}</span>'
+    )
 
 
 def create_index(info, data, out_file):
@@ -251,12 +280,15 @@ def create_index(info, data, out_file):
         )
         decls = lines[tag]["decls"]
         for decl in sorted(decls, key=lambda x: x["clean_name"]):
+            computable_tag = decl["isComputable"]
+            computable_html = tag_html(
+                computable_tag[0], computable_tag[2], computable_tag[1]
+            )
+            codomain_tag = decl["codomain"]
+            codomain_html = tag_html(codomain_tag[0], codomain_tag[2], codomain_tag[1])
             out_lines.append(
                 f"    * [{decl['clean_name']}]({{{{ site.url }}}}/docs/{p}#{decl['name']}) "
-                f'<span style="background: #{TAG_COLORS[decl["isComputable"]]}; color: black; padding: 2px 8px; '
-                'border-radius: 12px; font-size: 11px; display: inline-block; margin: 2px;">'
-                f'{decl["isComputable"]}'
-                "</span>"
+                f"{computable_html} {codomain_html}"
             )
     out_file.write_text("\n".join(out_lines))
 
@@ -272,9 +304,7 @@ def create_doc_index(info, data, doc_file):
         old.extract()
     div = soup.find("div", class_="mod_doc")
     if div is not None:
-        b = BeautifulSoup(
-            template.render(lines=lines, colors=DOC_TAG_COLORS), "html5lib"
-        ).find("div")
+        b = BeautifulSoup(template.render(lines=lines), "html5lib").find("div")
         if b is not None:
             div.append(b)
     doc_file.write_text(str(soup))

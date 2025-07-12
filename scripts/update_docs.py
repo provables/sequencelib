@@ -123,7 +123,7 @@ def insert(soup, mod, tags):
 def process(html_file, mod, tags):
     f = open(html_file)
     soup = BeautifulSoup(f, "html5lib")
-    print(f"processing {html_file}...")
+    print(f"processing {html_file.resolve()}...")
     insert(soup, mod, tags)
     return str(soup)
 
@@ -163,6 +163,32 @@ def save_cache(result):
         json.dump(result, f)
 
 
+def build_github_url(seqno):
+    return (
+        "https://raw.githubusercontent.com/oeis/oeisdata/refs/heads/"
+        f"main/seq/{seqno[:4]}/{seqno}.seq"
+    )
+
+
+def parse_oeis_entry(text):
+    result = {"values": []}
+    for line in text.splitlines():
+        kind, _, rest = line.split(maxsplit=2)
+        if kind == "%N":
+            result["title"] = rest
+        if kind == "%K":
+            result["keywords"] = rest.split(",")
+        if kind in ("%S", "%T", "%U"):
+            result["values"].extend(filter(None, rest.split(",")))
+    return result
+
+
+def get_data_for_tag(tag):
+    resp = requests.get(build_github_url(tag))
+    resp.raise_for_status()
+    return parse_oeis_entry(resp.text)
+
+
 def get_oeis_data(info):
     result = load_cache()
     for tags in info.values():
@@ -171,17 +197,7 @@ def get_oeis_data(info):
             if tag in result:
                 print(f".. [from cache] {result[tag]['title']}")
                 continue
-            resp = requests.get(f"https://oeis.org/search?q=id:{tag}&fmt=json")
-            resp.raise_for_status()
-            data = resp.json()
-            if not data:
-                raise ValueError(f"Empty response for {tag}")
-            data = data[0]
-            result[tag] = {
-                "title": data["name"],
-                "keywords": data["keyword"].split(","),
-                "values": data["data"],
-            }
+            result[tag] = get_data_for_tag(tag)
     save_cache(result)
     return result
 

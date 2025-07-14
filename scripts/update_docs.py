@@ -5,6 +5,7 @@ import subprocess
 import json
 import pathlib
 import re
+import itertools
 
 from pathlib import Path
 
@@ -46,7 +47,7 @@ def get_template():
 def all_equivalences(equivalences):
     g = nx.DiGraph()
     g.add_edges_from(equivalences)
-    return nx.transitive_closure(g).edges
+    return nx.transitive_closure(g)
 
 
 def values_table(tag, tags, mod):
@@ -74,7 +75,9 @@ def values_table(tag, tags, mod):
         d["values"] = values
         data[seq] = d
 
-    for seq1, seq2 in all_equivalences(equivalences):
+    closure = all_equivalences(equivalences)
+    for seq1, seq2 in itertools.product(closure, closure):
+        print(f"processing equiv {seq1} = {seq2}")
         for idx, (value1, value2) in enumerate(
             zip(data[seq1]["values"], data[seq2]["values"])
         ):

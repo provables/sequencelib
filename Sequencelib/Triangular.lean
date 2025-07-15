@@ -22,6 +22,21 @@ $$
 @[OEIS := A000217]
 def Triangular (n : ℕ) : ℕ := n * (n + 1) / 2
 
+
+/-
+A definition of the Triangular numbers designed to resemble an implementation in Python
+-/
+@[OEIS := A000217]
+def Triangular2 (n : ℕ) : ℕ := Id.run do
+  let mut result : ℕ := 0
+  let mut x := 1
+  let mut y := 1
+  for _ in [1:(n+1)] do
+    result := x
+    x := x + y + 1
+    y := y + 1
+  result
+
 theorem Triangular_zero : Triangular 0 = 0 := rfl
 theorem Triangular_one : Triangular 1 = 1 := rfl
 theorem Triangular_two : Triangular 2 = 3 := rfl

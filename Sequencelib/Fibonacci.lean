@@ -36,6 +36,20 @@ The Fibonacci sequence: `F n = F (n - 1) + F (n - 2)`.
 @[OEIS := A000045, offset := 0, maxIndex := 10]
 def Fibonacci := Nat.fib
 
+/-
+A definition of the Fibonacci sequence designed to resemble an implementation in Python
+-/
+@[OEIS := A000045, offset := 0, maxIndex := 10]
+def Fibonacci2 (n : ℕ) : ℕ := Id.run do
+  let mut x := 0
+  let mut x_prev := 0
+  let mut y := 1
+  for _ in [0:n] do
+    x_prev := x
+    x := y
+    y := x_prev + y
+  pure x
+
 theorem Fibonacci_zero : Fibonacci 0 = 0 := Nat.fib_zero
 
 theorem Fibonacci_one : Fibonacci 1 = 1 := Nat.fib_one

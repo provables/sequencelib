@@ -16,6 +16,7 @@ import Sequencelib.MersenneNumbers
 import Sequencelib.Moebius
 import Sequencelib.Parity
 import Sequencelib.Partitions
+import Sequencelib.Pascal
 import Sequencelib.Pentagonal
 import Sequencelib.PowersOfPrimes
 import Sequencelib.PowersOfTwo

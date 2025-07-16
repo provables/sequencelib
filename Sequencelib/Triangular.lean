@@ -23,8 +23,8 @@ $$
 def Triangular (n : ℕ) : ℕ := n * (n + 1) / 2
 
 
-/-
-A definition of the Triangular numbers designed to resemble an implementation in Python
+/--
+A definition of the Triangular numbers designed to resemble an implementation in Python.
 -/
 @[OEIS := A000217]
 def Triangular2 (n : ℕ) : ℕ := Id.run do

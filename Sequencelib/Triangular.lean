@@ -31,7 +31,7 @@ def Triangular2 (n : ℕ) : ℕ := Id.run do
   let mut result : ℕ := 0
   let mut x := 1
   let mut y := 1
-  for _ in [1:(n+1)] do
+  for _ in [1 : (n + 1)] do
     result := x
     x := x + y + 1
     y := y + 1

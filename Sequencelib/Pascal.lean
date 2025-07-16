@@ -23,3 +23,13 @@ Pascal triangle defined from the binomial coefficient.
 def Pascal (n : ℕ) : ℕ :=
   let (k, l) := TriangleRows n
   PascalTriangle k l
+
+/--
+Pascal triangle as a translation from the Python code in the OEIS entry.
+-/
+@[OEIS := A007318]
+def Pascal₂ (n : ℕ) : ℕ :=
+  let k := 2 * (n + 1)
+  let m := Nat.sqrt k
+  let r := m - if k ≤ m * (m + 1) then 1 else 0
+  Nat.choose r (n - Nat.choose (r + 1) 2)

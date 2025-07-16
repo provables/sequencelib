@@ -17,7 +17,7 @@ import networkx as nx
 import html5lib
 
 HERE = Path(__file__).parent.resolve()
-MAX_VALUE = 20
+MAX_VALUE = 100
 
 
 def get_oeis_info():

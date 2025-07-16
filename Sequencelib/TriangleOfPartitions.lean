@@ -5,6 +5,7 @@ Authors: Walter Moreira, Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
+import Sequencelib.Defs
 
 /-!
 # Triangle of partition numbers
@@ -39,17 +40,6 @@ def PartitionsWithGreatestPart (n k : ℕ) : ℕ :=
   | (n + 1), (k + 1) => PartitionsWithGreatestPart (n - k) (k + 1) + PartitionsWithGreatestPart n k
 
 --def q4 (n : ℕ) : ℕ := ∑ k : Fin (n + 1), PartitionsWithGreatestPart n k
-
-/--
-Next cell in a lower triangle, row by row.
--/
-def Triangle : ℕ × ℕ → ℕ × ℕ :=
-  fun (a, b) => if b < a then (a, b + 1) else (a + 1, 0)
-
-/--
-`n`-th cell in a lower triangle, row by row.
--/
-def TriangleRows (n : ℕ) : ℕ × ℕ := Triangle^[n] (0, 0)
 
 /--
 Triangle `PartitionsWithGreatestPart n k` enumerated by rows.

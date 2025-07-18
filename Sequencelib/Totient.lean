@@ -30,7 +30,7 @@ namespace Sequence
 The Totient sequence
 -/
 @[OEIS := A000010, offset := 1]
-noncomputable def Totient (n : ℕ) := Nat.totient n
+def Totient (n : ℕ) := Nat.totient n
 
 theorem Totient_one : Totient 1 = 1 := by decide
 

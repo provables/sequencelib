@@ -33,14 +33,3 @@ def Pascal₂ (n : ℕ) : ℕ :=
   let m := Nat.sqrt k
   let r := m - if k ≤ m * (m + 1) then 1 else 0
   Nat.choose r (n - Nat.choose (r + 1) 2)
-
-#eval Pascal₂ 13
-
-theorem foo : Pascal₂ 13 = 4 := by
-  simp [Pascal₂]
-  reduce
-  rfl
-
-theorem bar : Pascal₂ = Pascal := by
-  ext n
-  simp [Pascal₂, Pascal, TriangleRows, Triangle]

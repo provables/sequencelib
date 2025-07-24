@@ -24,9 +24,9 @@ git = "https://github.com/leanprover/doc-gen4"
 rev = "v4.20.1"
 
 [[require]]
-name = "REPL"
-git = "https://github.com/leanprover-community/repl"
-#rev = "v4.20.1"
+name = "gen-seq"
+path = "../synthetic/lean/gen-seq"
+rev = "v4.20.1"
 
 [[lean_exe]]
 name = "oeisinfo"

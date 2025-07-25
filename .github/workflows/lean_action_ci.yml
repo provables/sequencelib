@@ -2,6 +2,8 @@ name: Lean Action CI
 
 on:
   push:
+    branches:
+      - main # Trigger on pushes to the default branch
   pull_request:
   workflow_dispatch:
 

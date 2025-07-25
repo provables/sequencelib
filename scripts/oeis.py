@@ -18,14 +18,17 @@ import json
 import timeit
 
 
-# path to a local checkout of the OEIS git repository
+# Path to a local checkout of the OEIS git repository
 OEIS_INSTALL = os.environ.get(
     "OEIS_INSTALL", os.path.expanduser("~/gits/lean4/oeisdata")
 )
 
+# All results
 RESULT_FILE = os.environ.get(
-    "RESULT_FILE", os.path.expanduser("~/oeis_results_more.json")
+    "RESULT_FILE", os.path.expanduser("~/oeis_results_all.json")
 )
+
+# Just results related to sequences with a python function
 PYTHON_RESULT_FILE = os.environ.get(
     "PYTHON_RESULT_FILE", os.path.expanduser("~/oeis_python_results_more.json")
 )
@@ -60,6 +63,8 @@ def parse_raw_files(root_dir):
             seq_name = file_path.split(".seq")[0].split("/")[-1]
             result[seq_name] = {}
             tot_seqs = len(result.keys())
+
+            # write outputs every 50K seqeunces:
             if tot_seqs % 50000 == 0:
                 cur = timeit.default_timer()
                 tot_sec = cur - start
@@ -69,10 +74,12 @@ def parse_raw_files(root_dir):
                 with open(RESULT_FILE, "w+") as r:
                     r.write(json.dumps(result))
 
+            # Parsing of the .seq file ----
             # add the raw contents to the dictionary
             try:
                 with open(file_path, "r") as file:
                     for line in file:
+                        # first, check if we are in the middle of parsing a Python code source:
                         if read_python_source:
                             #  if python_seqs == 1:
                             #      print(f"processing line for {seq_name}; line:{line}")
@@ -110,6 +117,39 @@ def parse_raw_files(root_dir):
                             except Exception as e:
                                 errors += 1
                                 print(f"Got error trying to get the description: {e}")
+
+                        # get the first values of the sequence
+                        if (
+                            line.startswith("%S")
+                            or line.startswith("%T")
+                            or line.startswith("%U")
+                        ):
+                            first_two_chars = line[:2]
+                            initial_fragment = f"{first_two_chars} {seq_name} "
+                            try:
+                                values = line.split(initial_fragment)[1].split(",")
+                                values = [int(s) for s in values if not s == "\n"]
+                                # append the values if
+                                if "values" not in result[seq_name]:
+                                    result[seq_name]["values"] = values
+                                else:
+                                    result[seq_name]["values"].extend(values)
+                            except Exception as e:
+                                errors += 1
+                                print(f"Got error trying to get the values: {e}")
+
+                        # get the offset
+                        if line.startswith("%O"):
+                            initial_fragment = f"%O {seq_name} "
+                            try:
+                                value = line.split(initial_fragment)[1]
+                                # we care about the first value in the offset line
+                                if "," in value:
+                                    value = value.split[","][0]
+                                result[seq_name]["offset"] = value
+                            except Exception as e:
+                                errors += 1
+                                print(f"Got error trying to compute offset: {e}")
                         # check if there is a program associated with the sequence
                         # cf., https://oeis.org/eishelp1.html
                         if line.startswith("%p"):

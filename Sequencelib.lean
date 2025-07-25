@@ -23,6 +23,7 @@ import Sequencelib.PowersOfTwo
 import Sequencelib.Primes
 import Sequencelib.Recaman
 import Sequencelib.Sylvester
+import Sequencelib.Synthetic.Example
 import Sequencelib.Totient
 import Sequencelib.TriangleOfPartitions
 import Sequencelib.Triangular

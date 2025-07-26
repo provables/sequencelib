@@ -25,7 +25,8 @@ AUTHORS = "Walter and Joe's Synth Bot"
 
 # Directory to save generated Lean files to.
 # Needs to be somewhere that has a checkout of SequenceLib.
-OUTPUT_DIR = os.path.expanduser("~/gits/lean4/sequencelib/Sequencelib/synth")
+DEFAULT_OUTPUT_DIR = os.path.join(SEQUENCE_LIB_ROOT, "Sequencelib/Synthetic")
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", DEFAULT_OUTPUT_DIR)
 
 
 class BuildException(Exception):
@@ -99,7 +100,10 @@ def compile_lean(path):
     """
     try:
         result = subprocess.run(
-            ["lake", "build", path], capture_output=True, cwd=SEQUENCE_LIB_ROOT
+            ["lake", "build", path],
+            capture_output=True,
+            cwd=SEQUENCE_LIB_ROOT,
+            timeout=300,
         )
     except Exception as e:
         print(f"Got exception trying to run lake build; e: {e}")
@@ -132,14 +136,15 @@ def process_sequence(seq_id, offset, code, values, lean_source=None):
     """
     print(f"Top of process_sequence for: {seq_id}, {offset}, {code}")
     times = 1
-    while times <= 2:
+    while times <= 4:
         # First, we generate the Lean associated with this code for the DSL
         if not lean_source:
             try:
                 result = subprocess.run(
-                    ["lake", "exe", "genseq", seq_id, str(offset), str(code)],
+                    ["lake", "exe", "genseq", seq_id, f"{offset}", str(code)],
                     capture_output=True,
                     cwd=SEQUENCE_LIB_ROOT,
+                    timeout=300,
                 )
                 if result.returncode == 0:
                     lean_source = result.stdout
@@ -148,6 +153,9 @@ def process_sequence(seq_id, offset, code, values, lean_source=None):
                     raise Exception(
                         f"Error: non-zero return code from genseq: {result.returncode}; stdout: {result.stdout}; stderr:{result.stderr}"
                     )
+            except subprocess.TimeoutExpired as e:
+                print(f"Got timeout trying to call genseq for {tag}")
+                raise e
             except Exception as e:
                 print(f"Got exception running genseq; e: {e}")
                 raise e
@@ -164,6 +172,10 @@ def process_sequence(seq_id, offset, code, values, lean_source=None):
             if max_index > 100:
                 max_index = 100
             max_index = str(max_index)
+        elif times == 2:
+            max_index = "50"
+        elif times == 3:
+            max_index = "10"
         else:
             print("building without max_index")
         # Use the template generator to generate a .lean file
@@ -175,20 +187,23 @@ def process_sequence(seq_id, offset, code, values, lean_source=None):
         try:
             compile_lean(out_path)
             times += 2  # compilation worked, so we're done
+        except subprocess.TimeoutExpired as e:
+            print(f"Got timeout trying to compile {tag}")
+            times += 1  # try again
         except AutoDerivationException as e:
             print(f"Auto derivation failed for {tag}; error: {e}")
             times += 1  # try one more time
         except BuildException as e:
             process_failed_lean_file(out_path)
             print(f"Build failed for sequence {tag}; error: {e}")
-            times += 2  # give up
+            times += 1  # try again
         except Exception as e:
             process_failed_lean_file(out_path)
             print(f"Build failed for sequence {tag}; error: {e}")
-            times += 2  # give up
+            times += 1  # try again
 
 
-def process_solutions_file(start=101, stop=500):
+def process_solutions_file(start=500, stop=5000):
     """
     Process the solutions file, synthesizing a .lean file for each sequence in the solutions.
     """
@@ -221,11 +236,17 @@ def process_solutions_file(start=101, stop=500):
             else:
                 tot_seqs_processed += 1
                 if tot_seqs_processed < start:
+                    print(
+                        f"Skipping {tot_seqs_processed} (tag {current_seq_id}) as it's less that start ({start})"
+                    )
                     continue
                 if tot_seqs_processed > stop:
                     break
                 # if for some reason we weren't able to get the sequence id, skip
                 # the code as well
+                print(
+                    f"Processing sequence {current_seq_id} ({tot_seqs_processed}/{stop})"
+                )
                 if not current_seq_id:
                     continue
                 # code is the entire line
@@ -235,7 +256,19 @@ def process_solutions_file(start=101, stop=500):
                 offset = seq_data[current_seq_id]["offset"]
                 if "," in offset:
                     offset = offset.split(",")[0]
-                process_sequence(current_seq_id, offset, code, values)
+                try:
+                    offset_int = int(offset)
+                    if offset_int >= 0:
+                        process_sequence(current_seq_id, offset, code, values)
+                    else:
+                        print(
+                            f"Sequence {current_seq_id} jad a negative offset; skipping."
+                        )
+                except Exception as e:
+                    print(
+                        f"Exception from process sequence: {current_seq_id}; details: {e}"
+                    )
+
                 current_seq_id = None  # set to None, as this sequence as been processed
     return results
 

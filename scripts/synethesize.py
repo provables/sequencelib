@@ -130,14 +130,27 @@ def process_sequence(seq_id, offset, code, values, lean_source=None):
     """
     Process a single sequence from the solutions file.
     """
+    print(f"Top of process_sequence for: {seq_id}, {offset}, {code}")
     times = 1
     while times <= 2:
         # First, we generate the Lean associated with this code for the DSL
         if not lean_source:
-            result = subprocess.run(
-                ["lake", "exe", "genseq", seq_id, offset, code], capture_output=True
-            )
-            lean_source = result.stdout
+            try:
+                result = subprocess.run(
+                    ["lake", "exe", "genseq", seq_id, str(offset), str(code)],
+                    capture_output=True,
+                    cwd=SEQUENCE_LIB_ROOT,
+                )
+                if result.returncode == 0:
+                    lean_source = result.stdout
+                    print(f"Got lean source: {lean_source}")
+                else:
+                    raise Exception(
+                        f"Error: non-zero return code from genseq: {result.returncode}; stdout: {result.stdout}; stderr:{result.stderr}"
+                    )
+            except Exception as e:
+                print(f"Got exception running genseq; e: {e}")
+                raise e
         tag = seq_id
         # for now, use the tag as the name also; could look at other ways to generate the name
         name = seq_id
@@ -146,7 +159,11 @@ def process_sequence(seq_id, offset, code, values, lean_source=None):
         # only try to auto derive the first time:
         max_index = None
         if times == 1:
-            max_index = str(len(values))
+            max_index = len(values)
+            # currently aut derive only supports up to 100
+            if max_index > 100:
+                max_index = 100
+            max_index = str(max_index)
         else:
             print("building without max_index")
         # Use the template generator to generate a .lean file
@@ -163,15 +180,15 @@ def process_sequence(seq_id, offset, code, values, lean_source=None):
             times += 1  # try one more time
         except BuildException as e:
             process_failed_lean_file(out_path)
-            print(f"Build failed for squence {tag}; error: {e}")
+            print(f"Build failed for sequence {tag}; error: {e}")
             times += 2  # give up
         except Exception as e:
             process_failed_lean_file(out_path)
-            print(f"Build failed for squence {tag}; error: {e}")
+            print(f"Build failed for sequence {tag}; error: {e}")
             times += 2  # give up
 
 
-def process_solutions_file(start=1, stop=1):
+def process_solutions_file(start=101, stop=500):
     """
     Process the solutions file, synthesizing a .lean file for each sequence in the solutions.
     """
@@ -190,7 +207,14 @@ def process_solutions_file(start=1, stop=1):
                     print(f"Line:{line}")
                     continue
                 parts = line.split(":")
+                # the sequence id's in the solutions file are missing 0s
                 current_seq_id = parts[0]
+                if len(current_seq_id) < 7:
+                    current_seq_id = (
+                        current_seq_id[0]
+                        + "0" * (7 - len(current_seq_id))
+                        + current_seq_id[1:]
+                    )
                 values = parts[1].strip()
                 results[current_seq_id] = {"values": values, "code": ""}
             # even numbered lines should be the code
@@ -211,8 +235,8 @@ def process_solutions_file(start=1, stop=1):
                 offset = seq_data[current_seq_id]["offset"]
                 if "," in offset:
                     offset = offset.split(",")[0]
-                current_seq_id = None
                 process_sequence(current_seq_id, offset, code, values)
+                current_seq_id = None  # set to None, as this sequence as been processed
     return results
 
 
@@ -250,7 +274,7 @@ def test3():
 
 
 def test4():
-    lean_source = """noncomputable def Divisors (n : ℕ) := n.divisors.card"""
+    lean_source = """noncomputable def Divisors (n : ℕ) := n.divisors.card Foobar"""
     tag = "A000005b"
     name = "Divisors"
     code = "foo"  # doesn't matter, will be ignored since passing lean_source
@@ -263,8 +287,8 @@ def main():
     # test()
     # test2()
     # test3()
-    test4()
-    # process_solutions_file()
+    # test4()
+    process_solutions_file()
 
 
 if __name__ == "__main__":

@@ -11,15 +11,15 @@ open Synth
 
 /-!
 
-# A289207 sequence 
+# A184985 sequence 
 -/
 
 namespace Sequence
 
-@[OEIS := A289207, offset := 0]
-def A289207 (n : ℕ) : ℤ :=
-  let x := n - 0
-  comprN (λ(x : ℤ) ↦ 0) ((x - 2))
+@[OEIS := A184985, offset := 1, derive := true, maxIndex := 100]
+def A184985 (n : ℕ) : ℤ :=
+  let x := n - 1
+  ((1 % if (x) ≤ 0 then (1) else (x)) + x)
 
 
 end Sequence

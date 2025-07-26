@@ -6,6 +6,8 @@ Authors: {{ authors }}
 
 import Mathlib
 import Sequencelib.Meta
+import GenSeq
+open Synth
 
 /-!
 
@@ -32,3 +34,5 @@ namespace Sequence
 {% else %}
 def {{ sequence_name }} ℕ → ℕ := 0    /- ToDo: Update function definition. -/
 {% endif %}
+
+end Sequence

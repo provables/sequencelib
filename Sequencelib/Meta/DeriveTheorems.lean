@@ -21,6 +21,7 @@ elab "oeis_tactic" : tactic =>
         let name := f.constName
         evalTactic (← `(tactic|
           first
+          | decide +kernel
           | rfl
           | decide
           | simp [$(mkIdent name):ident]

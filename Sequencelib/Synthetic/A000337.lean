@@ -11,14 +11,14 @@ open Synth
 
 /-!
 
-# A092679 sequence 
+# A000337 sequence 
 -/
 
 namespace Sequence
 
-@[OEIS := A092679, offset := 1, derive := true, maxIndex := 10]
-def A092679 (n : ℕ) : ℤ :=
-  let x := n - 1
+@[OEIS := A000337, offset := 0, derive := true, maxIndex := 10]
+def A000337 (n : ℕ) : ℤ :=
+  let x := n - 0
   loop (λ(x y : ℤ) ↦ ((x - 1) + x)) (x) (x)
 
 

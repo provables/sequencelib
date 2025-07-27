@@ -37,6 +37,7 @@
             requests
             appdirs
             networkx
+            numpy
         ];
 
         pythonImportsCheck = [ "leanblueprint" ];
@@ -70,6 +71,7 @@
           rsync
           jq
           moreutils
+          git-lfs
         ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
       };
     }

@@ -11,15 +11,15 @@ open Synth
 
 /-!
 
-# A166105 sequence 
+# A005475 sequence 
 -/
 
 namespace Sequence
 
-@[OEIS := A166105, offset := 0, derive := true, maxIndex := 10]
-def A166105 (n : ℕ) : ℤ :=
+@[OEIS := A005475, offset := 0, derive := true, maxIndex := 10]
+def A005475 (n : ℕ) : ℤ :=
   let x := n - 0
-  loop (λ(x y : ℤ) ↦ (2 + ((x * x) - x))) (x) (1)
+  loop (λ(x y : ℤ) ↦ (x + y)) (x) ((2 * (x * x)))
 
 
 end Sequence

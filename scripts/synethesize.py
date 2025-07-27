@@ -3,9 +3,11 @@ Script to synthesize .lean files from source code
 definitions using the templating system.
 """
 
+import argparse
 import json
 import os
 from pathlib import Path
+import sys
 import subprocess
 
 ALL_OEIS_RESULTS_FILE = os.environ.get(
@@ -203,7 +205,7 @@ def process_sequence(seq_id, offset, code, values, lean_source=None):
             times += 1  # try again
 
 
-def process_solutions_file(start=500, stop=5000):
+def process_solutions_file(start, stop):
     """
     Process the solutions file, synthesizing a .lean file for each sequence in the solutions.
     """
@@ -321,7 +323,17 @@ def main():
     # test2()
     # test3()
     # test4()
-    process_solutions_file()
+    parser = argparse.ArgumentParser(
+        prog="synthesize",
+        description="Synthesize Lean source files OEIS sequences defined in solutions.",
+    )
+    parser.add_argument("-s", "--start", type=int, required=True)
+    parser.add_argument("-e", "--end", type=int, required=True)
+    args = parser.parse_args()
+    if args.start > args.end:
+        print("Error: start must be <= end.")
+        sys.exit(1)
+    process_solutions_file(args.start, args.end)
 
 
 if __name__ == "__main__":

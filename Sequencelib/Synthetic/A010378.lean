@@ -16,7 +16,7 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A010378, offset := 1, derive := true, maxIndex := 12]
+@[OEIS := A010378, offset := 1, derive := true, maxIndex := 10]
 def A010378 (n : ℕ) : ℤ :=
   let x := n - 1
   loop (λ(x y : ℤ) ↦ ((x / 2) + x)) (2) (x)

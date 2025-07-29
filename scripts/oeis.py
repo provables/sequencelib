@@ -13,8 +13,14 @@ Them, activate a Python 12 poetry shell and run with
 This will generate output files
 """
 
+from datetime import datetime
+import numpy as np
 import os
+import random
+import subprocess
+import sys
 import json
+import requests
 import timeit
 
 
@@ -30,8 +36,24 @@ RESULT_FILE = os.environ.get(
 
 # Just results related to sequences with a python function
 PYTHON_RESULT_FILE = os.environ.get(
-    "PYTHON_RESULT_FILE", os.path.expanduser("~/oeis_python_results_more.json")
+    "PYTHON_RESULT_FILE", os.path.expanduser("~/oeis_python_results_all.json")
 )
+
+# Size of the uniform distributions to generate for sequences that have b-files
+UNI_DIST_SIZE = os.environ.get("UNI_DIST_SIZE", 100)
+try:
+    UNI_DIST_SIZE = int(UNI_DIST_SIZE)
+except:
+    print(f"Error: UNI_DIST_SIZE must be an integer")
+    sys.exit(1)
+
+
+# Set to 0 for unlimited
+MAX_SEQUENCES = 0
+if MAX_SEQUENCES > 0:
+    print(f"MAX_SEQUENCES set; this program will quit after {MAX_SEQUENCES} sequences.")
+else:
+    print("MAX_SEQUENCES not set; this program will process the entire OEIS.")
 
 
 def write_python_results(result):
@@ -43,14 +65,152 @@ def write_python_results(result):
         r.write(json.dumps(d))
 
 
-def parse_raw_files(root_dir):
+def initialize_git_lfs():
+    """
+    The git lfs install command must be run once per repository for initialization.
+    """
+    r = subprocess.run(
+        ["git", "lfs", "install"],
+        cwd=OEIS_INSTALL,
+        capture_output=True,
+    )
+    r.check_returncode()
+
+
+def get_git_lfs_file_list():
+    """
+    Use the git lfs ls-files command to get all files associated with git lfs.
+    """
+    results = []
+    r = subprocess.run(
+        ["git", "lfs", "ls-files"], cwd=OEIS_INSTALL, capture_output=True
+    )
+    r.check_returncode()
+    vals = r.stdout.decode().split("\n")
+    for v in vals:
+        try:
+            results.append(v.split(" - ")[1])
+        except:
+            pass
+    return results
+
+
+def check_ensure_b_file(seq_id, b_files):
+    """
+    Checks if the repo has a b-file for a specific sequence, and
+    ensure a b-file is present on the local disk if it does.
+    If not, uses git lfs to fetch a b-file associated with a sequence id.
+    """
+    # directory is first four characters of sequence id
+    dr = seq_id[0:4]
+    name = "b" + seq_id[1:] + ".txt"
+    path = os.path.join("files", dr, name)
+    found = False
+    for f in b_files:
+        if path in f:
+            found = True
+            break
+    # if not found:
+    #     return None
+    full_path = os.path.join(OEIS_INSTALL, path)
+    if not os.path.exists(full_path):
+        return None
+    with open(full_path, "r") as f:
+        # we have already checked out the actual file
+        if not "version https://git-lfs" in f.readline():
+            return full_path
+    # Getting the data requires two git lfs commands: fetch and checkout
+    try:
+        r = subprocess.run(
+            ["git", "lfs", "fetch", "-X=", f"-I={path}"],
+            cwd=OEIS_INSTALL,
+            capture_output=True,
+        )
+        r.check_returncode()
+    except Exception as e:
+        print(f"Could not git lfs fetch for seq {seq_id}; error: {e}")
+
+    try:
+        r = subprocess.run(
+            ["git", "lfs", "checkout", f"{path}"],
+            cwd=OEIS_INSTALL,
+            capture_output=True,
+        )
+        r.check_returncode()
+    except Exception as e:
+        print(f"Could not git lfs checkout for seq {seq_id}; error: {e}")
+        raise e
+    return full_path
+
+
+def parse_local_b_file(full_path):
+    """
+    Parse a b-file that has been checked out to the local git repository
+    already at path `full_path`.
+    """
+    values = []
+    with open(full_path, "r") as f:
+        for line in f:
+            try:
+                raw = line.strip().split(" ")
+                values.append([int(raw[0]), int(raw[1])])
+            except:
+                # if we can't parse a specific line, just continue
+                pass
+    return values
+
+
+def get_b_file_data_http(seq_name):
+    """
+    Use an HTTP request to the oeis.org to get the b-file data.
+    Note: this function is not used in the large job since oeis.org will
+    rate limit you.
+    """
+    result = {}
+    b_name = "b" + seq_name[1:] + ".txt"
+    url = f"https://oeis.org/{seq_name}/{b_name}"
+    try:
+        rsp = requests.get(url)
+        rsp.raise_for_status()
+        data = rsp.content.decode().split("\n")
+        values = []
+        # convert text data to integer tuples
+        for d in data:
+            try:
+                pair = (int(d.split(" ")[0]), int(d.split(" ")[1]))
+                values.append(pair)
+            except:
+                # In some examples, the end of the b-file contains empty strings or
+                # other invalid data; cf., https://oeis.org/A001476/b001476.txt
+                # In such cases, we just ignore the line
+                pass
+        result[seq_name]["b-file-values"] = values
+        # generate a uniform distribution of values of a fixed size.
+        distrib = []
+        tot = len(values)
+        for i in range(UNI_DIST_SIZE):
+            idx = random.randint(0, tot)
+            val = values[idx]
+            distrib.append((idx, val))
+        result[seq_name]["b-file-distrib"] = distrib
+    except:
+        # no b-file
+        result[seq_name]["b-file"] = None
+        no_b_file += 1
+    return result
+
+
+def parse_raw_files(root_dir, b_files):
     """
     Builds a dictionary of sequence: content, as a string.
     """
     start = timeit.default_timer()
     result = {}
+    tot_seqs = 0
     errors = 0
     python_seqs = 0
+    b_file_ct = 0
+    no_b_file = 0
     path = os.path.join(root_dir, "seq")
     for dirpath, _, files in os.walk(path):
         for f in files:
@@ -62,10 +222,10 @@ def parse_raw_files(root_dir):
                 continue
             seq_name = file_path.split(".seq")[0].split("/")[-1]
             result[seq_name] = {}
-            tot_seqs = len(result.keys())
+            tot_seqs += 1
 
-            # write outputs every 50K seqeunces:
-            if tot_seqs % 50000 == 0:
+            # write outputs every 50K sequences:
+            if tot_seqs % 1000 == 0:
                 cur = timeit.default_timer()
                 tot_sec = cur - start
                 print(
@@ -73,6 +233,8 @@ def parse_raw_files(root_dir):
                 )
                 with open(RESULT_FILE, "w+") as r:
                     r.write(json.dumps(result))
+                print(f"Sequences with b-file: {b_file_ct}")
+                print(f"Sequences with no b-file: {no_b_file}")
 
             # Parsing of the .seq file ----
             # add the raw contents to the dictionary
@@ -145,7 +307,7 @@ def parse_raw_files(root_dir):
                                 value = line.split(initial_fragment)[1]
                                 # we care about the first value in the offset line
                                 if "," in value:
-                                    value = value.split[","][0]
+                                    value = value.split(",")[0]
                                 result[seq_name]["offset"] = value
                             except Exception as e:
                                 errors += 1
@@ -167,12 +329,46 @@ def parse_raw_files(root_dir):
                                     python_seqs += 1
                                     result[seq_name]["python_src"] = ""
                                 read_python_source = True
+                    # check if there is a b-file associated with the sequence
+                    try:
+                        full_path = check_ensure_b_file(
+                            seq_id=seq_name, b_files=b_files
+                        )
+                        if full_path:
+                            values = parse_local_b_file(full_path=full_path)
+                            result[seq_name]["b-file-path"] = full_path
+                            # result[seq_name]["b-file-values-all"] = values
+                            if len(values) > 0:
+                                b_file_ct += 1
+                                idxs = np.random.randint(
+                                    0, len(values) - 1, UNI_DIST_SIZE
+                                )
+                                result[seq_name]["b-file-distrib"] = [
+                                    values[x] for x in idxs
+                                ]
+                            else:
+                                result[seq_name]["b-file-distrib"] = []
+                            del values
+                        else:
+                            no_b_file += 1
+                    except Exception as e:
+                        print(
+                            f"Got exception reading b-file for {seq_name}, so skipping; error: {e}"
+                        )
+                        result[seq_name]["b-file"] = None
 
             except Exception as e:
                 print(f"Error reading file {file_path}: {e}")
                 errors += 1
+            if MAX_SEQUENCES > 0 and tot_seqs >= MAX_SEQUENCES:
+                write_final_report(
+                    start, tot_seqs, result, errors, b_file_ct, no_b_file
+                )
+                return
+    write_final_report(start, tot_seqs, result, errors, b_file_ct, no_b_file)
 
-    # Write final output
+
+def write_final_report(start, tot_seqs, result, errors, b_file_ct, no_b_file):
     cur = timeit.default_timer()
     tot_sec = cur - start
     print(f"Processed {tot_seqs} total sequences; current run time: {tot_sec} seconds.")
@@ -180,6 +376,8 @@ def parse_raw_files(root_dir):
         r.write(json.dumps(result))
     write_python_results(result)
     print(f"Total errors: {errors}")
+    print(f"Sequences with b-file: {b_file_ct}")
+    print(f"Sequences with no b-file: {no_b_file}")
 
 
 def count_existing_result_file():
@@ -208,6 +406,13 @@ def count_existing_result_file():
     )
 
 
-if __name__ == "__main__":
-    parse_raw_files(OEIS_INSTALL)
+def main():
+    print(f"OEIS analyzer starting at {datetime.now()}")
+    initialize_git_lfs()
+    print(f"Git repo initialized with git lfs")
+    parse_raw_files(OEIS_INSTALL, [])
     count_existing_result_file()
+
+
+if __name__ == "__main__":
+    main()

@@ -28,7 +28,7 @@ AUTHORS = "Walter and Joe's Synth Bot"
 # Directory to save generated Lean files to.
 # Needs to be somewhere that has a checkout of SequenceLib.
 DEFAULT_OUTPUT_DIR = os.path.join(SEQUENCE_LIB_ROOT, "Sequencelib/Synthetic")
-OUTPUT_DIR = os.environ.get("OUTPUT_DIR", DEFAULT_OUTPUT_DIR)
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", None) or DEFAULT_OUTPUT_DIR
 
 
 class BuildException(Exception):

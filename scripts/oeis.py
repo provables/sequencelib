@@ -70,7 +70,7 @@ def initialize_git_lfs():
     The git lfs install command must be run once per repository for initialization.
     """
     r = subprocess.run(
-        ["git", "lfs", "install"],
+        ["git", "lfs", "install", "--local"],
         cwd=OEIS_INSTALL,
         capture_output=True,
     )

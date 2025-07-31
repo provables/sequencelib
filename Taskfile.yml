@@ -5,21 +5,22 @@ version: '3'
 vars:
   # Path for cloning the oeisdata repository
   OEISDATA_PATH: "{{.HOME}}/repos/oeisdata"
+  # Path to results from oeis.py
   RESULT_FILE: "/tmp/oeis_results_all.json"
+  # Path to results from oeis.py (includes python)
   PYTHON_RESULT_FILE: "/tmp/oeis_python_results_all.json"
+  # Path to location of `solutions` file
+  SOLUTIONS_FILE_PATH: "{{.HOME}}/Downloads/solutions"
+  # Path to directory for Lean files (defaults to `Sequencelib/Synthetic`)
+  OUTPUT_DIR: ""
+  # Number of sequences to process
   MAX_SEQUENCES: 10
+  # Start parameter for synthesize.py
+  START: 0
+  # End parameter for synthesize.py
+  END: 10
 
 tasks:
-  foo:
-    cmds:
-      - echo "--- {{ .OEISDATA_PATH }} -- $FOOX -- $BAR"
-    vars:
-      FOOX:
-        sh: realpath {{.OEISDATA_PATH}}
-    env:
-      FOOX: "{{.FOOX}}"
-      BAR: "baz"
-
   build:
     desc: Build the library
     cmds:
@@ -144,6 +145,7 @@ tasks:
 
   ensure-oeisdata:
     desc: Ensure there is a local clone of oeisdata
+    run: once
     cmds:
       - git clone git@github.com:oeis/oeisdata.git {{.OEISDATA_PATH}}
     status:
@@ -163,5 +165,23 @@ tasks:
     generates:
       - "{{.RESULT_FILE}}"
       - "{{.PYTHON_RESULT_FILE}}"
+    deps:
+      - ensure-oeisdata
+
+  synthesize-py:
+    desc: Run synthesize.py
+    cmds:
+      - python scripts/synthesize.py -s {{.START}} -e {{.END}}
+    env:
+      ALL_OEIS_RESULTS_FILE: "{{.RESULT_FILE}}"
+      SOLUTIONS_FILE_PATH: "{{.SOLUTIONS_FILE_PATH}}"
+      OUTPUT_DIR: "{{.OUTPUT_DIR}}"
+    sources:
+      - scripts/synthesize.py
+      - scripts/oeis.py
+      - "{{.RESULT_FILE}}"
+      - "{{.SOLUTIONS_FILE_PATH}}"
+    generates:
+      - Sequencelib/Synthetic/*.lean
     deps:
       - ensure-oeisdata

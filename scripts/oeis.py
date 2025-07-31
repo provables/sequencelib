@@ -49,7 +49,7 @@ except:
 
 
 # Set to 0 for unlimited
-MAX_SEQUENCES = 0
+MAX_SEQUENCES = int(os.environ.get("MAX_SEQUENCES", 0))
 if MAX_SEQUENCES > 0:
     print(f"MAX_SEQUENCES set; this program will quit after {MAX_SEQUENCES} sequences.")
 else:

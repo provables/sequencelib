@@ -2,7 +2,24 @@
 
 version: '3'
 
+vars:
+  # Path for cloning the oeisdata repository
+  OEISDATA_PATH: "{{.HOME}}/repos/oeisdata"
+  RESULT_FILE: "/tmp/oeis_results_all.json"
+  PYTHON_RESULT_FILE: "/tmp/oeis_python_results_all.json"
+  MAX_SEQUENCES: 10
+
 tasks:
+  foo:
+    cmds:
+      - echo "--- {{ .OEISDATA_PATH }} -- $FOOX -- $BAR"
+    vars:
+      FOOX:
+        sh: realpath {{.OEISDATA_PATH}}
+    env:
+      FOOX: "{{.FOOX}}"
+      BAR: "baz"
+
   build:
     desc: Build the library
     cmds:
@@ -124,3 +141,27 @@ tasks:
           <(tail -n +6 Sequencelib.lean | grep '^import' | sort) \
           <(tail -n +6 Sequencelib.lean | grep -v '^import') \
           | sponge Sequencelib.lean
+
+  ensure-oeisdata:
+    desc: Ensure there is a local clone of oeisdata
+    cmds:
+      - git clone git@github.com:oeis/oeisdata.git {{.OEISDATA_PATH}}
+    status:
+      - test -d {{.OEISDATA_PATH}}/.git
+
+  oeis-py:
+    desc: Run oeis.py
+    cmds:
+      - python scripts/oeis.py
+    env:
+      OEIS_INSTALL: "{{.OEISDATA_PATH}}"
+      RESULT_FILE: "{{.RESULT_FILE}}"
+      PYTHON_RESULT_FILE: "{{.PYTHON_RESULT_FILE}}"
+      MAX_SEQUENCES: "{{.MAX_SEQUENCES}}"
+    sources:
+      - scripts/oeis.py
+    generates:
+      - "{{.RESULT_FILE}}"
+      - "{{.PYTHON_RESULT_FILE}}"
+    deps:
+      - ensure-oeisdata

@@ -9,8 +9,6 @@ vars:
   RESULT_FILE: "/tmp/oeis_results_all.json"
   # Path to results from oeis.py (includes python)
   PYTHON_RESULT_FILE: "/tmp/oeis_python_results_all.json"
-  # Path to location of `solutions` file
-  SOLUTIONS_FILE_PATH: "{{.HOME}}/Downloads/solutions"
   # Path to directory for Lean files (defaults to `Sequencelib/Synthetic`)
   OUTPUT_DIR: ""
   # Number of sequences to process
@@ -19,6 +17,10 @@ vars:
   START: 0
   # End parameter for synthesize.py
   END: 10
+
+  # Path to location of `solutions` file 
+  # (task `ensure-solutions` will download it to this location if needed)
+  SOLUTIONS_FILE_PATH: "/tmp/solutions"
 
 tasks:
   build:
@@ -152,9 +154,15 @@ tasks:
     status:
       - test -d {{.OEISDATA_PATH}}/.git
 
-  # ensure-solutions:
-  #   cmds:
-  #     - # fetch solutions
+  ensure-solutions:
+    desc: Retrieve solutions file
+    run: once
+    cmds:
+      - |
+        wget -O {{.SOLUTIONS_FILE_PATH}} -q \
+        https://raw.githubusercontent.com/barakeel/oeis-synthesis/refs/heads/main/src/results/solutions
+    status:
+      - test -f "{{.SOLUTIONS_FILE_PATH}}"
 
   oeis-py:
     desc: Run oeis.py
@@ -191,3 +199,4 @@ tasks:
     deps:
       - oeis-py
       - ensure-oeisdata
+      - ensure-solutions

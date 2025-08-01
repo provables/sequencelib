@@ -2,6 +2,7 @@
   <p>
     <a href="https://oeis.org/{{ tag }}">{{ tag }}</a>, offset = {{ offset }}
   </p>
+  <div style="overflow-x: scroll;">
   <table style="border-collapse: collapse; border: 1px solid var(--text-color);">
     <tr>
       <td style="font-weight: bold; border: 1px solid var(--text-color); padding: 8px;">{{ headers[0] }}</td>
@@ -27,6 +28,7 @@
     </tr>
     {% endfor %}
   </table>
+  </div>
   {% if equivalences %}
   <p>
     Equivalences:

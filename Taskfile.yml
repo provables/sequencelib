@@ -14,7 +14,7 @@ vars:
   # Path to directory for Lean files (defaults to `Sequencelib/Synthetic`)
   OUTPUT_DIR: ""
   # Number of sequences to process
-  MAX_SEQUENCES: 10
+  MAX_SEQUENCES: 0
   # Start parameter for synthesize.py
   START: 0
   # End parameter for synthesize.py
@@ -133,15 +133,16 @@ tasks:
     cmds:
       - lake exe batteries/runLinter --update
 
-  sort-root:
-    desc: Sort imports in Sequencelib.lean
+  render-sequencelib-lean:
+    desc: Regenerate top-level Sequencelib.lean
     cmds:
-      - |
-        cat \
-          <(head -5 Sequencelib.lean) \
-          <(tail -n +6 Sequencelib.lean | grep '^import' | sort) \
-          <(tail -n +6 Sequencelib.lean | grep -v '^import') \
-          | sponge Sequencelib.lean
+      - python scripts/generate_imports.py
+    sources:
+      - Sequencelib/**/*.lean
+      - exclude: Sequencelib/Meta/**/*.lean
+      - exclude: Sequencelib/Defs/**/*.lean
+    generates:
+      - Sequencelib.lean
 
   ensure-oeisdata:
     desc: Ensure there is a local clone of oeisdata
@@ -150,6 +151,10 @@ tasks:
       - git clone git@github.com:oeis/oeisdata.git {{.OEISDATA_PATH}}
     status:
       - test -d {{.OEISDATA_PATH}}/.git
+
+  # ensure-solutions:
+  #   cmds:
+  #     - # fetch solutions
 
   oeis-py:
     desc: Run oeis.py
@@ -184,4 +189,5 @@ tasks:
     generates:
       - Sequencelib/Synthetic/*.lean
     deps:
+      - oeis-py
       - ensure-oeisdata

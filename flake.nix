@@ -72,6 +72,7 @@
           jq
           moreutils
           git-lfs
+          gawk
         ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
       };
     }

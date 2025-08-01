@@ -73,6 +73,7 @@
           moreutils
           git-lfs
           gawk
+          wget
         ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
       };
     }

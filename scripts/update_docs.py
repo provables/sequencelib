@@ -6,6 +6,7 @@ import json
 import pathlib
 import re
 import itertools
+import sys
 
 from pathlib import Path
 
@@ -18,6 +19,8 @@ import html5lib
 
 HERE = Path(__file__).parent.resolve()
 MAX_VALUE = 101
+
+sys.set_int_max_str_digits(20000)
 
 
 def get_oeis_info():

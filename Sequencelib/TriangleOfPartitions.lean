@@ -7,6 +7,8 @@ import Mathlib
 import Sequencelib.Meta
 import Sequencelib.Defs
 
+open Nat
+
 /-!
 # Triangle of partition numbers
 
@@ -39,8 +41,39 @@ def PartitionsWithGreatestPart (n k : ℕ) : ℕ :=
   | _, 0 => 0
   | (n + 1), (k + 1) => PartitionsWithGreatestPart (n - k) (k + 1) + PartitionsWithGreatestPart n k
 
+def GreatestPart {k : ℕ} (p : Partition k) : ℕ := p.parts.foldl max ⊥
+
+def P (n k : ℕ) := { p : Partition n // GreatestPart p = k}
+
+instance {n k : ℕ} : Finite (P n k) := Subtype.finite
+
+theorem bar {n k : ℕ} : Nonempty (P n k ≃ (P (n - k) k) ⊕ (P (n - 1) (k - 1))) := by sorry
+
+#check Multiset.add_eq_union_iff_disjoint
+#synth HAdd (Multiset ℕ) (Multiset ℕ) (Multiset ℕ)
+#check Multiset.instAdd
+#check Nat.card
+#check Multiset.disjSum
+#check Nat.card_sum
+
+theorem GreatestPart_le_sum {k : ℕ} (p : Partition k) :
+    GreatestPart p ≤ k := by
+  simp [GreatestPart]
+  refine Multiset.foldl_induction max 0 (· ≤ k) p.parts (by aesop) (by simp) ?c
+  intro x h
+  rw [← p.parts_sum]
+  exact Multiset.le_sum_of_mem h
+
+
+#check Multiset.foldl_induction
 --def q4 (n : ℕ) : ℕ := ∑ k : Fin (n + 1), PartitionsWithGreatestPart n k
 
+#check Nat.Partition
+def foo : Nat.Partition 9 := Nat.Partition.ofMultiset <| Multiset.ofList [1, 1, 2, 3, 2]
+
+#check Multiset.max_le_of_forall_le
+#eval foo.parts.foldl max ⊥
+#eval foo.parts.erase 2
 /--
 Triangle `PartitionsWithGreatestPart n k` enumerated by rows.
 -/

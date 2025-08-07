@@ -1,8 +1,11 @@
 import Lean
 import Qq
 import Sequencelib.Meta
+import GenSeq
 
+open Synth
 open Lean Expr Elab Term Tactic Meta Qq Syntax
+open Lean.Parser.Command
 
 #check Syntax.node
 
@@ -15,10 +18,7 @@ def A000537 (n : ℕ) : ℤ :=
   loop (λ(x y : ℤ) ↦ (((y * y) * y) + x)) (x) (0)
 "#
 
-#check Lean.Elab.Command.CommandElabM
 #check Lean.importModules
-#check Term.elabLetDecl
-#check Lean.Parser.Command.declValSimple
 #check Lean.PrettyPrinter.format
 #check Frontend.processCommands
 #check parseImports'
@@ -51,53 +51,56 @@ run_cmd do
   -- let w3 := w3.getArg 4
   -- let w3 := w3.getKind
 
+def processDef (definition : TSyntax `Lean.Parser.Command.definition) :
+    TermElabM <| TSyntax `Lean.Parser.Command.definition := do
+  dbg_trace s!"==== Process Def =====\n{definition}"
+  let x ← match definition with
+  | `(definition|def $a:declId ($e:ident : $b:term) : $t:term $c:declVal) =>
+    let u ←  match c with
+    | `(declVal| := let $tt:letDecl
+        $l:ident $uu:term $vv:term $ww:term) =>
+        --$uu:term) =>
+      pure 1
+    | _ =>
+      dbg_trace "no match"
+      pure 0
+    dbg_trace u
+    `(definition|def $a ($e : $b) : $(mkIdent `ℕ) $c:declVal)
+  | s => pure s
+  return x
+
+#check Term.mkConst
+#check Lean.mkConst
+#check Term.exprToSyntax
 #check TSyntax
-#check Lean.Parser.Module.module
-def processModule (content : String) : MetaM String := do
+#check Lean.Parser.Command.definition
+--   "def " >> recover declId skipUntilWsOrDelim >> ppIndent optDeclSig >> declVal >> optDefDeriving
+def processModule (content : String) : TermElabM String := do
   let env ← getEnv
   let v ← Parser.testParseModule env "<input>" content
   let cursor := Syntax.Traverser.fromSyntax v
   let mut commands := cursor.down 1 |>.down 0
   while true do
-    IO.println "---"
-    --IO.println <| ← PrettyPrinter.formatCommand commands.cur
-    IO.println commands.cur
-    IO.println s!"kind: {commands.cur.getKind}"
-    if commands.cur.getKind == `Lean.Parser.Command.open then
-      commands := commands.setCur (← `(term|100))
+    if commands.cur.isOfKind `Lean.Parser.Command.declaration then
+      match (commands.down 0).cur with
+      | `(declModifiersT|@[$[$attrs:attr],*]) =>
+        let some z := attrs[0]? | default
+        if z.raw.isOfKind `OEIS then
+          commands := commands.down 1
+          commands := commands.setCur <| (← processDef ⟨commands.cur⟩)
+          commands := commands.up
+      | _ => pure ()
     commands := commands.right
     if commands.cur.isMissing then
       break
-  let final := commands.up.up
-  IO.println "-----\nppModule\n------"
-  let m := match final.cur with
-  | `(Lean.Parser.Module.module|$m) => m
-  IO.println <| ← PrettyPrinter.ppModule m
-  return ""
+  return s!"{← PrettyPrinter.ppModule ⟨commands.up.up.cur⟩}"
 
+#check Format
 #check Name
 #check liftCommandElabM
 #check Lean.Parser.Module.module
 #check Syntax.Traverser.fromSyntax
 run_elab do
-  let env ← getEnv
-  let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A000537.lean"])
-  let v ← Lean.Parser.testParseFile env (System.mkFilePath ["Sequencelib/Synthetic/A000537.lean"])
-  let t := Syntax.Traverser.fromSyntax v
-  let s1 := t
-  let new ← `(term|100)
-  --dbg_trace t2.cur
-  let v := (t.down 1).cur
-  let t := (t.down 1) |>.down 0
-  let t2 := t.setCur new
-  let t2 := t2.up.up.up.up
-
-  --let s2 := s.down 1 |>.down 0 |>.right.right.right
-  --dbg_trace s.cur
-  --let z ← PrettyPrinter.ppModule v
-  --dbg_trace (t2.cur)
-  --dbg_trace v.raw.getKind
-  --dbg_trace (s.cur)
-  --dbg_trace (← Lean.PrettyPrinter.formatCategory `module s.cur)
-
+  let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
   let st ← processModule g
+  dbg_trace s!"return:\n{st}"

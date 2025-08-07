@@ -51,21 +51,25 @@ run_cmd do
   -- let w3 := w3.getArg 4
   -- let w3 := w3.getKind
 
+def processTerm (term : Syntax) : TermElabM Syntax :=
+  pure term
+
+--def processCodomain (ter)
+
 def processDef (definition : TSyntax `Lean.Parser.Command.definition) :
     TermElabM <| TSyntax `Lean.Parser.Command.definition := do
   dbg_trace s!"==== Process Def =====\n{definition}"
   let x ← match definition with
-  | `(definition|def $a:declId ($e:ident : $b:term) : $t:term $c:declVal) =>
-    let u ←  match c with
-    | `(declVal| := let $tt:letDecl
-        $l:ident $uu:term $vv:term $ww:term) =>
-        --$uu:term) =>
-      pure 1
-    | _ =>
-      dbg_trace "no match"
-      pure 0
-    dbg_trace u
-    `(definition|def $a ($e : $b) : $(mkIdent `ℕ) $c:declVal)
+  | u@`(definition|def $a:declId ($e:ident : $b:term) : $t:term :=
+      let $tt:letDecl
+      $rr:term) =>
+      dbg_trace s!"a = {a}"
+      dbg_trace s!"e = {e}"
+      dbg_trace s!"b = {b}"
+      dbg_trace s!"t = {t}"
+      dbg_trace s!"tt = {tt}"
+      dbg_trace s!"rr = {rr}"
+      pure u
   | s => pure s
   return x
 

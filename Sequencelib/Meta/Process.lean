@@ -51,28 +51,46 @@ run_cmd do
   -- let w3 := w3.getArg 4
   -- let w3 := w3.getKind
 
-def processTerm (term : Syntax) : TermElabM Syntax :=
+structure SeqInfo where
+  cod : Codomain
+  deriving Inhabited
+
+def LocalInfo : Std.HashMap Name SeqInfo := .ofList [
+  (`A003010, ⟨.Nat⟩)
+]
+
+def processTerm (term : TSyntax `term) : TermElabM <| TSyntax `term :=
   pure term
 
---def processCodomain (ter)
+def processCodomain (c : Codomain) (_cod: TSyntax `term) : TermElabM <| TSyntax `term := do
+  match c with
+  | .Nat => `(term|ℕ)
+  | .Int => `(term|ℤ)
 
 def processDef (definition : TSyntax `Lean.Parser.Command.definition) :
     TermElabM <| TSyntax `Lean.Parser.Command.definition := do
-  dbg_trace s!"==== Process Def =====\n{definition}"
   let x ← match definition with
-  | u@`(definition|def $a:declId ($e:ident : $b:term) : $t:term :=
-      let $tt:letDecl
-      $rr:term) =>
+  | orig@`(definition|def $a:ident ($e:ident : $b:term) : $t:term :=
+        let $tt:letDecl
+        $rr:term) =>
       dbg_trace s!"a = {a}"
       dbg_trace s!"e = {e}"
       dbg_trace s!"b = {b}"
       dbg_trace s!"t = {t}"
       dbg_trace s!"tt = {tt}"
       dbg_trace s!"rr = {rr}"
-      pure u
+      let some info := LocalInfo[a.getId]? |
+        logWarning m!"Function {a} not found in OEISInfo. Keeping original definition."
+        return orig
+      let new_t ← processCodomain info.cod t
+      let new_rr ← processTerm rr
+      `(definition|def $a:declId ($e:ident : $b:term) : $new_t:term :=
+        let $tt:letDecl
+        $new_rr:term)
   | s => pure s
   return x
 
+#eval (Name.mkStr1 "ℕ")
 #check Term.mkConst
 #check Lean.mkConst
 #check Term.exprToSyntax
@@ -101,6 +119,7 @@ def processModule (content : String) : TermElabM String := do
 
 #check Format
 #check Name
+#check termℕ
 #check liftCommandElabM
 #check Lean.Parser.Module.module
 #check Syntax.Traverser.fromSyntax

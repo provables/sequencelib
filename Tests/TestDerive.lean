@@ -36,7 +36,7 @@ info: fooDerive_ten : fooDerive 10 = 11
 #check fooDerive_ten
 
 /--
-warning: Auto derivation of theorems not implemented for noncomputable function barDerive
+error: Auto derivation of theorems not implemented for noncomputable function barDerive
 -/
 #guard_msgs in
 @[OEIS := A101, maxIndex := 2, derive := true]

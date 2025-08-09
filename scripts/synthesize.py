@@ -346,15 +346,16 @@ def process_sequence(socket, seq_id, offset, code, indexes, values, lean_source=
             times += 1  # try again
         except AutoDerivationException as e:
             print(f"Auto derivation failed for {tag}; error: {e}")
-            times += 1  # try one more time
+            times += 1  # try again
         except BuildException as e:
-            process_failed_lean_file(out_path)
             print(f"Build failed for sequence {tag}; error: {e}")
             times += 1  # try again
         except Exception as e:
-            process_failed_lean_file(out_path)
             print(f"Build failed for sequence {tag}; error: {e}")
             times += 1  # try again
+        if times > 4:
+            process_failed_lean_file(out_path)
+            return False, None
 
 
 def write_report(
@@ -462,7 +463,7 @@ def process_solutions_file(start, stop, start_time):
                     offset_int = int(offset)
                     if offset_int >= 0:
                         # use the b-files values if they are present
-                        if results[current_seq_id].get("b-file-distrib"):
+                        if seq_data[current_seq_id].get("b-file-distrib"):
                             using_b_file += 1
                             distrib = seq_data[current_seq_id]["b-file-distrib"]
                             indexes = [x[0] for x in distrib]

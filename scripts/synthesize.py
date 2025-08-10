@@ -519,7 +519,6 @@ def process_solutions_file(start, stop, start_time):
                             break
                         except:
                             time.sleep(1)
-
                 except Exception as e:
                     errors += 1
                     print(

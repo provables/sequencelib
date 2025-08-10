@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import socket
 import sys
+import time
 import subprocess
 import timeit
 
@@ -48,6 +49,10 @@ class BuildException(Exception):
 
 
 class AutoDerivationException(BuildException):
+    pass
+
+
+class GenseqCrashedException(Exception):
     pass
 
 
@@ -145,7 +150,7 @@ def process_failed_lean_file(path):
     os.rename(path, new_path)
 
 
-def get_senseq_socket():
+def get_genseq_socket():
     """
     Returns a client socket bound to the genseq server that is ready for
     sending messages.
@@ -184,6 +189,11 @@ def genseq_send_recv(socket, message):
     try:
         # get reply and decode
         raw = socket.recv(GENSEQ_MAX_BUF_SIZE)
+        if not raw:
+            # if we got no bytes, it is likely the genseq server crashed and will have to be restarted;
+            # test ready in a loop and then move on
+            raise GenseqCrashedException()
+
     except Exception as e:
         print(f"Error receiving from genseq socket: {e}")
         raise e
@@ -411,7 +421,7 @@ def process_solutions_file(start, stop, start_time):
     ten_values_proved = 0
     fifty_values_proved = 0
     max_values_proved = 0
-    socket = get_senseq_socket()
+    socket = get_genseq_socket()
     with open(SOLUTIONS_FILE_PATH, "r") as f:
         idx = 0
         current_seq_id = None
@@ -500,6 +510,16 @@ def process_solutions_file(start, stop, start_time):
                             f"Sequence {current_seq_id} had a negative offset; skipping."
                         )
                         errors += 1
+                except GenseqCrashedException as e:
+                    errors += 1
+                    print(f"Genseq server cashed; waiting for it to restart.")
+                    while True:
+                        try:
+                            socket = get_genseq_socket()
+                            break
+                        except:
+                            time.sleep(1)
+
                 except Exception as e:
                     errors += 1
                     print(

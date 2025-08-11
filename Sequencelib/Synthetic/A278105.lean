@@ -21,5 +21,4 @@ def A278105 (n : ℕ) : ℤ :=
   let x := n - 1
   ((1 + 2) / (1 + x))
 
-
 end Sequence

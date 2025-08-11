@@ -21,5 +21,4 @@ def A271624 (n : ℕ) : ℤ :=
   let x := n - 1
   (2 + (2 * (x * x)))
 
-
 end Sequence

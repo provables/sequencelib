@@ -16,10 +16,9 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A267883, offset := 0, derive := true, maxIndex := 10]
+@[OEIS := A267883, offset := 0, derive := true, maxIndex := 100]
 def A267883 (n : ℕ) : ℤ :=
   let x := n - 0
   if (x) ≤ 0 then (x) else (comprN (λ(x : ℤ) ↦ 0) (((2 + 2) - x)))
-
 
 end Sequence

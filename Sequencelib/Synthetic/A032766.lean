@@ -21,5 +21,4 @@ def A032766 (n : ℕ) : ℤ :=
   let x := n - 0
   ((x / 2) + x)
 
-
 end Sequence

@@ -21,5 +21,4 @@ def A176271 (n : ℕ) : ℤ :=
   let x := n - 1
   (1 + (x + x))
 
-
 end Sequence

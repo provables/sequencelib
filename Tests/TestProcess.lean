@@ -42,19 +42,27 @@ run_elab do
     let x ← ProcessM.run (processTerm e) {s with safeCtx := true}
     dbg_trace (← PrettyPrinter.ppTerm x)
 
-def decl : String := r#"
+def decl (n : ℕ) : String := s!"
 def foo (n : ℕ) : ℤ :=
-  let x := n - 0
+  let x := n - {n}
   loop (λ (x y : ℤ) ↦ (x * x) - 2) x 4
-"#
+"
 
+/--
+info: def foo (x : ℕ) : ℕ :=
+  Int.toNat <| loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4
+def foo (n : ℕ) : ℕ :=
+  let x := n - 3
+  Int.toNat <| loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4
+-/
+#guard_msgs in
 run_elab do
   let env ← getEnv
-  let e : Syntax ← Parser.testParseModule env "<input>" decl
-  let e := (e.getArg 1)[0].getArg 1
-  let s : ProcessState := default
-  let s := {s with seqInfo := .ofList [(`foo, ⟨.Nat⟩)]}
-  dbg_trace repr s.seqInfo[`foo]!
-  let x ← ProcessM.run (processDef ⟨e⟩) s
-  let y ← PrettyPrinter.ppCommand ⟨x⟩
-  dbg_trace y
+  for i in [0, 3] do
+    let e : Syntax ← Parser.testParseModule env "<input>" <| decl i
+    let e := (e.getArg 1)[0].getArg 1
+    let s : ProcessState := default
+    let s := {s with seqInfo := .ofList [(`foo, ⟨.Nat⟩)]}
+    let x ← ProcessM.run (processDef ⟨e⟩) s
+    let y ← PrettyPrinter.ppCommand ⟨x⟩
+    dbg_trace y

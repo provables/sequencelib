@@ -174,7 +174,7 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
     let s ← get
     StateT.set {s with freeVars := s.freeVars.insert `y}
     `(term|$(mkIdent `y))
-  | s =>
+  | _ =>
     --dbg_trace s!"--- default := {s}"
     pure term
 
@@ -184,18 +184,35 @@ def processCodomain (c : Codomain) (_cod: TSyntax `term) (body : TSyntax `term)
   | .Nat => do return (← `(term|ℕ), ← `(term|$(mkIdent `Int.toNat) <| $body))
   | .Int => do return (← `(term|ℤ), body)
 
+def processLet (let_t : TSyntax `term) (body : TSyntax `term) :
+    ProcessM <| (TSyntax `ident) × (TSyntax `term) := do
+  match let_t with
+  | `(term|n - $m:num) =>
+    --dbg_trace s!"got num {m}"
+    if m.getNat == 0 then
+      return (← `(ident|$(mkIdent `x)), body)
+    else
+      return (← `(ident|$(mkIdent `n)), ← `(term|let $(mkIdent `x) := $let_t
+        $body
+      ))
+  | _ =>
+    --dbg_trace s!"other"
+  return (← `(ident|$(mkIdent `n)), body)
+
 def processDef (definition : TSyntax `Lean.Parser.Command.definition) :
     ProcessM <| TSyntax `Lean.Parser.Command.definition := do
   let x ← match definition with
-  | `(definition|def $a:ident ($e:ident : $b:term) : $t:term :=
-        let $tt:letDecl
+  | `(definition|def $a:ident ($_e:ident : $b:term) : $t:term :=
+        let $_ti:ident := $tt:term
         $rr:term) =>
       let info := (← get).seqInfo[a.getId]?.getD default
       let new_rr ← processTerm rr
       let (new_t, new_body) ← processCodomain info.cod t new_rr
-      `(definition|def $a:declId ($e:ident : $b:term) : $new_t:term :=
-        let $tt:letDecl
-        $new_body:term)
+      let (new_ident, new_body') ← processLet tt new_body
+      `(definition|def $a:declId ($new_ident:ident : $b:term) : $new_t:term :=
+        $new_body':term)
+        -- let $ti:ident := $tt:term
+        -- $new_body:term)
   | s => pure s
   return x
 
@@ -219,13 +236,9 @@ def processModule (content : String) : ProcessM String := do
       break
   return s!"{← PrettyPrinter.ppModule ⟨commands.up.up.cur⟩}"
 
-run_elab do
-  let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
-  let s : ProcessState := default
-  let s := {s with seqInfo := .ofList [(`A003010, ⟨.Nat⟩)]}
-  let st ← ProcessM.run (processModule g) s
-  dbg_trace s!"return:\n{st}"
-
-def A003010 (n : ℕ) : ℕ :=
-  let x := n - 0
-  Int.toNat <| loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4
+-- run_elab do
+--   let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
+--   let s : ProcessState := default
+--   let s := {s with seqInfo := .ofList [(`A003010, ⟨.Nat⟩)]}
+--   let st ← ProcessM.run (processModule g) s
+--   dbg_trace s!"return:\n{st}"

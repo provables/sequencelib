@@ -21,5 +21,4 @@ def A279019 (n : ℕ) : ℤ :=
   let x := n - 4
   ((x * x) - x)
 
-
 end Sequence

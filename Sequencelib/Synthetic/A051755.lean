@@ -21,5 +21,4 @@ def A051755 (n : ℕ) : ℤ :=
   let x := n - 2
   (2 + (if (x) ≤ 0 then (1) else (x) + x))
 
-
 end Sequence

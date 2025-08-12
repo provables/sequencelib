@@ -21,5 +21,4 @@ def A176059 (n : ℕ) : ℤ :=
   let x := n - 0
   (1 + (2 - (x % 2)))
 
-
 end Sequence

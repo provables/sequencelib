@@ -16,10 +16,9 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A228817, offset := 45, derive := true, maxIndex := 10]
+@[OEIS := A228817, offset := 45, derive := true, maxIndex := 5]
 def A228817 (n : ℕ) : ℤ :=
   let x := n - 45
   loop (λ(x y : ℤ) ↦ (2 / if (x) ≤ 0 then (1) else (y))) (x) (1)
-
 
 end Sequence

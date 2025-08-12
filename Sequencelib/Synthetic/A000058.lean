@@ -21,5 +21,4 @@ def A000058 (n : ℕ) : ℤ :=
   let x := n - 0
   (1 + loop (λ(x y : ℤ) ↦ ((x * x) + x)) (x) (1))
 
-
 end Sequence

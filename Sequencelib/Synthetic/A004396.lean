@@ -16,10 +16,9 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A004396, offset := 0, derive := true, maxIndex := 10]
+@[OEIS := A004396, offset := 0, derive := true, maxIndex := 100]
 def A004396 (n : ℕ) : ℤ :=
   let x := n - 0
   (((1 - x) / (1 + 2)) + x)
-
 
 end Sequence

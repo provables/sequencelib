@@ -16,10 +16,9 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A020723, offset := 0, derive := true, maxIndex := 10]
+@[OEIS := A020723, offset := 0, derive := true, maxIndex := 73]
 def A020723 (n : ℕ) : ℤ :=
   let x := n - 0
   (1 + ((2 * (2 + 2)) + x))
-
 
 end Sequence

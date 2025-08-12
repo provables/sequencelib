@@ -16,10 +16,9 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A047229, offset := 1]
+@[OEIS := A047229, offset := 1, derive := true, maxIndex := 57]
 def A047229 (n : ℕ) : ℤ :=
   let x := n - 1
   comprN (λ(x : ℤ) ↦ (x % (2 + (x % 2)))) (x)
-
 
 end Sequence

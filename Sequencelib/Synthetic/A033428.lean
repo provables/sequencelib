@@ -21,5 +21,4 @@ def A033428 (n : ℕ) : ℤ :=
   let x := n - 0
   ((1 + 2) * (x * x))
 
-
 end Sequence

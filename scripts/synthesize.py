@@ -310,6 +310,7 @@ def process_sequence(socket, seq_id, offset, code, indexes, values, lean_source=
     # Next, check if the source function agrees with the values
     result = call_genseq_for_lean_eval(socket, lean_source, indexes, values)
     if not result:
+        print(f"Values did not agree for sequence {seq_id}")
         # the function didn't agree, so fail immediately
         return False, None
     print(f"Successfully evaluated lean code for sequence {seq_id}")

@@ -2,6 +2,7 @@
 
 from collections import OrderedDict
 import subprocess
+import argparse
 import json
 import pathlib
 import re
@@ -316,12 +317,41 @@ def create_doc_index(info, data, doc_file):
     doc_file.write_text(str(soup))
 
 
-def main():
+def full():
     info = get_oeis_info()
     data = get_oeis_data(info)
     process_all(info)
     create_index(info, data, HERE / "../home_page/sequences.md")
     create_doc_index(info, data, HERE / "../.lake/build/doc/Sequencelib.html")
+
+def generate_data():
+    info = get_oeis_info()
+    get_oeis_data(info)
+    
+def main():
+    parser = argparse.ArgumentParser(
+        prog="update_docs",
+        description="Update docs for sequencelib",
+    )
+    parser.add_argument(
+        "--only-data",
+        "-d",
+        action="store_true",
+        help="Only generate data and save it to the cache",
+    )
+    parser.add_argument(
+        "--where-is",
+        "-w",
+        action="store_true",
+        help="Display location of data cache"
+    )
+    args = parser.parse_args()
+    if args.where_is:
+        print(Path(appdirs.user_cache_dir()) / "sequencelib/oeis_data.json")
+    elif args.only_data:
+        generate_data()
+    else:
+        full()
 
 
 if __name__ == "__main__":

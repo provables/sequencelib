@@ -1,0 +1,24 @@
+/-
+Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
+Released under CC BY-SA 4.0 license as described in the file LICENSE.
+Authors: Walter and Joe's Synth Bot
+-/
+
+import Mathlib
+import Sequencelib.Meta
+import GenSeq
+open Synth
+
+/-!
+
+# A321531 sequence 
+-/
+
+namespace Sequence
+
+@[OEIS := A321531, offset := 1, derive := true, maxIndex := 10]
+def A321531 (n : ℕ) : ℤ :=
+  let x := n - 1
+  (loop (λ(x y : ℤ) ↦ ((x % 2) + y)) (loop (λ(x y : ℤ) ↦ (x + y)) (x) (1)) (0) / 2)
+
+end Sequence

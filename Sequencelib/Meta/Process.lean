@@ -9,15 +9,15 @@ open Lean.Parser.Command
 
 structure SeqInfo where
   cod : Codomain
-  deriving Inhabited
+  deriving Repr
 
-def LocalInfo : Std.HashMap Name SeqInfo := .ofList [
-  (`A003010, ⟨.Nat⟩)
-]
+instance : Inhabited SeqInfo where
+  default := ⟨.Int⟩
 
 structure ProcessState where
   freeVars : Std.HashSet Name
   safeCtx : Bool
+  seqInfo : Std.HashMap Name SeqInfo
   deriving Inhabited
 
 abbrev ProcessM (α : Type) := StateT ProcessState TermElabM α
@@ -175,28 +175,27 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
     StateT.set {s with freeVars := s.freeVars.insert `y}
     `(term|$(mkIdent `y))
   | s =>
-    dbg_trace s!"--- default := {s}"
+    --dbg_trace s!"--- default := {s}"
     pure term
 
-def processCodomain (c : Codomain) (_cod: TSyntax `term) : TermElabM <| TSyntax `term := do
+def processCodomain (c : Codomain) (_cod: TSyntax `term) (body : TSyntax `term)
+    : ProcessM <| TSyntax `term × TSyntax `term:= do
   match c with
-  | .Nat => `(term|ℕ)
-  | .Int => `(term|ℤ)
+  | .Nat => do return (← `(term|ℕ), ← `(term|$(mkIdent `Int.toNat) <| $body))
+  | .Int => do return (← `(term|ℤ), body)
 
 def processDef (definition : TSyntax `Lean.Parser.Command.definition) :
     ProcessM <| TSyntax `Lean.Parser.Command.definition := do
   let x ← match definition with
-  | orig@`(definition|def $a:ident ($e:ident : $b:term) : $t:term :=
+  | `(definition|def $a:ident ($e:ident : $b:term) : $t:term :=
         let $tt:letDecl
         $rr:term) =>
-      let some info := LocalInfo[a.getId]? |
-        logWarning m!"Function {a} not found in OEISInfo. Keeping original definition."
-        return orig
-      let new_t ← processCodomain info.cod t
+      let info := (← get).seqInfo[a.getId]?.getD default
       let new_rr ← processTerm rr
+      let (new_t, new_body) ← processCodomain info.cod t new_rr
       `(definition|def $a:declId ($e:ident : $b:term) : $new_t:term :=
         let $tt:letDecl
-        $new_rr:term)
+        $new_body:term)
   | s => pure s
   return x
 
@@ -222,5 +221,11 @@ def processModule (content : String) : ProcessM String := do
 
 run_elab do
   let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
-  let st ← ProcessM.run <| processModule g
+  let s : ProcessState := default
+  let s := {s with seqInfo := .ofList [(`A003010, ⟨.Nat⟩)]}
+  let st ← ProcessM.run (processModule g) s
   dbg_trace s!"return:\n{st}"
+
+def A003010 (n : ℕ) : ℕ :=
+  let x := n - 0
+  Int.toNat <| loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4

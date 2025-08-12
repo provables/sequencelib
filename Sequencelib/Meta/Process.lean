@@ -7,50 +7,6 @@ open Synth
 open Lean Expr Elab Term Tactic Meta Qq Syntax
 open Lean.Parser.Command
 
-#check Syntax.node
-
-def f := System.mkFilePath [".", "Defs.lean"]
-
-def s : String := r#"
-@[OEIS := A000537, offset := 0, derive := true, maxIndex := 10]
-def A000537 (n : ℕ) : ℤ :=
-  let x := n - 0
-  loop (λ(x y : ℤ) ↦ (((y * y) * y) + x)) (x) (0)
-"#
-
-#check Lean.importModules
-#check Lean.PrettyPrinter.format
-#check Frontend.processCommands
-#check parseImports'
-#check forEachModuleInDir
-#check saveModuleDataParts
-#check Lean.PrettyPrinter.ppModule
-#check Lean.Elab.Command.elabCommand
-run_cmd do
-  let env ← getEnv
-  let g ← IO.FS.realPath (System.mkFilePath ["README.md"])
-  let u := Lean.Parser.runParserCategory env `command r#"def foo := 10"# |>.toOption |>.getD default
-  --dbg_trace u
-  Lean.Elab.Command.elabCommand u
-
-#eval foo
-  -- let up ← Lean.PrettyPrinter.formatTerm u
-  -- dbg_trace up
-  -- let v := u[1].getArg 3
-  -- let w := v.getArg 1
-  -- let w2 := w.getArg 1
-  -- -- (Term.letDecl (Term.letIdDecl `x [] [] ":=" («term_-_» `n "-" (num "0"))))
-  -- dbg_trace w2.getKind
-  -- let w3 := w2.modifyArg
-  -- match w2 with
-  -- | Syntax.node _ `Lean.Parser.Term.letDecl args => dbg_trace args
-  -- | _ => dbg_trace "other"
-  -- let z ← Lean.PrettyPrinter.formatTerm w2
-  -- dbg_trace z
-  -- let w3 := w2.getArg 0
-  -- let w3 := w3.getArg 4
-  -- let w3 := w3.getKind
-
 structure SeqInfo where
   cod : Codomain
   deriving Inhabited
@@ -61,7 +17,6 @@ def LocalInfo : Std.HashMap Name SeqInfo := .ofList [
 
 structure ProcessState where
   freeVars : Std.HashSet Name
-  removeParens : Bool
   safeCtx : Bool
   deriving Inhabited
 
@@ -69,12 +24,6 @@ abbrev ProcessM (α : Type) := StateT ProcessState TermElabM α
 
 def ProcessM.run {α : Type} (x : ProcessM α) (s : ProcessState := default) : TermElabM α :=
   StateT.run' x s
-
-def removeParens : ProcessM Unit := do
-  StateT.set {(← get) with removeParens := true}
-
-def keepParens : ProcessM Unit := do
-  StateT.set {(← get) with removeParens := false}
 
 def setSafe : ProcessM Unit := do
   StateT.set {(← get) with safeCtx := true}
@@ -85,11 +34,6 @@ def setUnsafe : ProcessM Unit := do
 def clearFreeVars : ProcessM Unit := do
   StateT.set {(← get) with freeVars := ∅}
 
-
--- TODO: Add if/then, loop2 and compr
-#check Std.HashSet
-#check mkNatLit
-#check StateT.modifyGet
 partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
   --dbg_trace s!"term: {term}"
   match term with
@@ -97,7 +41,7 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
     --dbg_trace s!"--- (num): {n}"
     setSafe
     `(term|$n)
-  | tz@`(term|$n:num) =>
+  | tz@`(term|$_:num) =>
     --dbg_trace s!"--- num: {n}"
     pure tz
   | `(term|($ti:ident)) =>
@@ -181,6 +125,15 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
       `(term|λ($(mkIdent `x) $(mkIdent `y) : ℤ) ↦ $t1)
     else
       `(term|λ($(mkIdent `_x) $(mkIdent `_y) : ℤ) ↦ $t1)
+  | `(term|λ(x : ℤ) ↦ $t:term) =>
+    setSafe
+    let t1 ← processTerm t
+    let f := (← get).freeVars
+    clearFreeVars
+    if f == {`x} then
+      `(term|λ($(mkIdent `x) : ℤ) ↦ $t1)
+    else
+      `(term|λ($(mkIdent `_x) : ℤ) ↦ $t1)
   | `(term|loop $f $a $b) =>
     --dbg_trace s!"--- loop"
     setUnsafe
@@ -192,6 +145,25 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
     --StateT.set {(← get) with freeVars := ∅}
     clearFreeVars
     `(term|$(mkIdent `loop) $tf $ta $tb)
+  | `(term|loop2 $f1 $f2 $a $b $c) =>
+    --dbg_trace s!"--- loop2"
+    setUnsafe
+    let tf1 ← processTerm f1
+    setUnsafe
+    let tf2 ← processTerm f2
+    setUnsafe
+    let ta ← processTerm a
+    setUnsafe
+    let tb ← processTerm b
+    setUnsafe
+    let tc ← processTerm c
+    `(term|$(mkIdent `loop2) $tf1 $tf2 $ta $tb $tc)
+  | `(term|comprN $f $t) =>
+    setUnsafe
+    let tf ← processTerm f
+    setUnsafe
+    let t1 ← processTerm t
+    `(term|$(mkIdent `comprN) $tf $t1)
   | `(term|x) =>
     --dbg_trace s!"--- x := x"
     let s ← get
@@ -206,7 +178,6 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
     dbg_trace s!"--- default := {s}"
     pure term
 
-
 /--
 info: λ (x y : ℤ) ↦ y + x
 loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4
@@ -216,6 +187,8 @@ loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4
 (((x * x) * x) - 2) * x
 (((x % x) - x) - 2) * x
 if (x + y) ≤ 0 then 1 + x else 1 + y
+loop2 (λ (x _y : ℤ) ↦ x) (λ (_x y : ℤ) ↦ y) (x + 2) 5 (x + 1)
+comprN (λ (_x : ℤ) ↦ 0) ((x - 2) - 2)
 -/
 #guard_msgs in
 run_elab do
@@ -228,26 +201,13 @@ run_elab do
     ← `(term|λ(x y : ℤ) ↦ 0),
     ← `(term|((((x * x) * x) - 2) * x)),
     ← `(term|(((((x % x) - x)) - 2) * (x))),
-    ← `(term|if (x + y) ≤ 0 then (1 + (x)) else (((((1))) + y)))
+    ← `(term|if (x + (y)) ≤ 0 then (1 + (x)) else (((((1))) + y))),
+    ← `(term|loop2 (λ (x y : ℤ) ↦ x) (λ (x y : ℤ) ↦ y) ((x + 2)) (2 + 3) (x + 1)),
+    ← `(term|comprN (λ(x : ℤ) ↦ 0) (((x - 2) - ((2)))))
   ]
   for e in exprs do
     let x ← ProcessM.run (processTerm e) {s with safeCtx := true}
     dbg_trace (← PrettyPrinter.ppTerm x)
-
-#check evalTactic
-run_elab do
-  let t ← `(term|λ(x y : ℤ) ↦ y + x )
-  let tt ← `(term|loop (λ (x y : ℤ) ↦ ((x * x) - 2)) x ((2 + 2)))
-  let ttt ← `(term|λ(x y : ℤ) ↦ 0)
-
-  let t5 ← `(term|(x + 3) - (((x)) - y))
-  let s : ProcessState := default
-  let x ← ProcessM.run (processTerm t5) {s with safeCtx := true}
-  dbg_trace s!"--- {x}"
-  let z ← PrettyPrinter.ppTerm x
-  dbg_trace s!"pretty: {z}"
-
-def g x := loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4
 
 def processCodomain (c : Codomain) (_cod: TSyntax `term) : TermElabM <| TSyntax `term := do
   match c with
@@ -271,13 +231,6 @@ def processDef (definition : TSyntax `Lean.Parser.Command.definition) :
   | s => pure s
   return x
 
-#eval (Name.mkStr1 "ℕ")
-#check Term.mkConst
-#check Lean.mkConst
-#check Term.exprToSyntax
-#check TSyntax
-#check Lean.Parser.Command.definition
---   "def " >> recover declId skipUntilWsOrDelim >> ppIndent optDeclSig >> declVal >> optDefDeriving
 def processModule (content : String) : ProcessM String := do
   let env ← getEnv
   let v ← Parser.testParseModule env "<input>" content
@@ -298,17 +251,7 @@ def processModule (content : String) : ProcessM String := do
       break
   return s!"{← PrettyPrinter.ppModule ⟨commands.up.up.cur⟩}"
 
-#check Format
-#check Name
-#check termℕ
-#check liftCommandElabM
-#check Lean.Parser.Module.module
-#check Syntax.Traverser.fromSyntax
 run_elab do
   let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
   let st ← ProcessM.run <| processModule g
   dbg_trace s!"return:\n{st}"
-
-def A003010 (n : ℕ) : ℤ :=
-  let x := n - 0
-  loop (λ(x y : ℤ) ↦ ((x * x) - 2)) (x) ((2 + 2))

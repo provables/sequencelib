@@ -6,3 +6,4 @@ Authors: Walter Moreira, Joe Stubbs
 import Tests.TestDerive
 import Tests.TestTag
 import Tests.TestInfo
+import Tests.TestProcess

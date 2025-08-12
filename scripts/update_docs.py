@@ -324,10 +324,12 @@ def full():
     create_index(info, data, HERE / "../home_page/sequences.md")
     create_doc_index(info, data, HERE / "../.lake/build/doc/Sequencelib.html")
 
+
 def generate_data():
     info = get_oeis_info()
     get_oeis_data(info)
-    
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="update_docs",
@@ -340,10 +342,7 @@ def main():
         help="Only generate data and save it to the cache",
     )
     parser.add_argument(
-        "--where-is",
-        "-w",
-        action="store_true",
-        help="Display location of data cache"
+        "--where-is", "-w", action="store_true", help="Display location of data cache"
     )
     args = parser.parse_args()
     if args.where_is:

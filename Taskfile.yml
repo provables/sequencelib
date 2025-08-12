@@ -154,6 +154,22 @@ tasks:
     status:
       - test -d {{.OEISDATA_PATH}}/.git
 
+  ensure-update-docs-cache:
+    desc: Ensure the cache for update_docs.py is populated
+    run: once
+    vars:
+      CACHE:
+        sh: python scripts/update_docs.py --where-is
+    cmds:
+      - python scripts/update_docs.py --only-data
+    sources:
+      - scripts/update_docs.py
+      - Sequencelib/**/*.lean
+      - exclude: Sequencelib/Meta/**/*.lean
+      - exclude: Sequencelib/Defs/**/*.lean
+    generates:
+      - "{{ .CACHE }}"
+
   ensure-solutions:
     desc: Retrieve solutions file
     run: once

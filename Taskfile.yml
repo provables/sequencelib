@@ -165,6 +165,7 @@ tasks:
       - test -f "{{.SOLUTIONS_FILE_PATH}}"
 
   oeis-py:
+    method: timestamp
     desc: Run oeis.py
     cmds:
       - python scripts/oeis.py
@@ -182,6 +183,7 @@ tasks:
       - ensure-oeisdata
 
   synthesize-py:
+    method: timestamp
     desc: Run synthesize.py
     cmds:
       - python scripts/synthesize.py -s {{.START}} -e {{.END}}

@@ -6,6 +6,7 @@ import GenSeq
 open Synth
 open Lean Expr Elab Term Tactic Meta Qq Syntax
 open Lean.Parser.Command
+open System
 
 structure SeqInfo where
   cod : Codomain
@@ -236,9 +237,19 @@ def processModule (content : String) : ProcessM String := do
       break
   return s!"{← PrettyPrinter.ppModule ⟨commands.up.up.cur⟩}"
 
--- run_elab do
---   let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
---   let s : ProcessState := default
---   let s := {s with seqInfo := .ofList [(`A003010, ⟨.Nat⟩)]}
---   let st ← ProcessM.run (processModule g) s
---   dbg_trace s!"return:\n{st}"
+def processPath (fpath : FilePath) (backup : Bool := true) : ProcessM Unit := do
+  let f ← IO.FS.readFile fpath
+  if backup then
+    IO.FS.writeFile (fpath.addExtension "bak") f
+  IO.FS.writeFile fpath (← processModule f)
+
+#check Lean.Parser.Module.module.formatter
+
+run_elab do
+  let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
+  let s : ProcessState := default
+  let s := {s with seqInfo := .ofList [(`A003010, ⟨.Nat⟩)]}
+  let st ← ProcessM.run (processModule g) s
+  dbg_trace s!"return:\n{st}"
+
+  ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"]))

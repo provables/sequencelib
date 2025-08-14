@@ -278,11 +278,26 @@ def processPath (fpath : FilePath) (backup : Bool := true) : ProcessM Unit := do
     IO.FS.writeFile (fpath.addExtension "bak") f
   IO.FS.writeFile fpath (← processModule f)
 
--- run_elab do
---   let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
---   let s : ProcessState := default
---   let s := {s with seqInfo := .ofList [(`A003010, ⟨.Nat⟩)]}
---   let st ← ProcessM.run (processModule g) s
---   dbg_trace s!"return:\n{st}"
+def processStateFromJson (fpath : FilePath) : IO ProcessState := do
+  let f ← IO.FS.readFile fpath
+  let .ok j := Json.parse f | throw <| IO.Error.mkInvalidArgument 1 "json parse failed"
+  let m : RBMap String Json _ ← IO.ofExcept <| RBMap.fromJson? j (cmp := compare)
+  let mut seqInfo : Std.HashMap Name SeqInfo := ∅
+  for (k, v) in m do
+    let w ← IO.ofExcept <| v.getObjValAs? (Array String) "keywords"
+    dbg_trace s!"keywords: {k}: {w}"
+    seqInfo := seqInfo.insert k.toName (if "sign" ∈ w then ⟨.Int⟩ else ⟨.Nat⟩)
+  return {(default : ProcessState) with seqInfo := seqInfo}
 
---   ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"]))
+#check PrettyPrinter.ppCategory
+run_elab do
+  --let x ← `(attributes|@[$tt])
+  let cache := System.mkFilePath ["/Users/walter/Library/Caches/sequencelib/oeis_data.json"]
+  let z ← processStateFromJson cache
+  let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
+  let s : ProcessState := default
+  let s := {s with seqInfo := .ofList [(`A003010, ⟨.Nat⟩)]}
+  let st ← ProcessM.run (processModule g) s
+  dbg_trace s!"return:\n{st}"
+
+  ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"]))

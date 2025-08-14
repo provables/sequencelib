@@ -154,6 +154,12 @@ tasks:
     status:
       - test -d {{.OEISDATA_PATH}}/.git
 
+  where-is-cache:
+    desc: Display location of the update_docs cache
+    cmds:
+      - python scripts/update_docs.py --where-is
+    silent: true
+
   ensure-update-docs-cache:
     desc: Ensure the cache for update_docs.py is populated
     run: once

@@ -16,10 +16,9 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A190621, offset := 0, derive := true, maxIndex := 100]
+@[OEIS := A190621, offset := 0, derive := true, maxIndex := 87]
 def A190621 (n : ℕ) : ℤ :=
   let x := n - 0
   if ((x % (2 + 2))) ≤ 0 then (0) else (x)
-
 
 end Sequence

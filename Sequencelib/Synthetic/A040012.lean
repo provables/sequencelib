@@ -21,5 +21,4 @@ def A040012 (n : ℕ) : ℤ :=
   let x := n - 0
   (2 * (2 + if (x) ≤ 0 then (0) else (2)))
 
-
 end Sequence

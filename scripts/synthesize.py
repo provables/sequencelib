@@ -1,14 +1,22 @@
 """
 Script to synthesize .lean files from source code
 definitions using the templating system.
+
+Use the start (-s) and end (-e) flags to control the number of sequences to generate.
+
+Example invocation:
+python -u synthesize.py -s 1 -e 50 > out-8-9-25.log
 """
 
 import argparse
 import json
 import os
 from pathlib import Path
+import socket
 import sys
+import time
 import subprocess
+import timeit
 
 ALL_OEIS_RESULTS_FILE = os.environ.get(
     "ALL_OEIS_RESULTS_FILE", os.path.expanduser("~/oeis_results_all.json")
@@ -30,6 +38,11 @@ AUTHORS = "Walter and Joe's Synth Bot"
 DEFAULT_OUTPUT_DIR = os.path.join(SEQUENCE_LIB_ROOT, "Sequencelib/Synthetic")
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", None) or DEFAULT_OUTPUT_DIR
 
+# Configurations for the genseq server
+GENSEQ_SERVER = os.environ.get("GENSEQ_SERVER", "127.0.0.1")
+GENSEQ_PORT = int(os.environ.get("GENSEQ_PORT", 8000))
+GENSEQ_MAX_BUF_SIZE = int(os.environ.get("GENSEQ_MAX_BUF_SIZE", 1048576))
+
 
 class BuildException(Exception):
     pass
@@ -39,7 +52,12 @@ class AutoDerivationException(BuildException):
     pass
 
 
+class GenseqCrashedException(Exception):
+    pass
+
+
 def get_all_seq_data():
+    print("Loading OEIS results JSON File.")
     with open(ALL_OEIS_RESULTS_FILE, "r") as f:
         return json.load(f)
 
@@ -59,7 +77,7 @@ def generate_lean_file(tag, name, offset, authors, max_index, lean_source):
                 "-n",
                 name,
                 "-o",
-                offset,
+                str(offset),
                 "-a",
                 authors,
                 "-s",
@@ -77,7 +95,7 @@ def generate_lean_file(tag, name, offset, authors, max_index, lean_source):
                 "-n",
                 name,
                 "-o",
-                offset,
+                str(offset),
                 "-a",
                 authors,
                 "-s",
@@ -132,41 +150,179 @@ def process_failed_lean_file(path):
     os.rename(path, new_path)
 
 
-def process_sequence(seq_id, offset, code, values, lean_source=None):
+def get_genseq_socket():
+    """
+    Returns a client socket bound to the genseq server that is ready for
+    sending messages.
+    """
+    # create an IPv4 socket and bind to the GENSEQ coordinates
+    genseq = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    genseq.connect((GENSEQ_SERVER, GENSEQ_PORT))
+
+    # send a ready check message to the server
+    reply = genseq_send_recv(genseq, {"cmd": "ready"})
+    status = reply["status"]
+    if not status:
+        msg = f"Genseq server not ready; status was: {status}"
+        print(msg)
+        raise Exception(msg)
+    # server is ready
+    print(f"Connected to genseq server socket.")
+    return genseq
+
+
+def genseq_send_recv(socket, message):
+    """
+    Send a message to the genseq socket and get a reply.
+    Assumes `socket` is a ready genseq socket (i.e., from get_genseq_socket)
+    and `message` is a JSON-serializable
+    """
+    # print(f"send_recv for message: {message}")
+    try:
+        # encode and send
+        m = json.dumps(message)
+        # print(f"Sending JSON: {m}")
+        socket.sendall(m.encode("utf-8"))
+    except Exception as e:
+        print(f"Error sending to genseq socket: {e}")
+        raise e
+    try:
+        # get reply and decode
+        raw = socket.recv(GENSEQ_MAX_BUF_SIZE)
+        if not raw:
+            # if we got no bytes, it is likely the genseq server crashed and will have to be restarted;
+            # test ready in a loop and then move on
+            raise GenseqCrashedException()
+
+    except Exception as e:
+        print(f"Error receiving from genseq socket: {e}")
+        raise e
+    try:
+        return json.loads(raw.decode("utf-8"))
+    except Exception as e:
+        print(f"Got error loading JSON from bytes; e:{e}; raw: {raw}")
+        raise e
+
+
+def call_genseq_for_lean_source(socket, seq_id, offset, code):
+    """
+    Execute a call to the genseq server with DSL code, indexes and known values
+    of the function. The indexes and values should either be the distribution of
+    values from the b-file, or, if a b-file does not exist, a set of values from
+    the original OEIS entry.
+    """
+    msg = {
+        "cmd": "gen",
+        "args": {
+            "name": seq_id,
+            "offset": offset,
+            "source": str(code),
+        },
+    }
+    # let errors propagate to calling function
+    reply = genseq_send_recv(socket, msg)
+    if not reply["status"]:
+        raise Exception(f"Bad status from genseq; full reply: {reply}")
+    if not "result" in reply:
+        raise Exception(
+            f"Unexpected reply from genseq gen; did not get result. Full reply: {reply}"
+        )
+    result = reply["result"]
+    if not "lean" in result:
+        raise Exception(
+            f"Unexpected reply from genseq gen; did not get lean in result. Full result: {result}"
+        )
+    return result["lean"]
+
+
+def call_genseq_for_lean_eval(socket, lean_source, indexes, values):
+    """
+    Use the genseq server to evaluate the lean_source function on a set of indexes.
+    """
+    pairs = [[indexes[i], values[i]] for i in range(len(values))]
+    msg = {
+        "cmd": "eval",
+        "args": {
+            "src": lean_source,
+            "values": pairs,
+        },
+    }
+    # let errors propagate to calling function
+    reply = genseq_send_recv(socket, msg)
+    if not reply["status"]:
+        raise Exception(f"Bad status from genseq eval; full reply: {reply}")
+    if not "result" in reply:
+        raise Exception(
+            f"Unexpected reply from genseq eval; did not get result. Full reply: {reply}"
+        )
+    result = reply["result"]
+    if not "eval" in result:
+        raise Exception(
+            f"Unexpected reply from genseq eval; did not get eval in result. Full result: {result}"
+        )
+
+    return result["eval"]
+
+
+def _exec_geseq_cli(seq_id, offset, code):
+    """
+    A deprecated function that calls the genseq CLI program directly as a subprocess.
+    This approach has been replaces with the genseq server and is included for posterity.
+    """
+
+    try:
+        result = subprocess.run(
+            ["lake", "exe", "genseq", seq_id, f"{offset}", str(code)],
+            capture_output=True,
+            cwd=SEQUENCE_LIB_ROOT,
+            timeout=300,
+        )
+        if result.returncode == 0:
+            lean_source = result.stdout
+            print(f"Got lean source: {lean_source}")
+            return lean_source
+        else:
+            raise Exception(
+                f"Error: non-zero return code from genseq: {result.returncode}; stdout: {result.stdout}; stderr:{result.stderr}"
+            )
+    except subprocess.TimeoutExpired as e:
+        print(f"Got timeout trying to call genseq for {seq_id}")
+        raise e
+    except Exception as e:
+        print(f"Got exception running genseq; e: {e}")
+        raise e
+
+
+def process_sequence(socket, seq_id, offset, code, indexes, values, lean_source=None):
     """
     Process a single sequence from the solutions file.
+    Returns a pair: Boolean, Option(Int)
+      * (Bool) -- whether the maximum number of values was proved
+      * (Option (Str)) -- Returns a None of the values computed by the Lean function do not agree with the values
+      passed; Otherwise, returns a String with the number of values proved.
+
     """
-    print(f"Top of process_sequence for: {seq_id}, {offset}, {code}")
+    # print(f"Top of process_sequence for: {seq_id}, {offset}, {code}, {indexes}")
+    # First, we generate the Lean associated with this code for the DSL
+    if not lean_source:
+        lean_source = call_genseq_for_lean_source(socket, seq_id, offset, code)
+        print(f"Generated lean code for sequence {seq_id}; source:\n{lean_source}")
+    # Next, check if the source function agrees with the values
+    result = call_genseq_for_lean_eval(socket, lean_source, indexes, values)
+    if not result:
+        print(f"Values did not agree for sequence {seq_id}")
+        # the function didn't agree, so fail immediately
+        return False, None
+    print(f"Successfully evaluated lean code for sequence {seq_id}")
     times = 1
     while times <= 4:
-        # First, we generate the Lean associated with this code for the DSL
-        if not lean_source:
-            try:
-                result = subprocess.run(
-                    ["lake", "exe", "genseq", seq_id, f"{offset}", str(code)],
-                    capture_output=True,
-                    cwd=SEQUENCE_LIB_ROOT,
-                    timeout=300,
-                )
-                if result.returncode == 0:
-                    lean_source = result.stdout
-                    print(f"Got lean source: {lean_source}")
-                else:
-                    raise Exception(
-                        f"Error: non-zero return code from genseq: {result.returncode}; stdout: {result.stdout}; stderr:{result.stderr}"
-                    )
-            except subprocess.TimeoutExpired as e:
-                print(f"Got timeout trying to call genseq for {tag}")
-                raise e
-            except Exception as e:
-                print(f"Got exception running genseq; e: {e}")
-                raise e
         tag = seq_id
         # for now, use the tag as the name also; could look at other ways to generate the name
         name = seq_id
         authors = AUTHORS
 
-        # only try to auto derive the first time:
+        # only try to auto derive a fixed set of times, with a decreasing number of values to derive
+        # each time:
         max_index = None
         if times == 1:
             max_index = len(values)
@@ -179,39 +335,94 @@ def process_sequence(seq_id, offset, code, values, lean_source=None):
         elif times == 3:
             max_index = "10"
         else:
+            max_index = None
             print("building without max_index")
         # Use the template generator to generate a .lean file
+        print(f"Generating Lean file with max_index: {max_index}; (times: {times})")
         out_path = generate_lean_file(
             tag, name, offset, authors, max_index, lean_source
         )
+        print(f"Lean source file generated for {seq_id}")
 
         # Try to compile the lean source
         try:
+            print(f"Compiling Lean file with max_index: {max_index}")
             compile_lean(out_path)
-            times += 2  # compilation worked, so we're done
+            print(f"Lean source file compiled for {seq_id}")
+            if not max_index:
+                return times == 1, "0"
+            return times == 1, max_index
         except subprocess.TimeoutExpired as e:
             print(f"Got timeout trying to compile {tag}")
             times += 1  # try again
         except AutoDerivationException as e:
             print(f"Auto derivation failed for {tag}; error: {e}")
-            times += 1  # try one more time
+            times += 1  # try again
         except BuildException as e:
-            process_failed_lean_file(out_path)
             print(f"Build failed for sequence {tag}; error: {e}")
             times += 1  # try again
         except Exception as e:
-            process_failed_lean_file(out_path)
             print(f"Build failed for sequence {tag}; error: {e}")
             times += 1  # try again
+        if times > 4:
+            process_failed_lean_file(out_path)
+            return False, None
 
 
-def process_solutions_file(start, stop):
+def write_report(
+    start_time,
+    tot_seqs_processed,
+    values_not_agree,
+    values_agree,
+    errors,
+    zero_values_proved,
+    ten_values_proved,
+    fifty_values_proved,
+    max_values_proved,
+    using_b_file,
+    not_using_b_file,
+    final=False,
+):
+    tot_time = timeit.default_timer() - start_time
+    if final:
+        print("* * * * * * * * * *\n")
+        print(
+            f"FINAL REPORT:\n  Total Runtime: {tot_time:3f} (seconds); Total Sequences: {tot_seqs_processed}; Errors: {errors}"
+        )
+    else:
+        print(
+            f"~~~~~REPORT:\n  Total Runtime: {tot_time:3f} (seconds); Total Sequences: {tot_seqs_processed}; Errors: {errors}"
+        )
+    print(
+        f"Sequence using b-file: {using_b_file}; not using b-file: {not_using_b_file}"
+    )
+    print(
+        f"  Sequences with values not agreeing: {values_not_agree}; Sequences with values agreeing: {values_agree}"
+    )
+    print(
+        f"  Zero proved: {zero_values_proved}; 10 proved: {ten_values_proved}; 50 proved: {fifty_values_proved}; Max proved: {max_values_proved}\n~~~~~\n"
+    )
+
+
+def process_solutions_file(start, stop, start_time):
     """
     Process the solutions file, synthesizing a .lean file for each sequence in the solutions.
     """
+    print(f"Beginning to parse solutions file for sequences: {start} to {stop}")
     results = {}
     seq_data = get_all_seq_data()
+    print("Finished loading OEIS results JSON file")
     tot_seqs_processed = 0
+    errors = 0
+    using_b_file = 0
+    not_using_b_file = 0
+    values_not_agree = 0
+    values_agree = 0
+    zero_values_proved = 0
+    ten_values_proved = 0
+    fifty_values_proved = 0
+    max_values_proved = 0
+    socket = get_genseq_socket()
     with open(SOLUTIONS_FILE_PATH, "r") as f:
         idx = 0
         current_seq_id = None
@@ -243,6 +454,8 @@ def process_solutions_file(start, stop):
                     )
                     continue
                 if tot_seqs_processed > stop:
+                    # we already added 1 and then exceeded the limit, so subtract one and break out
+                    tot_seqs_processed = tot_seqs_processed - 1
                     break
                 # if for some reason we weren't able to get the sequence id, skip
                 # the code as well
@@ -254,24 +467,95 @@ def process_solutions_file(start, stop):
                 # code is the entire line
                 code = line.strip()
                 results[current_seq_id]["code"] = code
-                values = results[current_seq_id]["values"]
                 offset = seq_data[current_seq_id]["offset"]
                 if "," in offset:
                     offset = offset.split(",")[0]
                 try:
                     offset_int = int(offset)
                     if offset_int >= 0:
-                        process_sequence(current_seq_id, offset, code, values)
+                        # use the b-files values if they are present
+                        if seq_data[current_seq_id].get("b-file-distrib"):
+                            using_b_file += 1
+                            distrib = seq_data[current_seq_id]["b-file-distrib"]
+                            indexes = [x[0] for x in distrib]
+                            values = [x[1] for x in distrib]
+                        # otherwise, fall back to the OEIS values:
+                        else:
+                            not_using_b_file += 1
+                            values = seq_data[current_seq_id]["values"]
+                            indexes = list(
+                                range(offset_int, (len(values)) + offset_int)
+                            )
+                        max_proved, rsp = process_sequence(
+                            socket, current_seq_id, offset_int, code, indexes, values
+                        )
+                        # if process_sequence returns None, then the evaluation failed to agree with the
+                        # b-file values
+                        # Note: max_proved could be true AND max values proved could be less than 100 (or 50, etc.)
+                        # if the total number of values known on OEIS is less than 100.
+                        if max_proved:
+                            max_values_proved += 1
+                        if type(rsp) == str:
+                            values_agree += 1
+                            max_index = int(rsp)
+                            if max_index == 0:
+                                zero_values_proved += 1
+                            elif max_index == 10:
+                                ten_values_proved += 1
+                            elif max_index == 50:
+                                fifty_values_proved += 1
+                        else:
+                            values_not_agree += 1
                     else:
                         print(
-                            f"Sequence {current_seq_id} jad a negative offset; skipping."
+                            f"Sequence {current_seq_id} had a negative offset; skipping."
                         )
+                        errors += 1
+                except GenseqCrashedException as e:
+                    errors += 1
+                    print(f"Genseq server cashed; waiting for it to restart.")
+                    while True:
+                        try:
+                            socket = get_genseq_socket()
+                            break
+                        except:
+                            time.sleep(1)
                 except Exception as e:
+                    errors += 1
                     print(
-                        f"Exception from process sequence: {current_seq_id}; details: {e}"
+                        f"Exception from process sequence on seq {current_seq_id}; details: {e}"
                     )
-
+                write_report(
+                    start_time,
+                    tot_seqs_processed,
+                    values_not_agree,
+                    values_agree,
+                    errors,
+                    zero_values_proved,
+                    ten_values_proved,
+                    fifty_values_proved,
+                    max_values_proved,
+                    using_b_file,
+                    not_using_b_file,
+                )
                 current_seq_id = None  # set to None, as this sequence as been processed
+
+    # write final report
+    write_report(
+        start_time,
+        tot_seqs_processed,
+        values_not_agree,
+        values_agree,
+        errors,
+        zero_values_proved,
+        ten_values_proved,
+        fifty_values_proved,
+        max_values_proved,
+        using_b_file,
+        not_using_b_file,
+        final=True,
+    )
+
     return results
 
 
@@ -319,10 +603,7 @@ def test4():
 
 
 def main():
-    # test()
-    # test2()
-    # test3()
-    # test4()
+    start_time = timeit.default_timer()
     parser = argparse.ArgumentParser(
         prog="synthesize",
         description="Synthesize Lean source files OEIS sequences defined in solutions.",
@@ -333,7 +614,7 @@ def main():
     if args.start > args.end:
         print("Error: start must be <= end.")
         sys.exit(1)
-    process_solutions_file(args.start, args.end)
+    process_solutions_file(args.start, args.end, start_time)
 
 
 if __name__ == "__main__":

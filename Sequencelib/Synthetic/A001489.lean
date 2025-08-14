@@ -21,5 +21,4 @@ def A001489 (n : ℕ) : ℤ :=
   let x := n - 0
   (0 - x)
 
-
 end Sequence

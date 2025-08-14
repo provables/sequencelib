@@ -16,10 +16,9 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A165024, offset := 1, derive := true, maxIndex := 100]
+@[OEIS := A165024, offset := 1, derive := true, maxIndex := 67]
 def A165024 (n : ℕ) : ℤ :=
   let x := n - 1
   (1 + if ((2 - x)) ≤ 0 then (2) else (1))
-
 
 end Sequence

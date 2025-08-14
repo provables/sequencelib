@@ -21,5 +21,4 @@ def A004280 (n : ℕ) : ℤ :=
   let x := n - 1
   (loop (λ(x y : ℤ) ↦ y) ((x - 1)) (1) + x)
 
-
 end Sequence

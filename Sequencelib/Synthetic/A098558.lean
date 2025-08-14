@@ -16,10 +16,9 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A098558, offset := 0, derive := true, maxIndex := 10]
+@[OEIS := A098558, offset := 0, derive := true, maxIndex := 23]
 def A098558 (n : ℕ) : ℤ :=
   let x := n - 0
   if (x) ≤ 0 then (1) else (loop (λ(x y : ℤ) ↦ (x * y)) (x) (2))
-
 
 end Sequence

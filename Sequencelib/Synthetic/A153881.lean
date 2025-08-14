@@ -21,5 +21,4 @@ def A153881 (n : ℕ) : ℤ :=
   let x := n - 1
   (1 - if (x) ≤ 0 then (0) else (2))
 
-
 end Sequence

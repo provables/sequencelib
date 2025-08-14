@@ -11,7 +11,7 @@ open Synth
 
 /-!
 
-# A003010 sequence
+# A003010 sequence 
 -/
 
 namespace Sequence

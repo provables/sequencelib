@@ -21,5 +21,4 @@ def A023365 (n : ℕ) : ℤ :=
   let x := n - 1
   loop (λ(x y : ℤ) ↦ ((x * x) * x)) (x) (2)
 
-
 end Sequence

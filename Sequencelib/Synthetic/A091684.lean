@@ -21,5 +21,4 @@ def A091684 (n : ℕ) : ℤ :=
   let x := n - 0
   if ((x % (1 + 2))) ≤ 0 then (0) else (x)
 
-
 end Sequence

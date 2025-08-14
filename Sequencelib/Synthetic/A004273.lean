@@ -16,10 +16,9 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A004273, offset := 0]
+@[OEIS := A004273, offset := 0, derive := true, maxIndex := 67]
 def A004273 (n : ℕ) : ℤ :=
   let x := n - 0
   (x + comprN (λ(x : ℤ) ↦ 0) ((x - 1)))
-
 
 end Sequence

@@ -240,6 +240,18 @@ def processDef (definition : TSyntax `Lean.Parser.Command.definition) :
   | s => pure s
   return x
 
+def fixFormatting (s : String) : String :=
+  let y := (s.splitOn "\n").flatMap (fun line =>
+    if line.startsWith "/-!" then
+      ["/-!", line.drop 3]
+    else if line.startsWith "@[OEIS" then
+      [", ".intercalate
+        (line.splitOn "," |>.map (fun word => " := ".intercalate (word.splitOn ":=")))]
+    else
+      [line]
+  )
+  "\n".intercalate y
+
 def processModule (content : String) : ProcessM String := do
   let env ← getEnv
   let v ← Parser.testParseModule env "<input>" content
@@ -258,7 +270,7 @@ def processModule (content : String) : ProcessM String := do
     commands := commands.right
     if commands.cur.isMissing then
       break
-  return s!"{← PrettyPrinter.ppModule ⟨commands.up.up.cur⟩}"
+  return fixFormatting s!"{← PrettyPrinter.ppModule ⟨commands.up.up.cur⟩}"
 
 def processPath (fpath : FilePath) (backup : Bool := true) : ProcessM Unit := do
   let f ← IO.FS.readFile fpath

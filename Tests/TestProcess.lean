@@ -22,8 +22,11 @@ loop2 (λ (x _y : ℤ) ↦ x) (λ (_x y : ℤ) ↦ y) (x + 2) 5 (x + 1)
 comprN (λ (_x : ℤ) ↦ 0) ((x - 2) - 2)
 loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4
 x
+y
+-(x + y)
 0
 x
+(x + 1)
 -/
 #guard_msgs in
 run_elab do
@@ -41,8 +44,11 @@ run_elab do
     ← `(term|comprN (λ(x : ℤ) ↦ 0) (((x - 2) - ((2))))),
     ← `(term|loop (λ (x y : ℤ) ↦ (x * x) - (2)) x (4)),
     ← `(term|x - 0),
+    ← `(term|0 + y),
+    ← `(term|0 - (x + y)),
     ← `(term|x * 0),
-    ← `(term|x * 1)
+    ← `(term|x * 1),
+    ← `(term|(x + 1)/1)
   ]
   for e in exprs do
     let x ← ProcessM.run (processTerm e) {s with safeCtx := true}

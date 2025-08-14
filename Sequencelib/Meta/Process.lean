@@ -72,28 +72,48 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
     let t1 ← processTerm a
     let t2 ← processTerm b
     setUnsafe
-    `(term|$t1 + $t2)
+    if a == (← `(term|0)) then
+      `(term|$t2)
+    else if b == (← `(term|0)) then
+      `(term|$t1)
+    else
+      `(term|$t1 + $t2)
   | `(term|$a - $b) =>
     --dbg_trace s!"--- sub"
     setUnsafe
     let t1 ← processTerm a
     let t2 ← processTerm b
     setUnsafe
-    `(term|$t1 - $t2)
+    if a == (← `(term|0)) then
+      `(term| -$t2)
+    else if b == (← `(term|0)) then
+      `(term|$t1)
+    else
+      `(term|$t1 - $t2)
   | `(term|$a * $b) =>
     --dbg_trace s!"--- mul"
     setUnsafe
     let t1 ← processTerm a
     let t2 ← processTerm b
     setUnsafe
-    `(term|$t1 * $t2)
+    if a == (← `(term|0)) || b == (← `(term|0)) then
+      `(term|0)
+    else if a == (← `(term|1)) then
+      `(term|$t2)
+    else if b == (← `(term|1)) then
+      `(term|$t1)
+    else
+      `(term|$t1 * $t2)
   | `(term|$a / $b) =>
     --dbg_trace s!"--- div"
     setUnsafe
     let t1 ← processTerm a
     let t2 ← processTerm b
     setUnsafe
-    `(term|$t1 / $t2)
+    if b == (← `(term|1)) then
+      `(term|$t1)
+    else
+      `(term|$t1 / $t2)
   | `(term|$a % $b) =>
     --dbg_trace s!"--- mod"
     setUnsafe
@@ -243,13 +263,11 @@ def processPath (fpath : FilePath) (backup : Bool := true) : ProcessM Unit := do
     IO.FS.writeFile (fpath.addExtension "bak") f
   IO.FS.writeFile fpath (← processModule f)
 
-#check Lean.Parser.Module.module.formatter
+-- run_elab do
+--   let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
+--   let s : ProcessState := default
+--   let s := {s with seqInfo := .ofList [(`A003010, ⟨.Nat⟩)]}
+--   let st ← ProcessM.run (processModule g) s
+--   dbg_trace s!"return:\n{st}"
 
-run_elab do
-  let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
-  let s : ProcessState := default
-  let s := {s with seqInfo := .ofList [(`A003010, ⟨.Nat⟩)]}
-  let st ← ProcessM.run (processModule g) s
-  dbg_trace s!"return:\n{st}"
-
-  ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"]))
+--   ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"]))

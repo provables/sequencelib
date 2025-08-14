@@ -232,8 +232,11 @@ def processDef (definition : TSyntax `Lean.Parser.Command.definition) :
       let (new_ident, new_body') ← processLet tt new_body
       `(definition|def $a:declId ($new_ident:ident : $b:term) : $new_t:term :=
         $new_body':term)
-        -- let $ti:ident := $tt:term
-        -- $new_body:term)
+  | `(definition|def $a:ident ($e:ident : $b:term) : $t:term :=
+        $tt:term) =>
+      let new_tt ← processTerm tt
+      `(definition|def $a:declId ($e:ident : $b:term) : $t:term :=
+        $new_tt:term)
   | s => pure s
   return x
 

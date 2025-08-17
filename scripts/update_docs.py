@@ -18,22 +18,25 @@ from jinja2 import Environment, FileSystemLoader
 import networkx as nx
 import html5lib
 
+sys.set_int_max_str_digits(0)
+
 HERE = Path(__file__).parent.resolve()
 MAX_VALUE = 101
 
-sys.set_int_max_str_digits(20000)
-
-
 def get_oeis_info():
-    result = subprocess.run(
-        ["lake", "exe", "oeisinfo"],
-        cwd=HERE / "..",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        check=True,
-    )
-    return json.loads(result.stdout)
+    result = load_cache("lean_oeis_info.json")
+    if not result:
+        output = subprocess.run(
+            ["lake", "exe", "oeisinfo"],
+            cwd=HERE / "..",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True,
+        )
+        result = json.loads(output.stdout)
+        save_cache("lean_oeis_info.json", result)
+    return result
 
 
 def clean_name(name):
@@ -154,19 +157,19 @@ def process_all(info):
         process_mod(mod, tags)
 
 
-def load_cache():
+def load_cache(cache):
     cache_dir = Path(appdirs.user_cache_dir()) / "sequencelib"
     try:
-        with open(cache_dir / "oeis_data.json") as f:
+        with open(cache_dir / cache) as f:
             return json.load(f)
     except FileNotFoundError:
         return {}
 
 
-def save_cache(result):
+def save_cache(cache, result):
     cache_dir = Path(appdirs.user_cache_dir()) / "sequencelib"
     cache_dir.mkdir(parents=True, exist_ok=True)
-    with open(cache_dir / "oeis_data.json", "w") as f:
+    with open(cache_dir / cache, "w") as f:
         json.dump(result, f)
 
 
@@ -197,7 +200,7 @@ def get_data_for_tag(tag):
 
 
 def get_oeis_data(info):
-    result = load_cache()
+    result = load_cache("oeis_data.json")
     for tags in info.values():
         for tag in tags:
             print(f"Getting OEIS data for {tag}...")
@@ -205,7 +208,7 @@ def get_oeis_data(info):
                 print(f".. [from cache] {result[tag]['title']}")
                 continue
             result[tag] = get_data_for_tag(tag)
-    save_cache(result)
+    save_cache("oeis_data.json", result)
     return result
 
 

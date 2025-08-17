@@ -4,7 +4,8 @@ import Sequencelib.Meta
 import GenSeq
 
 open Synth
-open Lean Expr Elab Term Tactic Meta Qq Syntax
+open Lean Expr Elab Term Tactic Meta Qq Syntax Command
+--open Lean.Elab.Command
 open Lean.Parser.Command
 open System
 
@@ -252,6 +253,86 @@ def fixFormatting (s : String) : String :=
   )
   "\n".intercalate y
 
+def renameDef (orig : TSyntax `Lean.Parser.Command.declaration) (name : Name)
+    : TermElabM <| TSyntax `Lean.Parser.Command.declaration := do
+  let cursor := Syntax.Traverser.fromSyntax orig
+  let c := cursor.down 1 |>.down 1
+  let u := c.setCur (← `(declId|$(mkIdent name)))
+  return ⟨u.up.up.cur⟩
+
+def AA : ℕ → ℕ := 1
+def BB : ℕ → ℕ := 1
+
+theorem foo (n : ℕ) (h : ∀ n, 0 ≤ AA n): BB n = AA n := by
+  sorry
+
+-- ∀ (n : ℕ), (∀ (n : ℕ), 0 ≤ AA n) → BB n = AA n
+#print foo
+#check @foo
+
+def mkEquivTheorem (orig new : TSyntax `Lean.Parser.Command.declaration)
+    : TermElabM (Option Expr) := do
+  let origName ← mkFreshUserName `orig
+  let newName ← mkFreshUserName `new
+  let origRenamed ← renameDef orig origName
+  let newRenamed ← renameDef new newName
+  liftCommandElabM do
+    elabCommand (← `(open Synth))
+    elabCommand origRenamed
+    elabCommand newRenamed
+  let thmStx ← `(term|∀ (n : ℕ), ($(mkIdent `h):ident : ∀ (n : ℕ), 0 ≤ $(mkIdent origName) n) →
+    $(mkIdent newName) n = $(mkIdent origName) n)
+  dbg_trace s!"stx: {thmStx}"
+  let thm ← instantiateMVars <| ← Term.elabTerm thmStx (some q(Prop))
+  dbg_trace s!"thm: {thm}"
+  let s ← saveState
+  let proof ← Term.elabTerm (← `(term| by
+    intro $(mkIdent `n):ident $(mkIdent `h):ident
+    try simp [$(mkIdent newName):ident, $(mkIdent origName):ident]
+    try simp [$(mkIdent origName):ident] at *
+    try exact $(mkIdent `h) $(mkIdent `n)
+  )) (some thm)
+  if (← instantiateMVars proof).hasSorry then
+    s.restore
+    dbg_trace "proof failed"
+    return none
+  Term.synthesizeSyntheticMVarsNoPostponing
+  let thmDecl := Declaration.thmDecl {
+    name := `my_thm,
+    levelParams := [],
+    type := ← instantiateMVars thm,
+    value := ← instantiateMVars proof
+  }
+  Lean.addAndCompile thmDecl
+  return some thm
+
+-- def A003010 (x : ℕ) : ℕ :=
+--   Int.toNat <| loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4
+
+-- def A003010' (n : ℕ) : ℤ :=
+--   let x := n - 0
+--   loop (λ (x y : ℤ) ↦ ((x * x) - 2)) (x) ((2 + 2))
+
+run_elab do
+  let new ← `(declaration|def A003010 (x : ℕ) : ℕ :=
+    Int.toNat <| loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4)
+  let old ← `(declaration|def A003010' (n : ℕ) : ℤ :=
+    let x := n - 0
+    loop (λ (x y : ℤ) ↦ ((x * x) - 2)) (x) ((2 + 2)))
+  let z2 ← mkEquivTheorem old new
+  dbg_trace s!"----z2: {z2}"
+#print my_thm
+
+    -- elabCommand z2
+    -- let env ← getEnv
+    -- let w := env.find? `Xfoo |>.getD default
+    -- dbg_trace s!"-----> {w.type}"
+    -- let z ← `(command|def Xfoo := 3)
+    -- let cursor := Syntax.Traverser.fromSyntax z
+    -- let c := cursor.down 1 |>.down 1
+    -- let u := c.setCur (← `(declId|$(mkIdent `bar)))
+    -- dbg_trace u.up.up.cur
+
 def processModule (content : String) : ProcessM String := do
   let env ← getEnv
   let v ← Parser.testParseModule env "<input>" content
@@ -263,9 +344,12 @@ def processModule (content : String) : ProcessM String := do
       | `(declModifiersT|@[$[$attrs:attr],*]) =>
         let some z := attrs[0]? | default
         if z.raw.isOfKind `OEIS then
+          let orig := commands.cur
           commands := commands.down 1
-          commands := commands.setCur <| (← processDef ⟨commands.cur⟩)
+          let new ← processDef ⟨commands.cur⟩
+          commands := commands.setCur new
           commands := commands.up
+          let valid ← liftCommandElabM <| checkEquiv ⟨orig⟩ ⟨commands.cur⟩
       | _ => pure ()
     commands := commands.right
     if commands.cur.isMissing then
@@ -288,6 +372,9 @@ def processStateFromJson (fpath : FilePath) : IO ProcessState := do
     dbg_trace s!"keywords: {k}: {w}"
     seqInfo := seqInfo.insert k.toName (if "sign" ∈ w then ⟨.Int⟩ else ⟨.Nat⟩)
   return {(default : ProcessState) with seqInfo := seqInfo}
+
+def processDir (dirPath : FilePath) : ProcessM Unit := do
+  return ()
 
 #check PrettyPrinter.ppCategory
 run_elab do

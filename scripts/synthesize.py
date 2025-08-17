@@ -180,7 +180,7 @@ def genseq_send_recv(socket, message):
     # print(f"send_recv for message: {message}")
     try:
         # encode and send
-        m = json.dumps(message)
+        m = json.dumps(message) + "\n"
         # print(f"Sending JSON: {m}")
         socket.sendall(m.encode("utf-8"))
     except Exception as e:

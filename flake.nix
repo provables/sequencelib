@@ -74,7 +74,7 @@
           git-lfs
           gawk
           wget
-          dvc
+          dvc-with-remotes
         ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
       };
     }

@@ -235,9 +235,11 @@ def processDef (definition : TSyntax `Lean.Parser.Command.definition) :
         $new_body':term)
   | `(definition|def $a:ident ($e:ident : $b:term) : $t:term :=
         $tt:term) =>
+      let info := (← get).seqInfo[a.getId]?.getD default
       let new_tt ← processTerm tt
-      `(definition|def $a:declId ($e:ident : $b:term) : $t:term :=
-        $new_tt:term)
+      let (new_t, new_body) ← processCodomain info.cod t new_tt
+      `(definition|def $a:declId ($e:ident : $b:term) : $new_t:term :=
+        $new_body:term)
   | s => pure s
   return x
 
@@ -260,16 +262,6 @@ def renameDef (orig : TSyntax `Lean.Parser.Command.declaration) (name : Name)
   let u := c.setCur (← `(declId|$(mkIdent name)))
   return ⟨u.up.up.cur⟩
 
-def AA : ℕ → ℕ := 1
-def BB : ℕ → ℕ := 1
-
-theorem foo (n : ℕ) (h : ∀ n, 0 ≤ AA n): BB n = AA n := by
-  sorry
-
--- ∀ (n : ℕ), (∀ (n : ℕ), 0 ≤ AA n) → BB n = AA n
-#print foo
-#check @foo
-
 def mkEquivTheorem (orig new : TSyntax `Lean.Parser.Command.declaration)
     : TermElabM (Option Expr) := do
   let origName ← mkFreshUserName `orig
@@ -282,9 +274,11 @@ def mkEquivTheorem (orig new : TSyntax `Lean.Parser.Command.declaration)
     elabCommand newRenamed
   let thmStx ← `(term|∀ (n : ℕ), ($(mkIdent `h):ident : ∀ (n : ℕ), 0 ≤ $(mkIdent origName) n) →
     $(mkIdent newName) n = $(mkIdent origName) n)
-  dbg_trace s!"stx: {thmStx}"
+  dbg_trace "==== orig"
+  dbg_trace ← PrettyPrinter.ppTerm ⟨ orig⟩
+  dbg_trace "===== new"
+  dbg_trace ← PrettyPrinter.ppTerm ⟨ new⟩
   let thm ← instantiateMVars <| ← Term.elabTerm thmStx (some q(Prop))
-  dbg_trace s!"thm: {thm}"
   let s ← saveState
   let proof ← Term.elabTerm (← `(term| by
     intro $(mkIdent `n):ident $(mkIdent `h):ident
@@ -292,46 +286,20 @@ def mkEquivTheorem (orig new : TSyntax `Lean.Parser.Command.declaration)
     try simp [$(mkIdent origName):ident] at *
     try exact $(mkIdent `h) $(mkIdent `n)
   )) (some thm)
-  if (← instantiateMVars proof).hasSorry then
-    s.restore
-    dbg_trace "proof failed"
-    return none
   Term.synthesizeSyntheticMVarsNoPostponing
+  let proof ← instantiateMVars proof
+  dbg_trace "===== proof is {proof}"
+  if proof.hasSorry || proof.hasMVar then
+    s.restore
+    return none
   let thmDecl := Declaration.thmDecl {
-    name := `my_thm,
+    name := ← mkFreshUserName `my_thm,
     levelParams := [],
     type := ← instantiateMVars thm,
-    value := ← instantiateMVars proof
+    value := proof
   }
   Lean.addAndCompile thmDecl
   return some thm
-
--- def A003010 (x : ℕ) : ℕ :=
---   Int.toNat <| loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4
-
--- def A003010' (n : ℕ) : ℤ :=
---   let x := n - 0
---   loop (λ (x y : ℤ) ↦ ((x * x) - 2)) (x) ((2 + 2))
-
-run_elab do
-  let new ← `(declaration|def A003010 (x : ℕ) : ℕ :=
-    Int.toNat <| loop (λ (x _y : ℤ) ↦ (x * x) - 2) x 4)
-  let old ← `(declaration|def A003010' (n : ℕ) : ℤ :=
-    let x := n - 0
-    loop (λ (x y : ℤ) ↦ ((x * x) - 2)) (x) ((2 + 2)))
-  let z2 ← mkEquivTheorem old new
-  dbg_trace s!"----z2: {z2}"
-#print my_thm
-
-    -- elabCommand z2
-    -- let env ← getEnv
-    -- let w := env.find? `Xfoo |>.getD default
-    -- dbg_trace s!"-----> {w.type}"
-    -- let z ← `(command|def Xfoo := 3)
-    -- let cursor := Syntax.Traverser.fromSyntax z
-    -- let c := cursor.down 1 |>.down 1
-    -- let u := c.setCur (← `(declId|$(mkIdent `bar)))
-    -- dbg_trace u.up.up.cur
 
 def processModule (content : String) : ProcessM String := do
   let env ← getEnv
@@ -349,7 +317,9 @@ def processModule (content : String) : ProcessM String := do
           let new ← processDef ⟨commands.cur⟩
           commands := commands.setCur new
           commands := commands.up
-          let valid ← liftCommandElabM <| checkEquiv ⟨orig⟩ ⟨commands.cur⟩
+          let valid ← mkEquivTheorem ⟨orig⟩ ⟨commands.cur⟩
+          if valid.isNone then
+            throwError s!"Couldn't prove correctness of simplification for {z.raw.getArg 2}"
       | _ => pure ()
     commands := commands.right
     if commands.cur.isMissing then
@@ -369,7 +339,6 @@ def processStateFromJson (fpath : FilePath) : IO ProcessState := do
   let mut seqInfo : Std.HashMap Name SeqInfo := ∅
   for (k, v) in m do
     let w ← IO.ofExcept <| v.getObjValAs? (Array String) "keywords"
-    dbg_trace s!"keywords: {k}: {w}"
     seqInfo := seqInfo.insert k.toName (if "sign" ∈ w then ⟨.Int⟩ else ⟨.Nat⟩)
   return {(default : ProcessState) with seqInfo := seqInfo}
 
@@ -382,9 +351,9 @@ run_elab do
   let cache := System.mkFilePath ["/Users/walter/Library/Caches/sequencelib/oeis_data.json"]
   let z ← processStateFromJson cache
   let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
-  let s : ProcessState := default
-  let s := {s with seqInfo := .ofList [(`A003010, ⟨.Nat⟩)]}
-  let st ← ProcessM.run (processModule g) s
+  let st ← ProcessM.run (processModule g) z
   dbg_trace s!"return:\n{st}"
+  dbg_trace "-------"
+  dbg_trace "%%%%%% {repr <| z.seqInfo[`A003010]?.getD default}"
 
-  ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"]))
+  ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"])) z

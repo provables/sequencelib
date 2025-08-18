@@ -203,7 +203,12 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
 def processCodomain (c : Codomain) (_cod: TSyntax `term) (body : TSyntax `term)
     : ProcessM <| TSyntax `term × TSyntax `term:= do
   match c with
-  | .Nat => do return (← `(term|ℕ), ← `(term|$(mkIdent `Int.toNat) <| $body))
+  | .Nat => do
+    match body with
+    | `(term|Int.toNat <| $_:term) =>
+      return (← `(term|ℕ), body)
+    | _ =>
+      return (← `(term|ℕ), ← `(term|$(mkIdent `Int.toNat) <| $body))
   | .Int => do return (← `(term|ℤ), body)
 
 def processLet (let_t : TSyntax `term) (body : TSyntax `term) :

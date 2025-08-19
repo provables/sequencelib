@@ -2,6 +2,7 @@ import Lean
 import Qq
 import Sequencelib.Meta
 import GenSeq
+import Mathlib
 
 open Synth
 open Lean Expr Elab Term Tactic Meta Qq Syntax Command
@@ -20,6 +21,7 @@ structure ProcessState where
   freeVars : Std.HashSet Name
   safeCtx : Bool
   seqInfo : Std.HashMap Name SeqInfo
+  doValidation : Bool
   deriving Inhabited
 
 abbrev ProcessM (α : Type) := StateT ProcessState TermElabM α
@@ -164,8 +166,6 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
     let ta ← processTerm a
     setUnsafe
     let tb ← processTerm b
-    --StateT.set {(← get) with freeVars := ∅}
-    clearFreeVars
     `(term|$(mkIdent `loop) $tf $ta $tb)
   | `(term|loop2 $f1 $f2 $a $b $c) =>
     --dbg_trace s!"--- loop2"
@@ -215,7 +215,6 @@ def processLet (let_t : TSyntax `term) (body : TSyntax `term) :
     ProcessM <| (TSyntax `ident) × (TSyntax `term) := do
   match let_t with
   | `(term|n - $m:num) =>
-    --dbg_trace s!"got num {m}"
     if m.getNat == 0 then
       return (← `(ident|$(mkIdent `x)), body)
     else
@@ -223,7 +222,6 @@ def processLet (let_t : TSyntax `term) (body : TSyntax `term) :
         $body
       ))
   | _ =>
-    --dbg_trace s!"other"
   return (← `(ident|$(mkIdent `n)), body)
 
 def processDef (definition : TSyntax `Lean.Parser.Command.definition) :
@@ -267,8 +265,7 @@ def renameDef (orig : TSyntax `Lean.Parser.Command.declaration) (name : Name)
   let u := c.setCur (← `(declId|$(mkIdent name)))
   return ⟨u.up.up.cur⟩
 
-def mkEquivTheorem (orig new : TSyntax `Lean.Parser.Command.declaration)
-    : TermElabM (Option Expr) := do
+def mkEquivTheorem (orig new : TSyntax `Lean.Parser.Command.declaration) : TermElabM Bool := do
   let origName ← mkFreshUserName `orig
   let newName ← mkFreshUserName `new
   let origRenamed ← renameDef orig origName
@@ -281,18 +278,25 @@ def mkEquivTheorem (orig new : TSyntax `Lean.Parser.Command.declaration)
     $(mkIdent newName) n = $(mkIdent origName) n)
   let thm ← instantiateMVars <| ← Term.elabTerm thmStx (some q(Prop))
   let s ← saveState
+  let hT := mkIdent `h
+  let h2T := mkIdent `h2
+  let nT := mkIdent `n
+  let origT := mkIdent origName
+  let newT := mkIdent newName
   let proof ← Term.elabTerm (← `(term| by
     intro $(mkIdent `n):ident $(mkIdent `h):ident
+    have $h2T : Int.toNat (($origT $nT) : ℤ) = (($origT $nT) : ℤ) := by
+      exact Int.toNat_of_nonneg (by linarith [$hT $nT])
     try simp [$(mkIdent newName):ident, $(mkIdent origName):ident]
     try simp [$(mkIdent origName):ident] at *
+    try rw [$h2T:ident]
     try exact $(mkIdent `h) $(mkIdent `n)
   )) (some thm)
   Term.synthesizeSyntheticMVarsNoPostponing
   let proof ← instantiateMVars proof
-  dbg_trace "===== proof is {proof}"
   if proof.hasSorry || proof.hasMVar then
     s.restore
-    return none
+    return false
   let thmDecl := Declaration.thmDecl {
     name := ← mkFreshUserName `my_thm,
     levelParams := [],
@@ -300,7 +304,13 @@ def mkEquivTheorem (orig new : TSyntax `Lean.Parser.Command.declaration)
     value := proof
   }
   Lean.addAndCompile thmDecl
-  return some thm
+  return true
+
+def clearModifiers (decl : TSyntax `Lean.Parser.Command.declaration) :
+    TermElabM <| TSyntax `Lean.Parser.Command.declaration := do
+  let cursor := Syntax.Traverser.fromSyntax decl
+  let cursor := cursor.down 0 |>.setCur (← `(declModifiersT|))
+  return ⟨cursor.up.cur⟩
 
 def processModule (content : String) : ProcessM String := do
   let env ← getEnv
@@ -318,19 +328,31 @@ def processModule (content : String) : ProcessM String := do
           let new ← processDef ⟨commands.cur⟩
           commands := commands.setCur new
           commands := commands.up
-          let valid ← mkEquivTheorem ⟨orig⟩ ⟨commands.cur⟩
-          if valid.isNone then
-            throwError s!"Couldn't prove correctness of simplification for {z.raw.getArg 2}"
+          if (← get).doValidation then
+            let valid ← mkEquivTheorem (← clearModifiers ⟨orig⟩) (← clearModifiers ⟨commands.cur⟩)
+            if !valid then
+              throwError s!"Couldn't prove correctness of simplification for {z.raw.getArg 2}"
+            IO.println ".. transformation proved to be correct"
+          else
+            IO.println ".. notice: skipping proof of correctness"
       | _ => pure ()
     commands := commands.right
     if commands.cur.isMissing then
       break
   return fixFormatting s!"{← PrettyPrinter.ppModule ⟨commands.up.up.cur⟩}"
 
+def progressPath (fpath : FilePath) : FilePath :=
+  let fpath := fpath.normalize
+  fpath.parent.getD "/" |>.join "progress" |>.join <| fpath.fileStem.getD default
+
+def backupPath (fpath : FilePath) : FilePath :=
+  let fpath := fpath.normalize.addExtension "bak"
+  fpath.parent.getD "/" |>.join "backup" |>.join <| fpath.fileName.getD default
+
 def processPath (fpath : FilePath) (backup : Bool := true) : ProcessM Unit := do
   let f ← IO.FS.readFile fpath
   if backup then
-    IO.FS.writeFile (fpath.addExtension "bak") f
+    IO.FS.writeFile (backupPath fpath) f
   IO.FS.writeFile fpath (← processModule f)
 
 def processStateFromJson (fpath : FilePath) : IO ProcessState := do
@@ -344,17 +366,38 @@ def processStateFromJson (fpath : FilePath) : IO ProcessState := do
   return {(default : ProcessState) with seqInfo := seqInfo}
 
 def processDir (dirPath : FilePath) : ProcessM Unit := do
-  return ()
+  for entry in (← dirPath.readDir) do
+    IO.println s!"Processing {entry.path}"
+    processPath entry.path
 
-#check PrettyPrinter.ppCategory
 run_elab do
-  --let x ← `(attributes|@[$tt])
   let cache := System.mkFilePath ["/Users/walter/Library/Caches/sequencelib/oeis_data.json"]
-  let z ← processStateFromJson cache
-  let g ← IO.FS.readFile (System.mkFilePath ["Sequencelib/Synthetic/A003010.lean"])
-  let st ← ProcessM.run (processModule g) z
-  dbg_trace s!"return:\n{st}"
-  dbg_trace "-------"
-  dbg_trace "%%%%%% {repr <| z.seqInfo[`A003010]?.getD default}"
+  let state ← processStateFromJson cache
+  let state := {state with doValidation := false}
+  --ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"])) z
+  --ProcessM.run (processDir "Sequencelib/Synthetic/") state
+  ProcessM.run (processPath "Sequencelib/Synthetic/A158010.lean") state
 
-  ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"])) z
+-- def orig (n : ℕ) : ℤ :=
+--   let x := n - 1
+--   ((1 + x) * loop (λ(x y : ℤ) ↦ (1 + (x + x))) ((2 * (2 + 2))) (x))
+
+-- def new (n : ℕ) : ℕ :=
+--   let x := n - 1
+--   Int.toNat <| ((1 + x) * loop (λ (x _y : ℤ) ↦ 1 + (x + x)) (2 * 4) x)
+
+def orig (n : ℕ) : ℤ :=
+  let x := n - 1
+  ((loop (λ(x y : ℤ) ↦ (((2 + x) % (1 + y)) + 1)) (x) (0) / 2) / 2)
+
+def new (n : ℕ) : ℕ :=
+  let x := n - 1
+  Int.toNat <| ((loop (λ (x y : ℤ) ↦ ((2 + x) % (1 + y)) + 1) x 0 / 2) / 2)
+
+theorem foo (n : ℕ) (h : ∀ (n : ℕ), 0 ≤ orig n) : new n = orig n := by
+  have h2 : ((orig n) : ℤ).toNat = ((orig n) : ℤ) := by
+    refine Int.toNat_of_nonneg (by linarith [h n])
+  try simp [orig, new]
+  try unfold orig at *
+  try rw [h2]
+  try exact h n

@@ -279,10 +279,6 @@ def mkEquivTheorem (orig new : TSyntax `Lean.Parser.Command.declaration)
     elabCommand newRenamed
   let thmStx ← `(term|∀ (n : ℕ), ($(mkIdent `h):ident : ∀ (n : ℕ), 0 ≤ $(mkIdent origName) n) →
     $(mkIdent newName) n = $(mkIdent origName) n)
-  dbg_trace "==== orig"
-  dbg_trace ← PrettyPrinter.ppTerm ⟨ orig⟩
-  dbg_trace "===== new"
-  dbg_trace ← PrettyPrinter.ppTerm ⟨ new⟩
   let thm ← instantiateMVars <| ← Term.elabTerm thmStx (some q(Prop))
   let s ← saveState
   let proof ← Term.elabTerm (← `(term| by

@@ -3,22 +3,22 @@ Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
 Authors: Walter and Joe's Synth Bot
 -/
-
 import Mathlib
 import Sequencelib.Meta
 import GenSeq
+
 open Synth
 
 /-!
-
 # A040035 sequence 
 -/
+
 
 namespace Sequence
 
 @[OEIS := A040035, offset := 0, derive := true, maxIndex := 100]
-def A040035 (n : ℕ) : ℤ :=
-  let x := n - 0
-  (2 + (2 * loop (λ(x y : ℤ) ↦ if (x) ≤ 0 then ((1 + (2 + 2))) else (0)) (x) (2)))
+def A040035 (x : ℕ) : ℕ :=
+  Int.toNat <| (2 + (2 * loop (λ (x _y : ℤ) ↦ if x ≤ 0 then 1 + 4 else 0) x 2))
 
 end Sequence
+

@@ -53,14 +53,14 @@ tasks:
       - home_page/sequences.md
     cmds:
       - DOCGEN_SRC="file" lake -R -Kenv=dev build Sequencelib:docs
-      - python scripts/update_docs.py
+      - "$PYTHON scripts/update_docs.py"
     deps:
       - get-cache
 
   serve-docs:
     desc: Serve docs
     cmds:
-      - python -m webbrowser file:///$(pwd)/.lake/build/doc/Sequencelib.html
+      - "$PYTHON -m webbrowser file:///$(pwd)/.lake/build/doc/Sequencelib.html"
     deps:
       - build-docs
 
@@ -138,7 +138,7 @@ tasks:
   render-sequencelib-lean:
     desc: Regenerate top-level Sequencelib.lean
     cmds:
-      - python scripts/generate_imports.py
+      - "$PYTHON scripts/generate_imports.py"
     sources:
       - Sequencelib/**/*.lean
       - exclude: Sequencelib/Meta/**/*.lean
@@ -157,7 +157,7 @@ tasks:
   where-is-cache:
     desc: Display location of the update_docs cache
     cmds:
-      - python scripts/update_docs.py --where-is
+      - "$PYTHON scripts/update_docs.py --where-is"
     silent: true
 
   ensure-update-docs-cache:
@@ -165,9 +165,9 @@ tasks:
     run: once
     vars:
       CACHE:
-        sh: python scripts/update_docs.py --where-is
+        sh: "$PYTHON scripts/update_docs.py --where-is"
     cmds:
-      - python scripts/update_docs.py --only-data
+      - "$PYTHON scripts/update_docs.py --only-data"
     sources:
       - scripts/update_docs.py
       - Sequencelib/**/*.lean
@@ -190,7 +190,7 @@ tasks:
     method: timestamp
     desc: Run oeis.py
     cmds:
-      - python scripts/oeis.py
+      - "$PYTHON scripts/oeis.py"
     env:
       OEIS_INSTALL: "{{.OEISDATA_PATH}}"
       RESULT_FILE: "{{.RESULT_FILE}}"
@@ -208,7 +208,7 @@ tasks:
     method: timestamp
     desc: Run synthesize.py
     cmds:
-      - python scripts/synthesize.py -s {{.START}} -e {{.END}}
+      - "$PYTHON scripts/synthesize.py -s {{.START}} -e {{.END}}"
     env:
       ALL_OEIS_RESULTS_FILE: "{{.RESULT_FILE}}"
       SOLUTIONS_FILE_PATH: "{{.SOLUTIONS_FILE_PATH}}"

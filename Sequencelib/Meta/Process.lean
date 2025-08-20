@@ -420,13 +420,13 @@ def processDir (dirPath : FilePath) : ProcessM Unit := do
     IO.println s!"Processing {entry.path}"
     processPath entry.path
 
-run_elab do
-  let cache := System.mkFilePath ["/Users/walter/Library/Caches/sequencelib/oeis_data.json"]
-  let state ← processStateFromJson cache
-  let state := {state with doValidation := false}
-  --ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"])) z
-  --ProcessM.run (processDir "Sequencelib/Synthetic/") state
-  --ProcessM.run (processPath "Sequencelib/Synthetic/A174841.lean") state
+-- run_elab do
+--   let cache := System.mkFilePath ["/Users/walter/Library/Caches/sequencelib/oeis_data.json"]
+--   let state ← processStateFromJson cache
+--   let state := {state with doValidation := true}
+--   -- ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"])) z
+--   -- ProcessM.run (processDir "Sequencelib/Synthetic/") state
+--   ProcessM.run (processPath "Sequencelib/Synthetic/A014236.lean") state
 
 -- def orig (n : ℕ) : ℤ :=
 --   let x := n - 1
@@ -483,30 +483,30 @@ run_elab do
 
 -- def orig := new
 
-def orig (n : ℕ) : ℤ :=
-  let x := n - 1
-  loop2 (λ(x y : ℤ) ↦ (x * (0 - ((2 + y) * y)))) (λ(x y : ℤ) ↦ y) (x) (1) (x)
+-- def orig (n : ℕ) : ℤ :=
+--   let x := n - 1
+--   loop2 (λ(x y : ℤ) ↦ (x * (0 - ((2 + y) * y)))) (λ(x y : ℤ) ↦ y) (x) (1) (x)
 
-def new (n : ℕ) : ℤ :=
-  let x := n - 1
-  loop2 (λ (x y : ℤ) ↦ x * (-((2 + y) * y))) (λ (_x y : ℤ) ↦ y) x 1 x
+-- def new (n : ℕ) : ℤ :=
+--   let x := n - 1
+--   loop2 (λ (x y : ℤ) ↦ x * (-((2 + y) * y))) (λ (_x y : ℤ) ↦ y) x 1 x
 
-#eval new 3
+-- #eval new 3
 
---set_option diagnostics true in
--- set_option Elab.async false
--- set_option trace.profiler true
--- set_option trace.profiler.useHeartbeats true
-set_option maxHeartbeats 400000
-theorem foo (n : ℕ) (h : ∀ (n : ℕ), 0 ≤ orig n) : new n = orig n := by
-  have h2 : ((orig n) : ℤ).toNat = ((orig n) : ℤ) := by
-    refine Int.toNat_of_nonneg (by linarith [h n])
-  try unfold orig new
-  try unfold orig at h h2
-  try rw [← h2]
-  try rfl
-  try simp [orig, new]
-  try simp [orig] at h h2
-  try rw [h2]
-  try exact h n
-  try exact h
+-- --set_option diagnostics true in
+-- -- set_option Elab.async false
+-- -- set_option trace.profiler true
+-- -- set_option trace.profiler.useHeartbeats true
+-- set_option maxHeartbeats 400000
+-- theorem foo (n : ℕ) (h : ∀ (n : ℕ), 0 ≤ orig n) : new n = orig n := by
+--   have h2 : ((orig n) : ℤ).toNat = ((orig n) : ℤ) := by
+--     refine Int.toNat_of_nonneg (by linarith [h n])
+--   try unfold orig new
+--   try unfold orig at h h2
+--   try rw [← h2]
+--   try rfl
+--   try simp [orig, new]
+--   try simp [orig] at h h2
+--   try rw [h2]
+--   try exact h n
+--   try exact h

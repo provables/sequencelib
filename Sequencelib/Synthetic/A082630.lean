@@ -3,22 +3,23 @@ Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
 Authors: Walter and Joe's Synth Bot
 -/
-
 import Mathlib
 import Sequencelib.Meta
 import GenSeq
+
 open Synth
 
 /-!
-
 # A082630 sequence 
 -/
+
 
 namespace Sequence
 
 @[OEIS := A082630, offset := 1, derive := true, maxIndex := 100]
-def A082630 (n : ℕ) : ℤ :=
+def A082630 (n : ℕ) : ℕ :=
   let x := n - 1
-  loop2 (λ(x y : ℤ) ↦ (((2 + (y % 2)) * x) - y)) (λ(x y : ℤ) ↦ x) (x) (1) (0)
+  Int.toNat <| loop2 (λ (x y : ℤ) ↦ ((2 + (y % 2)) * x) - y) (λ (x _y : ℤ) ↦ x) x 1 0
 
 end Sequence
+

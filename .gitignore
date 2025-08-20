@@ -10,3 +10,5 @@ home_page/_site/
 home_page/sequences.md
 .task/
 __pycache__/
+Sequencelib/Synthetic/progress
+Sequencelib/Synthetic/backup

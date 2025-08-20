@@ -57,6 +57,7 @@
             echo "Toolchain already configured"
           fi
           lake --version
+          export PYTHON=${python}/bin/python
         '';
         buildInputs = with pkgs; [
           elan

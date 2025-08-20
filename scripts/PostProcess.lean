@@ -15,8 +15,6 @@ def main : IO Unit := do
   let state := {env}
   let procState ← processStateFromJson "/Users/walter/Library/Caches/sequencelib/oeis_data.json"
   let procState := {procState with doValidation := true}
-  --let x := ProcessM.run (processDir "Sequencelib/Synthetic") procState
-  --let x := ProcessM.run (processPath "Sequencelib/Synthetic/A003010.lean") procState
   let dirPath : System.FilePath := "Sequencelib/Synthetic"
   for entry in (← dirPath.readDir) do
     if (← entry.path.isDir) then

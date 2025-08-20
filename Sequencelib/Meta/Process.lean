@@ -18,16 +18,38 @@ instance : Inhabited SeqInfo where
   default := ⟨.Int⟩
 
 structure ProcessState where
-  freeVars : Std.HashSet Name
+  freeVars : Array (Std.HashSet Name)
   safeCtx : Bool
   seqInfo : Std.HashMap Name SeqInfo
   doValidation : Bool
-  deriving Inhabited
+
+instance : Inhabited ProcessState where
+  default := ⟨#[∅], default, default, true⟩
 
 abbrev ProcessM (α : Type) := StateT ProcessState TermElabM α
 
 def ProcessM.run {α : Type} (x : ProcessM α) (s : ProcessState := default) : TermElabM α :=
   StateT.run' x s
+
+def newFreeVars : ProcessM Unit := do
+  let state ← get
+  let new_state := {state with freeVars := state.freeVars.push ∅}
+  StateT.set new_state
+
+def closeFreeVars : ProcessM Unit := do
+  let state ← get
+  let new_state := {state with freeVars := state.freeVars.pop}
+  StateT.set new_state
+
+def pushFreeVar (v : Name) : ProcessM Unit := do
+  let state ← get
+  let curCtx := state.freeVars.back!
+  let new_state := {state with freeVars := state.freeVars.pop.push <| curCtx.insert v}
+  StateT.set new_state
+
+def popFreeVars : ProcessM (Std.HashSet Name) := do
+  let state ← get
+  return state.freeVars.back!
 
 def setSafe : ProcessM Unit := do
   StateT.set {(← get) with safeCtx := true}
@@ -37,6 +59,16 @@ def setUnsafe : ProcessM Unit := do
 
 def clearFreeVars : ProcessM Unit := do
   StateT.set {(← get) with freeVars := ∅}
+
+-- run_elab do
+--   ProcessM.run (do
+--     pushFreeVar `x
+--     pushFreeVar `y
+--     let z := (← popFreeVars)
+--     if z == {`x, `y} then
+--       dbg_trace "foo"
+--     return 3
+--   )
 
 partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
   --dbg_trace s!"term: {term}"
@@ -136,11 +168,10 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
   | `(term|λ(x y : ℤ) ↦ $t:term) =>
     --dbg_trace s!"--- fun"
     setSafe
+    newFreeVars
     let t1 ← processTerm t
-    let s ← get
-    let f1 := s.freeVars
-    --StateT.set {s with freeVars := ∅}
-    clearFreeVars
+    let f1 ← popFreeVars
+    closeFreeVars
     if f1 == {`x} then
       `(term|λ($(mkIdent `x) $(mkIdent `_y) : ℤ) ↦ $t1)
     else if f1 == {`y} then
@@ -151,9 +182,10 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
       `(term|λ($(mkIdent `_x) $(mkIdent `_y) : ℤ) ↦ $t1)
   | `(term|λ(x : ℤ) ↦ $t:term) =>
     setSafe
+    newFreeVars
     let t1 ← processTerm t
-    let f := (← get).freeVars
-    clearFreeVars
+    let f ← popFreeVars
+    closeFreeVars
     if f == {`x} then
       `(term|λ($(mkIdent `x) : ℤ) ↦ $t1)
     else
@@ -188,17 +220,25 @@ partial def processTerm (term : TSyntax `term) : ProcessM (TSyntax `term) := do
     `(term|$(mkIdent `comprN) $tf $t1)
   | `(term|x) =>
     --dbg_trace s!"--- x := x"
-    let s ← get
-    StateT.set {s with freeVars := s.freeVars.insert `x}
+    pushFreeVar `x
     `(term|$(mkIdent `x))
   | `(term|y) =>
     --dbg_trace s!"--- y := y"
-    let s ← get
-    StateT.set {s with freeVars := s.freeVars.insert `y}
+    pushFreeVar `y
     `(term|$(mkIdent `y))
   | _ =>
     --dbg_trace s!"--- default := {s}"
     pure term
+
+-- run_elab do
+--   let x ← `(term|loop2 (λ (x y : ℤ) ↦ x * (-((2 + y) * y))) (λ (x y : ℤ) ↦ y) x 1 x)
+--   let x ← `(term|x + (λ (x y : ℤ) ↦ x * (-((2+y) * y))))
+--   let x ← `(term|loop2 (λ(x y : ℤ) ↦ (x * (0 - ((2 + y) * y)))) (λ(x y : ℤ) ↦ y) (x) (1) (x))
+--   let y := processTerm x
+--   let z ← ProcessM.run (do
+--     y
+--   )
+--   dbg_trace (← PrettyPrinter.ppTerm z)
 
 def processCodomain (c : Codomain) (_cod: TSyntax `term) (body : TSyntax `term)
     : ProcessM <| TSyntax `term × TSyntax `term:= do
@@ -284,13 +324,23 @@ def mkEquivTheorem (orig new : TSyntax `Lean.Parser.Command.declaration) : TermE
   let origT := mkIdent origName
   let newT := mkIdent newName
   let proof ← Term.elabTerm (← `(term| by
-    intro $(mkIdent `n):ident $(mkIdent `h):ident
+
+    intro $nT $hT
     have $h2T : Int.toNat (($origT $nT) : ℤ) = (($origT $nT) : ℤ) := by
       exact Int.toNat_of_nonneg (by linarith [$hT $nT])
+    try unfold $origT $newT
+    try unfold $origT at $hT $h2T
+    try rw [← $h2T]
+    try rfl
+
+    -- intro $(mkIdent `n):ident $(mkIdent `h):ident
+    -- have $h2T : Int.toNat (($origT $nT) : ℤ) = (($origT $nT) : ℤ) := by
+    --   exact Int.toNat_of_nonneg (by linarith [$hT $nT])
     try simp [$(mkIdent newName):ident, $(mkIdent origName):ident]
     try simp [$(mkIdent origName):ident] at *
     try rw [$h2T:ident]
     try exact $(mkIdent `h) $(mkIdent `n)
+    try exact $hT
   )) (some thm)
   Term.synthesizeSyntheticMVarsNoPostponing
   let proof ← instantiateMVars proof
@@ -376,7 +426,7 @@ run_elab do
   let state := {state with doValidation := false}
   --ProcessM.run (processPath (mkFilePath ["Sequencelib/Synthetic/A003010.lean"])) z
   --ProcessM.run (processDir "Sequencelib/Synthetic/") state
-  ProcessM.run (processPath "Sequencelib/Synthetic/A158010.lean") state
+  --ProcessM.run (processPath "Sequencelib/Synthetic/A174841.lean") state
 
 -- def orig (n : ℕ) : ℤ :=
 --   let x := n - 1
@@ -386,18 +436,77 @@ run_elab do
 --   let x := n - 1
 --   Int.toNat <| ((1 + x) * loop (λ (x _y : ℤ) ↦ 1 + (x + x)) (2 * 4) x)
 
+-- def orig (n : ℕ) : ℤ :=
+--   let x := n - 1
+--   ((loop (λ(x y : ℤ) ↦ (((2 + x) % (1 + y)) + 1)) (x) (0) / 2) / 2)
+
+-- def new (n : ℕ) : ℕ :=
+--   let x := n - 1
+--   Int.toNat <| ((loop (λ (x y : ℤ) ↦ ((2 + x) % (1 + y)) + 1) x 0 / 2) / 2)
+
+-- def orig (n : ℕ) : ℤ :=
+--   let x := n - 1
+--   (loop (λ(x y : ℤ) ↦ (loop (λ(x y : ℤ) ↦ (y - x)) (x) (2) + 2)) ((x - 1)) (2) - 1)
+
+-- def new (n : ℕ) : ℕ :=
+--   let x := n - 1
+--   Int.toNat <| (loop (λ (x _y : ℤ) ↦ loop (λ (x y : ℤ) ↦ y - x) x 2 + 2) (x - 1) 2 - 1)
+
+-- def orig (n : ℕ) : ℤ :=
+--   let x := n - 0
+--   (((x * x) - loop (λ(x y : ℤ) ↦ (x - y)) (x) (x)) * (1 + (2 + 2)))
+
+-- def new (x : ℕ) : ℕ :=
+--   Int.toNat <| (((x * x) - loop (λ (x y : ℤ) ↦ x - y) x x) * (1 + 4))
+
+-- def orig (n : ℕ) : ℤ :=
+--   let x := n - 0
+--   ((x / 2) * (x / 2))
+
+-- def new (x : ℕ) : ℕ :=
+--   Int.toNat <| ((x / 2) * (x / 2))
+
+-- def orig (n : ℕ) : ℤ :=
+--   let x := n - 0
+--   loop (λ(x y : ℤ) ↦ (1 + (x * x))) (2) (2)
+
+-- def new (x : ℕ) : ℕ :=
+--   Int.toNat <| loop (λ (x _y : ℤ) ↦ 1 + (x * x)) 2 2
+
+-- def orig (n : ℕ) : ℤ :=
+--   let x := n - 1
+--   comprN (λ(x : ℤ) ↦ (((1 + x) * (x / 2)) % (2 + 2))) ((x + 2))
+
+-- def new (n : ℕ) : ℕ :=
+--   let x := n - 1
+--   Int.toNat <| comprN (λ (x : ℤ) ↦ ((1 + x) * (x / 2)) % 4) (x + 2)
+
+-- def orig := new
+
 def orig (n : ℕ) : ℤ :=
   let x := n - 1
-  ((loop (λ(x y : ℤ) ↦ (((2 + x) % (1 + y)) + 1)) (x) (0) / 2) / 2)
+  loop2 (λ(x y : ℤ) ↦ (x * (0 - ((2 + y) * y)))) (λ(x y : ℤ) ↦ y) (x) (1) (x)
 
-def new (n : ℕ) : ℕ :=
+def new (n : ℕ) : ℤ :=
   let x := n - 1
-  Int.toNat <| ((loop (λ (x y : ℤ) ↦ ((2 + x) % (1 + y)) + 1) x 0 / 2) / 2)
+  loop2 (λ (x y : ℤ) ↦ x * (-((2 + y) * y))) (λ (_x y : ℤ) ↦ y) x 1 x
 
+#eval new 3
+
+--set_option diagnostics true in
+-- set_option Elab.async false
+-- set_option trace.profiler true
+-- set_option trace.profiler.useHeartbeats true
+set_option maxHeartbeats 400000
 theorem foo (n : ℕ) (h : ∀ (n : ℕ), 0 ≤ orig n) : new n = orig n := by
   have h2 : ((orig n) : ℤ).toNat = ((orig n) : ℤ) := by
     refine Int.toNat_of_nonneg (by linarith [h n])
+  try unfold orig new
+  try unfold orig at h h2
+  try rw [← h2]
+  try rfl
   try simp [orig, new]
-  try unfold orig at *
+  try simp [orig] at h h2
   try rw [h2]
   try exact h n
+  try exact h

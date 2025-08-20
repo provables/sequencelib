@@ -1,6 +1,8 @@
 import Sequencelib.Meta.Process
 import Lean
 
+set_option maxHeartbeats 400000
+
 open Lean Elab Meta Term
 
 unsafe
@@ -17,6 +19,8 @@ def main : IO Unit := do
   --let x := ProcessM.run (processPath "Sequencelib/Synthetic/A003010.lean") procState
   let dirPath : System.FilePath := "Sequencelib/Synthetic"
   for entry in (← dirPath.readDir) do
+    if (← entry.path.isDir) then
+      continue
     let path := progressPath entry.path
     if (← path.pathExists) then
       IO.println s!"skipping {entry.path}"

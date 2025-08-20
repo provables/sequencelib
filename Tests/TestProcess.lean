@@ -27,6 +27,8 @@ y
 0
 x
 (x + 1)
+loop (λ (x y : ℤ) ↦ loop (λ (x y : ℤ) ↦ 1 + (2 * (x * y))) 2 y * x) x 1
+loop (λ (x y : ℤ) ↦ x + (x - loop (λ (x y : ℤ) ↦ x * y) y 1)) (x - 1) 1
 -/
 #guard_msgs in
 run_elab do
@@ -48,7 +50,10 @@ run_elab do
     ← `(term|0 - (x + y)),
     ← `(term|x * 0),
     ← `(term|x * 1),
-    ← `(term|(x + 1)/1)
+    ← `(term|(x + 1)/1),
+    ← `(term|loop (λ (x y : ℤ) ↦ loop (λ (x y : ℤ) ↦ 1 + (2 * (x * y))) 2 y * x) x 1),
+    ← `(term|loop (λ(x y : ℤ) ↦ (x + (x - loop (λ(x y : ℤ) ↦ (x * y)) (y) (1)))) ((x - 1)) (1)),
+    --← `(term|loop2 (λ (x y : ℤ) ↦ x * (-((2 + y) * y))) (λ (_x y : ℤ) ↦ y) x 1 x)
   ]
   for e in exprs do
     let x ← ProcessM.run (processTerm e) {s with safeCtx := true}

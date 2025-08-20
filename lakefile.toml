@@ -33,6 +33,11 @@ name = "oeisinfo"
 root = "scripts.GetOEISInfo"
 supportInterpreter = true
 
+[[lean_exe]]
+name = "postprocess"
+root = "scripts.PostProcess"
+supportInterpreter = true
+
 [[lean_lib]]
 name = "Tests"
 

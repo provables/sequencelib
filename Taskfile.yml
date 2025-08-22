@@ -22,7 +22,18 @@ vars:
   # (task `ensure-solutions` will download it to this location if needed)
   SOLUTIONS_FILE_PATH: "/tmp/solutions"
 
+  DOC_GEN4_CACHE_PARENT: "/tmp"
+
 tasks:
+  checkout-cache:
+    desc: Checkout cache of doc-gen4
+    dir: "{{ .DOC_GEN4_CACHE_PARENT }}"
+    cmds:
+      - git clone git@github.com:provables/doc-gen4-cache.git
+      - |
+        cd doc-gen4-cache
+        dvc pull
+
   build:
     desc: Build the library
     cmds:

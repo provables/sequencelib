@@ -322,8 +322,13 @@ def create_doc_index(info, data, doc_file):
 
 
 def full():
+    print("Getting OEIS info from Lean...", end='', flush=True)
     info = get_oeis_info()
+    print("done", flush=True)
+    print("Getting OEIS info from oeis.org...", end='', flush=True)
     data = get_oeis_data(info)
+    print("done", flush=True)
+    print("Starting processing...", flush=True)
     process_all(info)
     create_index(info, data, HERE / "../home_page/sequences.md")
     create_doc_index(info, data, HERE / "../.lake/build/doc/Sequencelib.html")

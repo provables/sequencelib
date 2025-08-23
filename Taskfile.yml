@@ -22,17 +22,33 @@ vars:
   # (task `ensure-solutions` will download it to this location if needed)
   SOLUTIONS_FILE_PATH: "/tmp/solutions"
 
-  DOC_GEN4_CACHE_PARENT: "/tmp"
+  DOC_GEN4_CACHE: "/tmp/doc-gen4-cache"
 
 tasks:
-  checkout-cache:
+  checkout-doc-gen4-cache:
     desc: Checkout cache of doc-gen4
-    dir: "{{ .DOC_GEN4_CACHE_PARENT }}"
+    run: once
     cmds:
-      - git clone git@github.com:provables/doc-gen4-cache.git
+      - git clone git@github.com:provables/doc-gen4-cache.git {{.DOC_GEN4_CACHE}}
       - |
-        cd doc-gen4-cache
+        cd {{.DOC_GEN4_CACHE}}
         dvc pull
+    status:
+      - test -d "{{.DOC_GEN4_CACHE}}/.git"
+
+  ensure-uptodate-doc-gen4-cache:
+    desc: Ensure doc-gen4 cache is up-to-date with the remote
+    run: once
+    dir: "{{ .DOC_GEN4_CACHE }}"
+    cmds:
+      - git pull origin main
+      - dvc pull
+    status:
+      - |
+        git remote update
+        test -z "$(git log main..origin/main --oneline)"
+    deps:
+      - checkout-doc-gen4-cache
 
   build:
     desc: Build the library
@@ -165,6 +181,19 @@ tasks:
     status:
       - test -d {{.OEISDATA_PATH}}/.git
 
+  ensure-uptodate-oeisdata:
+    desc: Ensure oeisdata is up-to-date with the remote
+    run: once
+    dir: "{{.OEISDATA_PATH}}"
+    cmds:
+      - git pull origin main
+    deps:
+      - ensure-oeisdata
+    status:
+      - |
+        git remote update
+        test -z "$(git log main..origin/main --oneline)"
+
   where-is-cache:
     desc: Display location of the update_docs cache
     cmds:
@@ -172,7 +201,7 @@ tasks:
     silent: true
 
   ensure-update-docs-cache:
-    desc: Ensure the cache for update_docs.py is populated
+    desc: Ensure the cache for update_docs.py is populated by creating data locally [EXPENSIVE]
     run: once
     vars:
       CACHE:
@@ -213,7 +242,7 @@ tasks:
       - "{{.RESULT_FILE}}"
       - "{{.PYTHON_RESULT_FILE}}"
     deps:
-      - ensure-oeisdata
+      - ensure-uptodate-oeisdata
 
   synthesize-py:
     method: timestamp
@@ -233,5 +262,5 @@ tasks:
       - Sequencelib/Synthetic/*.lean
     deps:
       - oeis-py
-      - ensure-oeisdata
+      - ensure-uptodate-oeisdata
       - ensure-solutions

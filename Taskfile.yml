@@ -50,6 +50,16 @@ tasks:
     deps:
       - checkout-doc-gen4-cache
 
+  ensure-doc-gen4-cache:
+    desc: Ensure doc-gen4 cache is available for building the page
+    run: once
+    cmds:
+      - rsync -a --exclude='.git' {{.DOC_GEN4_CACHE}}/ .lake/build/doc/
+    deps:
+      - ensure-uptodate-doc-gen4-cache
+    status:
+      - test -z "$(rsync -ani --exclude='.git' --out-format='%i' {{.DOC_GEN4_CACHE}}/ .lake/build/doc/)"
+
   build:
     desc: Build the library
     cmds:
@@ -83,6 +93,7 @@ tasks:
       - "$PYTHON scripts/update_docs.py"
     deps:
       - get-cache
+      - ensure-doc-gen4-cache
 
   serve-docs:
     desc: Serve docs

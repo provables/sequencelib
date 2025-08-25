@@ -3,8 +3,9 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
     shell-utils.url = "github:waltermoreira/shell-utils";
+    taskdep.url = "github:waltermoreira/taskdep";
   };
-  outputs = { self, nixpkgs, flake-utils, shell-utils }: flake-utils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, flake-utils, shell-utils, taskdep }: flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
       shell = shell-utils.myShell.${system};
@@ -76,6 +77,7 @@
           gawk
           wget
           dvc-with-remotes
+          taskdep.packages.${system}.default
         ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
       };
     }

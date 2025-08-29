@@ -27,6 +27,7 @@ MAX_VALUE = 101
 def get_oeis_info():
     result = load_cache("lean_oeis_info.json")
     if not result:
+        print("..cache miss, will invoke `lean` (this will take long time)")
         output = subprocess.run(
             ["lake", "exe", "oeisinfo"],
             cwd=HERE / "..",

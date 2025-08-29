@@ -161,6 +161,7 @@ tasks:
       - "$PYTHON scripts/update_docs.py"
     deps:
       - get-cache
+      - ensure-update-docs-cache-git
       - ensure-doc-gen4-cache
 
   serve-docs:

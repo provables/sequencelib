@@ -3,12 +3,8 @@
 version: '3'
 
 vars:
-  # Path for cloning the oeisdata repository
-  OEISDATA_PATH: "{{.HOME}}/repos/oeisdata"
-  # Path to results from oeis.py
-  RESULT_FILE: "/tmp/oeis_results_all.json"
-  # Path to results from oeis.py (includes python)
-  PYTHON_RESULT_FILE: "/tmp/oeis_python_results_all.json"
+  # ----- User defined variables -----
+
   # Path to directory for Lean files (defaults to `Sequencelib/Synthetic`)
   OUTPUT_DIR: ""
   # Number of sequences to process
@@ -18,11 +14,24 @@ vars:
   # End parameter for synthesize.py
   END: 10
 
-  # Path to location of `solutions` file 
-  # (task `ensure-solutions` will download it to this location if needed)
-  SOLUTIONS_FILE_PATH: "/tmp/solutions"
+  # ----- End of user defined variables -----
 
-  DOC_GEN4_CACHE: "/tmp/doc-gen4-cache"
+  # Avoid changing these variables. The corresponding tasks download or
+  # git sync the files to these locations.
+
+  # Downloaded file `solutions`
+  SOLUTIONS_FILE_PATH: "{{.HOME}}/solutions"
+  # Cloned git repository `doc-gen4-cache`
+  DOC_GEN4_CACHE: "{{.HOME}}/doc-gen4-cache"
+  # Cloned git repository `sequencelib-data`
+  SEQUENCELIB_DATA: "{{.HOME}}/sequencelib-data"
+  # Cloned git repository `oeisdata`
+  OEISDATA_PATH: "{{.HOME}}/repos/oeisdata"
+
+  RESULT_FILE: "{{.SEQUENCELIB_DATA}}/oeis_results_all.json"
+
+  # Is this file needed?
+  PYTHON_RESULT_FILE: "/tmp/oeis_python_results_all.json"
 
 tasks:
   checkout-doc-gen4-cache:
@@ -35,6 +44,17 @@ tasks:
         dvc pull
     status:
       - test -d "{{.DOC_GEN4_CACHE}}/.git"
+
+  checkout-sequencelib-data:
+    desc: Checkout supporting data for Sequencelib
+    run: once
+    cmds:
+      - git clone git@github.com:provables/sequencelib-data.git {{.SEQUENCELIB_DATA}}
+      - |
+        cd {{.SEQUENCELIB_DATA}}
+        dvc pull
+    status:
+      - test -d "{{.SEQUENCELIB_DATA}}/.git"
 
   ensure-uptodate-doc-gen4-cache:
     desc: Ensure doc-gen4 cache is up-to-date with the remote
@@ -50,6 +70,20 @@ tasks:
     deps:
       - checkout-doc-gen4-cache
 
+  ensure-uptodate-sequencelib-data:
+    desc: Ensure sequencelib-data is up-to-date with the remote
+    run: once
+    dir: "{{.SEQUENCELIB_DATA}}"
+    cmds:
+      - git pull origin main
+      - dvc pull
+    status:
+      - |
+        git remote update
+        test -z "$(git log main..origin/main --oneline)"
+    deps:
+      - checkout-sequencelib-data
+
   ensure-doc-gen4-cache:
     desc: Ensure doc-gen4 cache is available for building the page
     run: once
@@ -59,6 +93,40 @@ tasks:
       - ensure-uptodate-doc-gen4-cache
     status:
       - test -z "$(rsync -ani --exclude='.git' --out-format='%i' {{.DOC_GEN4_CACHE}}/ .lake/build/doc/)"
+
+  ensure-update-docs-cache-git:
+    desc: Ensure the cache for update-docs.py is full
+    run: once
+    dir: "{{.SEQUENCELIB_DATA}}"
+    vars:
+      CACHE:
+        sh: "$PYTHON scripts/update_docs.py --where-is"
+    cmds:
+      - cp oeis_data.json lean_oeis_info.json {{.CACHE}}
+    sources:
+      - oeis_data.json
+      - lean_oeis_info.json
+    generates:
+      - "{{.CACHE}}/oeis_data.json"
+      - "{{.CACHE}}/lean_oeis_info.json"
+    deps:
+      - ensure-uptodate-sequencelib-data
+
+  ensure-update-docs-cache:
+    desc: Ensure the cache for update_docs.py is populated by creating data locally [EXPENSIVE]
+    run: once
+    vars:
+      CACHE:
+        sh: "$PYTHON scripts/update_docs.py --where-is"
+    cmds:
+      - "$PYTHON scripts/update_docs.py --only-data"
+    sources:
+      - scripts/update_docs.py
+      - Sequencelib/**/*.lean
+      - exclude: Sequencelib/Meta/**/*.lean
+      - exclude: Sequencelib/Defs/**/*.lean
+    generates:
+      - "{{ .CACHE }}/oeis_data.json"
 
   build:
     desc: Build the library
@@ -210,22 +278,6 @@ tasks:
     cmds:
       - "$PYTHON scripts/update_docs.py --where-is"
     silent: true
-
-  ensure-update-docs-cache:
-    desc: Ensure the cache for update_docs.py is populated by creating data locally [EXPENSIVE]
-    run: once
-    vars:
-      CACHE:
-        sh: "$PYTHON scripts/update_docs.py --where-is"
-    cmds:
-      - "$PYTHON scripts/update_docs.py --only-data"
-    sources:
-      - scripts/update_docs.py
-      - Sequencelib/**/*.lean
-      - exclude: Sequencelib/Meta/**/*.lean
-      - exclude: Sequencelib/Defs/**/*.lean
-    generates:
-      - "{{ .CACHE }}"
 
   ensure-solutions:
     desc: Retrieve solutions file

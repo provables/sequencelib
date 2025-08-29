@@ -354,7 +354,7 @@ def main():
     )
     args = parser.parse_args()
     if args.where_is:
-        print(Path(appdirs.user_cache_dir()) / "sequencelib/oeis_data.json")
+        print(Path(appdirs.user_cache_dir()) / "sequencelib")
     elif args.only_data:
         generate_data()
     else:

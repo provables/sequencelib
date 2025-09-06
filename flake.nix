@@ -3,8 +3,9 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
     shell-utils.url = "github:waltermoreira/shell-utils";
+    synthetic.url = "github:provables/synthetic";
   };
-  outputs = { self, nixpkgs, flake-utils, shell-utils }: flake-utils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, flake-utils, shell-utils, synthetic }: flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
       shell = shell-utils.myShell.${system};
@@ -38,14 +39,40 @@
             appdirs
             networkx
             numpy
+            supervisor
         ];
 
         pythonImportsCheck = [ "leanblueprint" ];
       };
       python = pkgs.python311.withPackages (ps: [ blueprints ]);
       ruby = pkgs.ruby_3_1.withPackages (ps: [ ps.jekyll ]);
-    in
-    {
+      genseq = synthetic.packages.${system}.default;
+      basePackages = with pkgs; [
+          elan
+          go-task
+          bibtool
+          findutils
+          python
+          graphviz
+          rsync
+          jq
+          moreutils
+          git-lfs
+          gawk
+          wget
+          dvc-with-remotes
+          coreutils-full
+          bashInteractive 
+          which 
+          file
+          procps
+      ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
+      devEnvPackages = with pkgs; [
+          texliveFull
+          ghostscript
+          ruby
+        ];
+
       devShell = shell {
         name = "sequencelib";
         extraInitRc = ''
@@ -59,24 +86,43 @@
           lake --version
           export PYTHON=${python}/bin/python
         '';
-        buildInputs = with pkgs; [
-          elan
-          go-task
-          bibtool
-          findutils
-          python
-          graphviz
-          texliveFull
-          ghostscript
-          ruby
-          rsync
-          jq
-          moreutils
-          git-lfs
-          gawk
-          wget
-          dvc-with-remotes
-        ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
+        buildInputs = basePackages ++ devEnvPackages;
+      };
+
+      scripts = pkgs.stdenv.mkDerivation {
+        name = "scripts";
+        src = ./.;
+        buildPhase = ''
+          mkdir -p $out
+          cp -R scripts $out/scripts
+        '';         
+      };
+
+      app = pkgs.writeShellApplication {
+        name = "synthesize";
+        text = ''
+          ${python}/bin/python ${scripts}/scripts/synthesize.py
+        '';
+      };
+    
+      dockerImage = pkgs.dockerTools.buildLayeredImage  {
+          name = "provables/synthesize";
+          tag = "latest";
+          contents = [
+            basePackages
+            scripts
+            app
+            genseq
+          ];
+          created = "now";
+          config.Cmd = [ "${pkgs.bash}/bin/bash" ];
+      };
+
+    in
+    {
+      packages = {
+        docker = dockerImage;
+        default = dockerImage;
       };
     }
   );

@@ -125,6 +125,9 @@
           docker = dockerImage;
           default = dockerImage;
         };
+        devShells = {
+          default = devShell;
+        };
       }
     );
 }

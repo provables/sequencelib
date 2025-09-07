@@ -5,23 +5,24 @@
     shell-utils.url = "github:waltermoreira/shell-utils";
     synthetic.url = "github:provables/synthetic";
   };
-  outputs = { self, nixpkgs, flake-utils, shell-utils, synthetic }: flake-utils.lib.eachDefaultSystem (system:
-    let
-      pkgs = nixpkgs.legacyPackages.${system};
-      shell = shell-utils.myShell.${system};
-      blueprints = pkgs.python311.pkgs.buildPythonPackage {
-        name = "blueprints";
-        src = pkgs.fetchFromGitHub {
-          repo = "leanblueprint";
-          owner = "PatrickMassot";
-          rev = "v0.0.18";
-          sha256 = "sha256-kikeLc0huJHe4Fq207U8sdRrH26bzpo+IVKjsLnrWgY=";
-        };
-        build-system = [
-          pkgs.python311Packages.setuptools
-        ];
+  outputs = { self, nixpkgs, flake-utils, shell-utils, synthetic }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        shell = shell-utils.myShell.${system};
+        blueprints = pkgs.python311.pkgs.buildPythonPackage {
+          name = "blueprints";
+          src = pkgs.fetchFromGitHub {
+            repo = "leanblueprint";
+            owner = "PatrickMassot";
+            rev = "v0.0.18";
+            sha256 = "sha256-kikeLc0huJHe4Fq207U8sdRrH26bzpo+IVKjsLnrWgY=";
+          };
+          build-system = [
+            pkgs.python311Packages.setuptools
+          ];
 
-        dependencies = with pkgs.python311Packages; [
+          dependencies = with pkgs.python311Packages; [
             plasTeX
             plastexshowmore
             plastexdepgraph
@@ -40,14 +41,14 @@
             networkx
             numpy
             supervisor
-        ];
+          ];
 
-        pythonImportsCheck = [ "leanblueprint" ];
-      };
-      python = pkgs.python311.withPackages (ps: [ blueprints ]);
-      ruby = pkgs.ruby_3_1.withPackages (ps: [ ps.jekyll ]);
-      genseq = synthetic.packages.${system}.default;
-      basePackages = with pkgs; [
+          pythonImportsCheck = [ "leanblueprint" ];
+        };
+        python = pkgs.python311.withPackages (ps: [ blueprints ]);
+        ruby = pkgs.ruby_3_1.withPackages (ps: [ ps.jekyll ]);
+        genseq = synthetic.packages.${system}.default;
+        basePackages = with pkgs; [
           elan
           go-task
           bibtool
@@ -62,50 +63,50 @@
           wget
           dvc-with-remotes
           coreutils-full
-          bashInteractive 
-          which 
+          bashInteractive
+          which
           file
           procps
-      ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
-      devEnvPackages = with pkgs; [
+        ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
+        devEnvPackages = with pkgs; [
           texliveFull
           ghostscript
           ruby
         ];
 
-      devShell = shell {
-        name = "sequencelib";
-        extraInitRc = ''
-          TOOLCHAIN=$(elan show)
-          if [ "$TOOLCHAIN" = "no active toolchain" ]; then
-            echo "Setting default toolchain for Lean"
-            elan default stable
-          else
-            echo "Toolchain already configured"
-          fi
-          lake --version
-          export PYTHON=${python}/bin/python
-        '';
-        buildInputs = basePackages ++ devEnvPackages;
-      };
+        devShell = shell {
+          name = "sequencelib";
+          extraInitRc = ''
+            TOOLCHAIN=$(elan show)
+            if [ "$TOOLCHAIN" = "no active toolchain" ]; then
+              echo "Setting default toolchain for Lean"
+              elan default stable
+            else
+              echo "Toolchain already configured"
+            fi
+            lake --version
+            export PYTHON=${python}/bin/python
+          '';
+          buildInputs = basePackages ++ devEnvPackages;
+        };
 
-      scripts = pkgs.stdenv.mkDerivation {
-        name = "scripts";
-        src = ./.;
-        buildPhase = ''
-          mkdir -p $out
-          cp -R scripts $out/scripts
-        '';         
-      };
+        scripts = pkgs.stdenv.mkDerivation {
+          name = "scripts";
+          src = ./.;
+          buildPhase = ''
+            mkdir -p $out
+            cp -R scripts $out/scripts
+          '';
+        };
 
-      app = pkgs.writeShellApplication {
-        name = "synthesize";
-        text = ''
-          ${python}/bin/python ${scripts}/scripts/synthesize.py
-        '';
-      };
-    
-      dockerImage = pkgs.dockerTools.buildLayeredImage  {
+        app = pkgs.writeShellApplication {
+          name = "synthesize";
+          text = ''
+            ${python}/bin/python ${scripts}/scripts/synthesize.py
+          '';
+        };
+
+        dockerImage = pkgs.dockerTools.buildLayeredImage {
           name = "provables/synthesize";
           tag = "latest";
           contents = [
@@ -116,14 +117,14 @@
           ];
           created = "now";
           config.Cmd = [ "${pkgs.bash}/bin/bash" ];
-      };
+        };
 
-    in
-    {
-      packages = {
-        docker = dockerImage;
-        default = dockerImage;
-      };
-    }
-  );
+      in
+      {
+        packages = {
+          docker = dockerImage;
+          default = dockerImage;
+        };
+      }
+    );
 }

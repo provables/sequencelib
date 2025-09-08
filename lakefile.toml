@@ -25,8 +25,8 @@ rev = "v4.20.1"
 
 [[require]]
 name = "gen-seq"
-path = "../synthetic/lean/gen-seq"
-rev = "v4.20.1"
+git = "https://github.com/provables/synthetic"
+rev = "main"
 
 [[lean_exe]]
 name = "oeisinfo"

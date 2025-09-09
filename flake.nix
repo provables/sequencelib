@@ -3,13 +3,17 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
     shell-utils.url = "github:waltermoreira/shell-utils";
+    taskdep.url = "github:waltermoreira/taskdep";
     synthetic.url = "github:provables/synthetic";
+    lean-toolchain.url = "github:provables/lean-toolchain-nix";
   };
-  outputs = { self, nixpkgs, flake-utils, shell-utils, synthetic }:
+  outputs = { self, nixpkgs, flake-utils, shell-utils, synthetic, taskdep, lean-toolchain }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         shell = shell-utils.myShell.${system};
+        toolchain = lean-toolchain.packages.${system}.default;
+        genseq = synthetic.packages.${system}.default;
         blueprints = pkgs.python311.pkgs.buildPythonPackage {
           name = "blueprints";
           src = pkgs.fetchFromGitHub {
@@ -47,7 +51,6 @@
         };
         python = pkgs.python311.withPackages (ps: [ blueprints ]);
         ruby = pkgs.ruby_3_1.withPackages (ps: [ ps.jekyll ]);
-        genseq = synthetic.packages.${system}.default;
         basePackages = with pkgs; [
           elan
           go-task
@@ -67,24 +70,19 @@
           which
           file
           procps
+          taskdep.packages.${system}.default
         ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
         devEnvPackages = with pkgs; [
           texliveFull
           ghostscript
           ruby
+          toolchain
+          genseq
         ];
 
         devShell = shell {
           name = "sequencelib";
           extraInitRc = ''
-            TOOLCHAIN=$(elan show)
-            if [ "$TOOLCHAIN" = "no active toolchain" ]; then
-              echo "Setting default toolchain for Lean"
-              elan default stable
-            else
-              echo "Toolchain already configured"
-            fi
-            lake --version
             export PYTHON=${python}/bin/python
           '';
           buildInputs = basePackages ++ devEnvPackages;

@@ -3,15 +3,19 @@ Script to synthesize .lean files from source code
 definitions using the templating system.
 
 Use the start (-s) and end (-e) flags to control the number of sequences to generate.
+Set the procs (-p) flag when running in parallel to the number of processes being started. (Default is 1). When set,
+the synthesize script will work on the j^th interval of [s, e] (of size (e-s)/p) where j is determined by its process name.
+It assumes its process name is of the form "synthesize_j", as is the case when started by supervisord.
 
 Example invocation:
-python -u synthesize.py -s 1 -e 50 > out-8-9-25.log
+python -u synthesize.py -s 0 -e 50 > out-8-9-25.log
 """
 
 import argparse
 import json
 import os
 from pathlib import Path
+import psutil
 import socket
 import sys
 import time
@@ -54,6 +58,31 @@ class AutoDerivationException(BuildException):
 
 class GenseqCrashedException(Exception):
     pass
+
+
+def get_this_proc_num():
+    proc_name = os.environ.get("SUPERVISOR_PROCESS_NAME")
+    if not proc_name:
+        return 0
+    # if run by supervisord, proc_name should have form "synthesize_<int>"
+    try:
+        return proc_name.split("_")[1]
+    except KeyError:
+        print(
+            f"Could not get process number from process name {proc_name}; split failed!"
+        )
+        sys.exit(1)
+
+
+def split_start_end_procs(start, end, procs, proc_num):
+    """
+    Splits the interval [start, end] into `procs` subintervals of equal length,
+    and returns start and end for the `proc_num`^th subinterval.
+    """
+    length = int((end - start) / procs)
+    new_start = start + (length * proc_num)
+    new_end = start + (length * (proc_num + 1))
+    return new_start, new_end
 
 
 def get_all_seq_data():
@@ -610,11 +639,14 @@ def main():
     )
     parser.add_argument("-s", "--start", type=int, required=True)
     parser.add_argument("-e", "--end", type=int, required=True)
+    parser.add_argument("-p", "--procs", type=int, default=1)
     args = parser.parse_args()
     if args.start > args.end:
         print("Error: start must be <= end.")
         sys.exit(1)
-    process_solutions_file(args.start, args.end, start_time)
+    proc_num = get_this_proc_num()
+    start, end = split_start_end_procs(args.start, args.end, args.procs, proc_num)
+    process_solutions_file(start, end, start_time)
 
 
 if __name__ == "__main__":

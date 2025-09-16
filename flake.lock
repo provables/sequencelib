@@ -636,11 +636,11 @@
         "shell-utils": "shell-utils_4"
       },
       "locked": {
-        "lastModified": 1757305199,
-        "narHash": "sha256-VdlqRFckWtsyqPWsEvVJzu1nAmQ3o0E3fcbwFT+1Yi4=",
+        "lastModified": 1758062210,
+        "narHash": "sha256-U3UIPRKZTRpGJtQuAJKdyT4G/TdyVz+//miQWU06bIQ=",
         "owner": "provables",
         "repo": "synthetic",
-        "rev": "e3f65d64e48e00b7434b1c77c81ddfb3f3ab2bcb",
+        "rev": "71d839da841750d8bdf49e93e69f52884687a756",
         "type": "github"
       },
       "original": {

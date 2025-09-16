@@ -89,19 +89,11 @@
         buildInputs = basePackages ++ devEnvPackages;
       };
 
-      scripts = pkgs.stdenv.mkDerivation {
-        name = "scripts";
-        src = ./.;
-        buildPhase = ''
-          mkdir -p $out
-          cp -R scripts $out/scripts
-        '';         
-      };
-
       app = pkgs.writeShellApplication {
         name = "synthesize";
         text = ''
-          ${python}/bin/python ${scripts}/scripts/synthesize.py
+          export SEQUENCE_LIB_ROOT=${./Sequencelib}
+          ${python}/bin/python ${./scripts}/synthesize.py
         '';
       };
     
@@ -124,6 +116,8 @@
         docker = dockerImage;
         default = dockerImage;
       };
+      
+      devShell = devShell;
     }
   );
 }

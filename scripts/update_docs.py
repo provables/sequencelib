@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 from collections import OrderedDict
 import subprocess
 import argparse
@@ -26,6 +27,7 @@ MAX_VALUE = 101
 def get_oeis_info():
     result = load_cache("lean_oeis_info.json")
     if not result:
+        print("..cache miss, will invoke `lean` (this will take long time)")
         output = subprocess.run(
             ["lake", "exe", "oeisinfo"],
             cwd=HERE / "..",
@@ -278,17 +280,16 @@ def tag_html(text, bg, tooltip=None):
     )
 
 
-def create_index(info, data, out_file):
-    lines = info_to_index(info, data)
+def create_index(info_index, data, out_file):
     out_lines = []
-    for tag in sorted(lines):
+    for tag in sorted(info_index):
         title = data[tag]["title"]
         title = re.sub(r"([\*_])", r"\\\1", title)
-        p = lines[tag]["path"]
+        p = info_index[tag]["path"]
         out_lines.append(
             f'* [{tag}]({{{{ site.url }}}}/docs/{p}) [[OEIS ➚](https://oeis.org/{tag}){{:target="_blank"}}]: {title}'
         )
-        decls = lines[tag]["decls"]
+        decls = info_index[tag]["decls"]
         for decl in sorted(decls, key=lambda x: x["clean_name"]):
             computable_tag = decl["isComputable"]
             computable_html = tag_html(
@@ -303,8 +304,7 @@ def create_index(info, data, out_file):
     out_file.write_text("\n".join(out_lines))
 
 
-def create_doc_index(info, data, doc_file):
-    lines = info_to_index(info, data)
+def create_doc_index(info_index, data, doc_file):
     env = Environment(loader=FileSystemLoader(HERE))
     template = env.get_template("doc_index.html.j2")
     f = open(doc_file)
@@ -314,18 +314,24 @@ def create_doc_index(info, data, doc_file):
         old.extract()
     div = soup.find("div", class_="mod_doc")
     if div is not None:
-        b = BeautifulSoup(template.render(lines=lines), "html5lib").find("div")
+        b = BeautifulSoup(template.render(lines=info_index), "html5lib").find("div")
         if b is not None:
             div.append(b)
     doc_file.write_text(str(soup))
 
 
 def full():
+    print("Getting OEIS info from Lean...", end='', flush=True)
     info = get_oeis_info()
+    print("done", flush=True)
+    print("Getting OEIS info from oeis.org...", end='', flush=True)
     data = get_oeis_data(info)
+    print("done", flush=True)
+    print("Starting processing...", flush=True)
     process_all(info)
-    create_index(info, data, HERE / "../home_page/sequences.md")
-    create_doc_index(info, data, HERE / "../.lake/build/doc/Sequencelib.html")
+    info_index = info_to_index(info, data)
+    create_index(info_index, data, HERE / "../home_page/sequences.md")
+    create_doc_index(info_index, data, HERE / "../.lake/build/doc/Sequencelib.html")
 
 
 def generate_data():
@@ -349,7 +355,7 @@ def main():
     )
     args = parser.parse_args()
     if args.where_is:
-        print(Path(appdirs.user_cache_dir()) / "sequencelib/oeis_data.json")
+        print(Path(appdirs.user_cache_dir()) / "sequencelib")
     elif args.only_data:
         generate_data()
     else:

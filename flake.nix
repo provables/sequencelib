@@ -71,6 +71,7 @@
           file
           procps
           taskdep.packages.${system}.default
+          strace
         ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
         devEnvPackages = with pkgs; [
           texliveFull
@@ -108,11 +109,12 @@
       dockerImage = pkgs.dockerTools.buildLayeredImage  {
           name = "provables/synthesize";
           tag = "latest";
+          maxLayers = 100;
           contents = [
             basePackages
-            scripts
-            app
             genseq
+            app
+            scripts
           ];
           created = "now";
           config.Cmd = [ "${pkgs.bash}/bin/bash" ];

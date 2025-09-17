@@ -12,7 +12,7 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         shell = shell-utils.myShell.${system};
-        toolchain = lean-toolchain.packages.${system}.default;
+        toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_20;
         genseq = synthetic.packages.${system}.default;
         blueprints = pkgs.python311.pkgs.buildPythonPackage {
           name = "blueprints";

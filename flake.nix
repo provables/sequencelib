@@ -86,7 +86,7 @@
           extraInitRc = ''
             export PYTHON=${python}/bin/python
           '';
-          buildInputs = basePackages ++ devEnvPackages;
+          buildInputs = basePackages ++ devEnvPackages ++ [ app ];
         };
 
         scripts = pkgs.stdenv.mkDerivation {
@@ -102,14 +102,13 @@
         name = "synthesize";
         text = ''
           export SEQUENCE_LIB_ROOT=${./Sequencelib}
-          ${python}/bin/python ${./scripts}/synthesize.py
+          ${python}/bin/python -u ${./scripts}/synthesize.py "$@"
         '';
       };
     
       dockerImage = pkgs.dockerTools.buildLayeredImage  {
           name = "provables/synthesize";
           tag = "latest";
-          maxLayers = 100;
           contents = [
             basePackages
             genseq

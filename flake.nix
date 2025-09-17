@@ -71,8 +71,8 @@
           file
           procps
           taskdep.packages.${system}.default
-          strace
-        ] ++ lib.optional stdenv.isDarwin apple-sdk_14;
+        ] ++ lib.optional stdenv.isDarwin apple-sdk_14
+        ++ lib.optional stdenv.isLinux strace ;
         devEnvPackages = with pkgs; [
           texliveFull
           ghostscript
@@ -100,9 +100,16 @@
 
       app = pkgs.writeShellApplication {
         name = "synthesize";
+        runtimeInputs = [ toolchain pkgs.git pkgs.rsync ];
         text = ''
-          export SEQUENCE_LIB_ROOT=${./Sequencelib}
-          ${python}/bin/python -u ${./scripts}/synthesize.py "$@"
+          mkdir -p "$TMP"/sequencelib
+          cd "$TMP"/sequencelib
+          rsync -a ${./.}/ .
+          chmod -R +w "$TMP"/sequencelib
+          lake exe cache get
+          ${python}/bin/python -u ./scripts/synthesize.py "$@"
+          echo "Output at: $TMP/sequencelib/Sequencelib/Synthetic" | \
+            ${pkgs.boxes}/bin/boxes -d shell -p h2v1
         '';
       };
     
@@ -124,6 +131,7 @@
         packages = {
           docker = dockerImage;
           default = dockerImage;
+          app = app;
         };
         devShells = {
           default = devShell;

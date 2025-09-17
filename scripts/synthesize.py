@@ -15,7 +15,6 @@ import argparse
 import json
 import os
 from pathlib import Path
-import psutil
 import socket
 import sys
 import time
@@ -639,14 +638,13 @@ def main():
     )
     parser.add_argument("-s", "--start", type=int, required=True)
     parser.add_argument("-e", "--end", type=int, required=True)
-    parser.add_argument("-p", "--procs", type=int, default=1)
     args = parser.parse_args()
     if args.start > args.end:
         print("Error: start must be <= end.")
         sys.exit(1)
-    proc_num = get_this_proc_num()
-    start, end = split_start_end_procs(args.start, args.end, args.procs, proc_num)
-    process_solutions_file(start, end, start_time)
+    # proc_num = get_this_proc_num()
+    # start, end = split_start_end_procs(args.start, args.end, args.procs, proc_num)
+    process_solutions_file(args.start, args.end, start_time)
 
 
 if __name__ == "__main__":

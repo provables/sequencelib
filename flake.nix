@@ -103,6 +103,8 @@
           name = "synthesize";
           runtimeInputs = [ toolchain pkgs.git pkgs.rsync ];
           text = ''
+            HOME=$(mktemp -d)
+            export HOME
             TMP=$(mktemp -d)
             export TMP
             mkdir -p "$TMP"/sequencelib
@@ -127,6 +129,7 @@
             scripts
           ];
           created = "now";
+          config.Env = [ "PATH=/bin:/sbin:/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/default/sbin" ];
           config.Cmd = [ "${pkgs.bash}/bin/bash" ];
         };
 

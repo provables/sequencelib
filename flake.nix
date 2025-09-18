@@ -101,7 +101,7 @@
 
         app = pkgs.writeShellApplication {
           name = "synthesize";
-          runtimeInputs = [ toolchain pkgs.git pkgs.rsync ];
+          runtimeInputs = [ toolchain pkgs.git pkgs.rsync python ];
           text = ''
             HOME=''${HOME:-$(mktemp -d)}
             export HOME

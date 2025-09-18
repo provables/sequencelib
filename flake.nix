@@ -103,9 +103,9 @@
           name = "synthesize";
           runtimeInputs = [ toolchain pkgs.git pkgs.rsync ];
           text = ''
-            HOME=$(mktemp -d)
+            HOME=''${HOME:-$(mktemp -d)}
             export HOME
-            TMP=$(mktemp -d)
+            TMP=''${TMP:-$(mktemp -d)}
             export TMP
             mkdir -p "$TMP"/sequencelib
             cd "$TMP"/sequencelib

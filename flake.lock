@@ -260,11 +260,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1758046685,
-        "narHash": "sha256-H85GRTDZMrb7h2/HNCiEiYqWIuczlUtysh6g32Uq+5I=",
+        "lastModified": 1758233250,
+        "narHash": "sha256-T+WK5pGUO1fxv3TF5JhbzH0hlpuW1lyUJhGeEiAjAts=",
         "owner": "provables",
         "repo": "nix-docker-img",
-        "rev": "ab2a4858629c2d39c704fae3631b2fb98da90dc5",
+        "rev": "7fcd3c40de648c6d11ed2066b109b2153e7374d6",
         "type": "github"
       },
       "original": {

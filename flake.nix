@@ -99,18 +99,21 @@
           '';
         };
 
+        path = pkgs.writeShellApplication {
+          name = "get-path";
+          text = ''
+            echo ${./.}
+          '';
+        };
+
         app = pkgs.writeShellApplication {
           name = "synthesize";
           runtimeInputs = [ toolchain pkgs.git pkgs.rsync python ];
           text = ''
             HOME=''${HOME:-$(mktemp -d)}
             export HOME
-            TMP=''${TMP:-$(mktemp -d)}
-            export TMP
-            mkdir -p "$TMP"/sequencelib
+            # Client passes a writable TMP
             cd "$TMP"/sequencelib
-            rsync -r ${./.}/ .
-            chmod -R +w "$TMP"/sequencelib
             lake exe cache get
             ${python}/bin/python -u ./scripts/synthesize.py "$@"
             echo "Output at: $TMP/sequencelib/Sequencelib/Synthetic" | \
@@ -126,6 +129,7 @@
             genseq
             supervisedGenseq
             app
+            path
             scripts
           ];
           created = "now";
@@ -139,6 +143,7 @@
           docker = dockerImage;
           default = dockerImage;
           app = app;
+          inherit path;
         };
         devShells = {
           default = devShell;

@@ -14,7 +14,6 @@
         shell = shell-utils.myShell.${system};
         toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_20;
         genseq = synthetic.packages.${system}.default;
-        supervisedGenseq = synthetic.packages.${system}.supervisedGenseq;
         buildNixImage = nix-docker-img.lib.${system}.buildNixImage;
         blueprints = pkgs.python311.pkgs.buildPythonPackage {
           name = "blueprints";
@@ -127,7 +126,6 @@
           contents = [
             basePackages
             genseq
-            supervisedGenseq
             app
             path
             scripts

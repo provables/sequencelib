@@ -34,7 +34,7 @@ SEQUENCE_LIB_ROOT = Path(__file__).parent.parent.resolve()
 print(f"Using {SEQUENCE_LIB_ROOT} for root of sequencelib")
 
 # string to use for the Authors line in the generated .lean files
-AUTHORS = "Walter and Joe's Synth Bot"
+AUTHORS = "Walter Moreira and Joe Stubbs"
 
 # Directory to save generated Lean files to.
 # Needs to be somewhere that has a checkout of SequenceLib.
@@ -263,7 +263,7 @@ def call_genseq_for_lean_source(socket, seq_id, offset, code):
     return result["lean"]
 
 
-def call_genseq_for_lean_eval(socket, lean_source, indexes, values):
+def call_genseq_for_lean_eval(socket, seq_id, lean_source, indexes, values):
     """
     Use the genseq server to evaluate the lean_source function on a set of indexes.
     """
@@ -271,6 +271,7 @@ def call_genseq_for_lean_eval(socket, lean_source, indexes, values):
     msg = {
         "cmd": "eval",
         "args": {
+            "tag": seq_id,
             "src": lean_source,
             "values": pairs,
         },
@@ -336,7 +337,7 @@ def process_sequence(socket, seq_id, offset, code, indexes, values, lean_source=
         lean_source = call_genseq_for_lean_source(socket, seq_id, offset, code)
         print(f"Generated lean code for sequence {seq_id}; source:\n{lean_source}")
     # Next, check if the source function agrees with the values
-    result = call_genseq_for_lean_eval(socket, lean_source, indexes, values)
+    result = call_genseq_for_lean_eval(socket, seq_id, lean_source, indexes, values)
     if not result:
         print(f"Values did not agree for sequence {seq_id}")
         # the function didn't agree, so fail immediately

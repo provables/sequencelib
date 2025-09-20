@@ -1,14 +1,12 @@
 #!/bin/bash
 
-export ALL_OEIS_RESULTS_FILE=/scratch/01837/jstubbs/SequenceLib/oeis_results_all.json
-export SOLUTIONS_FILE_PATH=/scratch/01837/jstubbs/SequenceLib/solutions
+export ALL_OEIS_RESULTS_FILE=$SCRATCH/SequenceLib/oeis_results_all.json
+export SOLUTIONS_FILE_PATH=$SCRATCH/SequenceLib/solutions
 export GENSEQ_PORT=55222
-#export OUTPUT_DIR=/scratch/01837/jstubbs/SequenceLib/synthetic
-
 export ORIGIN=$(get-path)
 echo "Using ORIGIN=$ORIGIN"
 export TMP=$HOME/sequencelib-project
-rsync -r $ORIGIN/ $TMP/ 
+rsync -r $ORIGIN/ $TMP/sequencelib/ 
 
 /bin/genseq -s -p 55222 > genseq.log 2>&1 &
 echo "Started genseq server, now sleeping..."
@@ -23,4 +21,6 @@ echo "about to start synthesize..."
 /bin/synthesize -s 8501 -e 8600 > p6.log 2>&1 &
 /bin/synthesize -s 8601 -e 8700 > p7.log 2>&1 &
 /bin/synthesize -s 8701 -e 8800 > p8.log 2>&1 &
+/bin/synthesize -s 8801 -e 8900 > p9.log 2>&1 &
+/bin/synthesize -s 8901 -e 9000 > p10.log 2>&1 &
 echo "synthesize processes started in background, script exiting..."

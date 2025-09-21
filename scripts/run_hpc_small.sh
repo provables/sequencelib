@@ -31,14 +31,16 @@ echo "Git version: $(git --version)"
 
 echo "Listing of TMP: $(ls -la $TMP)"
 
-synthesize -s 0 -e 3000 > $CONTROL/p1.log 2>&1 &
+synthesize -s 0 -e 30 > $CONTROL/p1.log 2>&1 &
 #echo "synthesize started in background, script exiting..."
-synthesize -s 3001 -e 6000 > $CONTROL/p2.log 2>&1 &
-synthesize -s 6001 -e 9000 > $CONTROL/p3.log 2>&1 &
-synthesize -s 9001 -e 12000 > $CONTROL/p4.log 2>&1 &
-synthesize -s 12001 -e 15000 > $CONTROL/p5.log 2>&1 &
-synthesize -s 15001 -e 18000 > $CONTROL/p6.log 2>&1 &
-synthesize -s 18001 -e 21000 > $CONTROL/p7.log 2>&1 &
-synthesize -s 21001 -e 24000 > $CONTROL/p8.log 2>&1 &
-synthesize -s 24001 -e 27000 > $CONTROL/p9.log 2>&1 &
-synthesize -s 27001 -e 30000 > $CONTROL/p10.log 2>&1 &
+synthesize -s 31 -e 60 > $CONTROL/p2.log 2>&1 &
+synthesize -s 61 -e 90 > $CONTROL/p3.log 2>&1 &
+synthesize -s 91 -e 120 > $CONTROL/p4.log 2>&1 &
+synthesize -s 121 -e 150 > $CONTROL/p5.log 2>&1 &
+synthesize -s 151 -e 180 > $CONTROL/p6.log 2>&1 &
+synthesize -s 181 -e 210 > $CONTROL/p7.log 2>&1 &
+synthesize -s 211 -e 240 > $CONTROL/p8.log 2>&1 &
+synthesize -s 241 -e 270 > $CONTROL/p9.log 2>&1 &
+synthesize -s 271 -e 300 > $CONTROL/p10.log 2>&1 &
+echo "synthesize processes started in background, sleeping..."
+sleep infinity 

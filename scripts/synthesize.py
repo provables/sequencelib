@@ -30,7 +30,7 @@ SOLUTIONS_FILE_PATH = os.environ.get(
     os.path.expanduser("~/gits/lean4/oeis-synthesis/src/results/solutions"),
 )
 
-SEQUENCE_LIB_ROOT = Path(__file__).parent.parent.resolve()
+SEQUENCE_LIB_ROOT = Path(__file__).resolve().parent.parent
 print(f"Using {SEQUENCE_LIB_ROOT} for root of sequencelib")
 
 # string to use for the Authors line in the generated .lean files

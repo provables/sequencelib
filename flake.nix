@@ -112,10 +112,10 @@
             HOME=''${HOME:-$(mktemp -d)}
             export HOME
             # Client passes a writable TMP
-            cd "$TMP"/sequencelib
+            cd "$TMP"
             lake exe cache get
             ${python}/bin/python -u ./scripts/synthesize.py "$@"
-            echo "Output at: $TMP/sequencelib/Sequencelib/Synthetic" | \
+            echo "Output at: $TMP/Sequencelib/Synthetic" | \
               ${pkgs.boxes}/bin/boxes -d shell -p h2v1
           '';
         };

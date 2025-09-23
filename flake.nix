@@ -71,6 +71,7 @@
           which
           file
           procps
+          netcat
         ] ++ lib.optional stdenv.isDarwin apple-sdk_14
         ++ lib.optional stdenv.isLinux strace;
         devEnvPackages = with pkgs; [

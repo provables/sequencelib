@@ -1,28 +1,46 @@
 #!/bin/bash
 
-echo "Starting script, running as: $(id)"
-export CONTROL=$SCRATCH/SL-hpc-control
+echo "Starting run-full script, running as: $(id)"
+export TMP=`mktemp -d`
+echo "Using TMP=$TMP"
+export DATA_ROOT=$SCRATCH/SL-hpc-control
+mkdir -p $TMP/SL-hpc-control/sequencelib-source
+export CONTROL=$TMP/SL-hpc-control
+echo "Using CONTROL=$CONTROL"
 
-export ALL_OEIS_RESULTS_FILE=$CONTROL/oeis_results_all.json
-export SOLUTIONS_FILE_PATH=$CONTROL/solutions
+export ALL_OEIS_RESULTS_FILE=$DATA_ROOT/oeis_results_all.json
+export SOLUTIONS_FILE_PATH=$DATA_ROOT/solutions
 export GENSEQ_PORT=55222
 export ORIGIN=$(get-path)
 echo "Using ORIGIN=$ORIGIN"
 export TMP=$CONTROL/sequencelib-source
+
+echo "Starting rsync..."
 rsync -r $ORIGIN/ $TMP/ 
+
+echo "Finished rsync, fixing permissions and removing Synthetic and .lake dirs..."
 chmod -R u+w $TMP
 rm -rf $TMP/Sequencelib/Synthetic/*
 rm -rf $TMP/.lake
+echo "Permissions fixed and directories removed, now issuing lake exe cache get..."
 
 cd $TMP
 lake exe cache get
 
-genseq -s -p 55222 > $CONTROL/genseq.log 2>&1 &
-echo "Started genseq server, now sleeping..."
-sleep 60
-echo "about to start synthesize..."
+"Finished lake exe cache get, now starting genseq.."
 
-export HOME=$(mktemp -d)
+genseq -s -p 55222 > $CONTROL/genseq.log 2>&1 &
+echo "Started genseq server, now polling with nc to wait for server to be ready..."
+while true; do 
+  nc -z -w1 localhost 55222 >/dev/null 
+  if [[ $? -eq 0 ]]; then 
+    break
+  else
+    sleep 1
+  fi 
+done
+echo "genseq should be listening; about to start synthesize..."
+
 echo "Using a CONTROL of: $CONTROL"
 echo "Using a HOME of: $HOME"
 echo "Using a TMP of: $TMP"
@@ -31,8 +49,8 @@ echo "Git version: $(git --version)"
 
 echo "Listing of TMP: $(ls -la $TMP)"
 
+echo "Starting synthesize processes..." 
 synthesize -s 0 -e 3000 > $CONTROL/p1.log 2>&1 &
-#echo "synthesize started in background, script exiting..."
 synthesize -s 3001 -e 6000 > $CONTROL/p2.log 2>&1 &
 synthesize -s 6001 -e 9000 > $CONTROL/p3.log 2>&1 &
 synthesize -s 9001 -e 12000 > $CONTROL/p4.log 2>&1 &
@@ -42,3 +60,23 @@ synthesize -s 18001 -e 21000 > $CONTROL/p7.log 2>&1 &
 synthesize -s 21001 -e 24000 > $CONTROL/p8.log 2>&1 &
 synthesize -s 24001 -e 27000 > $CONTROL/p9.log 2>&1 &
 synthesize -s 27001 -e 30000 > $CONTROL/p10.log 2>&1 &
+
+echo "synthesize processes started in background, waiting for processes to finish."
+while true; do 
+  pgrep -f synthesize > /dev/null 
+  if [[ $? -eq 1 ]]; then
+    break
+  else
+    sleep 1
+  fi  
+done
+
+echo "synthesize processes have finished"
+
+# copy the Synthetic directory with time-stampe
+now=`date +%s`
+echo "Copying results from $TMP/Sequencelib/Synthetic TO $HOME/sequencelib/Synthetic-$now"
+mkdir -p $HOME/sequencelib/Synthetic-$now
+rsync -avx $TMP/Sequencelib/Synthetic $HOME/sequencelib/Synthetic-$now
+
+echo "Copy complete, script exiting!"

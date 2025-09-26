@@ -20,16 +20,42 @@ You can also find more detailed instructions for developing, building, and contr
 ### Installation of MCP
 The [MCP protocol](https://modelcontextprotocol.io/docs/getting-started/intro) is an open-source standard for connecting AI applications to external systems.
 
-The current MCP server is tested on Claude Desktop. To generate the config file for conenction to this MCP, run
+The current MCP server is tested on Claude Desktop. The `gen_mcp_config.py` script can generate and install the MCP server configuration.
+
+#### Usage
+
+The script supports two modes:
+
+1. **Print JSON configuration** (for manual installation or inspection):
+   ```bash
+   uv run python scripts/gen_mcp_config.py json --genseq-server 143.215.130.123 --genseq-port 8000
+   ```
+
+2. **Automatically install to Claude Desktop** (recommended):
+   ```bash
+   uv run python scripts/gen_mcp_config.py claude --genseq-server 143.215.130.123 --genseq-port 8000
+   ```
+
+#### Options
+
+- `--genseq-server` (required): GenSeq Lean server address 
+- `--genseq-port` (required): GenSeq Lean server port
+- `--server-name` (optional): Custom MCP server name (default: `oeis-mcp`)
+
+#### Examples
+
+```bash
+# Install with default settings
+uv run python scripts/gen_mcp_config.py claude --genseq-server 143.215.130.123 --genseq-port 8000
+
+# Use custom server name
+uv run python scripts/gen_mcp_config.py claude --server-name my-oeis --genseq-server 143.215.130.123 --genseq-port 8000
+
+# Just print the configuration for manual installation
+uv run python scripts/gen_mcp_config.py json --genseq-server 143.215.130.123 --genseq-port 8000
 ```
-uv run python scripts/gen_mcp_config.py --genseq-server 143.215.130.123 --genseq-port 8000
-```
-where `143.215.130.123` and `8000` are the genseq Lean server address and port.
-On Mac, Claude Desktop uses `~/Library/Application Support/Claude/claude_desktop_config.json` to store mcp configurations.
-For example, in order to import the config file to claude desktop, run
-```
-uv run python scripts/gen_mcp_config.py --genseq-server 143.215.130.123 --genseq-port 8000 > "~/Library/Application Support/Claude/claude_desktop_config.json"
-```
+
+The script automatically detects your Claude Desktop configuration directory and merges the new server with any existing MCP servers. After installation, restart Claude Desktop to load the new configuration.
 
 ## Quickstart
 

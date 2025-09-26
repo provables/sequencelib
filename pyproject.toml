@@ -1,0 +1,32 @@
+[project]
+name = "sequencelib"
+version = "0.1.0"
+description = "Lean library for OEIS sequence formalization with MCP server integration"
+authors = [
+    { name = "leyanpan", email = "pxb0702@live.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastmcp>=2.12.0",
+    "pydantic>=2.0.0",
+    "jinja2>=3.0.0",
+]
+
+[project.scripts]
+oeis-mcp = "mcp_server:main"
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["scripts"]
+
+[tool.hatch.build.targets.wheel.sources]
+"scripts" = ""
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

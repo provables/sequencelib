@@ -34,6 +34,22 @@ vars:
   PYTHON_RESULT_FILE: "/tmp/oeis_python_results_all.json"
 
 tasks:
+  check-python:
+    desc: Show python3 and pip versions used by Taskfile
+    cmds:
+      - which python3 || true
+      - python3 -V || true
+      - python3 -m pip --version || true
+
+  install-python-deps:
+    desc: Install required Python dependencies (fastmcp, pydantic)
+    cmds:
+      - |
+        set -euo pipefail
+        echo "Installing via pip for $(python3 -V)..." >&2
+        python3 -m pip install --user --upgrade pip
+        python3 -m pip install --user fastmcp pydantic
+
   checkout-doc-gen4-cache:
     desc: Checkout cache of doc-gen4
     run: once
@@ -257,7 +273,10 @@ tasks:
     desc: Ensure there is a local clone of oeisdata
     run: once
     cmds:
-      - git clone git@github.com:oeis/oeisdata.git {{.OEISDATA_PATH}}
+      - |
+        if [ ! -d "{{.OEISDATA_PATH}}/.git" ]; then
+          git clone git@github.com:oeis/oeisdata.git {{.OEISDATA_PATH}}
+        fi
     status:
       - test -d {{.OEISDATA_PATH}}/.git
 
@@ -325,6 +344,91 @@ tasks:
     generates:
       - Sequencelib/Synthetic/*.lean
     deps:
-      - oeis-py
-      - ensure-uptodate-oeisdata
+      - ensure-uptodate-sequencelib-data
       - ensure-solutions
+
+  mcp:
+    desc: Start OEIS MCP server (stdio transport)
+    cmds:
+      - "$PYTHON scripts/mcp_server.py"
+    env:
+      ALL_OEIS_RESULTS_FILE: "{{.RESULT_FILE}}"
+      SOLUTIONS_FILE_PATH: "{{.SOLUTIONS_FILE_PATH}}"
+      OUTPUT_DIR: "{{.OUTPUT_DIR}}"
+    deps:
+      - ensure-uptodate-sequencelib-data
+
+  mcp-http:
+    desc: Start OEIS MCP server with streamable HTTP transport
+    cmds:
+      - "$PYTHON scripts/mcp_server.py --transport streamable-http --port 8080"
+    env:
+      ALL_OEIS_RESULTS_FILE: "{{.RESULT_FILE}}"
+      SOLUTIONS_FILE_PATH: "{{.SOLUTIONS_FILE_PATH}}"
+      OUTPUT_DIR: "{{.OUTPUT_DIR}}"
+    deps:
+      - ensure-uptodate-sequencelib-data
+
+  mcp-test:
+    desc: Test MCP server tools using mcp-inspector (requires mcp-http to be running)
+    cmds:
+      - |
+        npx @modelcontextprotocol/inspector \
+          bash -c "mcp-proxy --transport streamablehttp http://localhost:8080/mcp" \
+          --cli --method tools/list
+      - echo "Testing get_oeis_data tool with A000001..."
+      - |
+        npx @modelcontextprotocol/inspector \
+          bash -c "mcp-proxy --transport streamablehttp http://localhost:8080/mcp" \
+          --cli --method tools/call --tool-name get_oeis_data --tool-arg sequence_id=A000001
+
+  start-mcp-http-min:
+    desc: Minimal start of MCP server (HTTP, background, port 8080)
+    cmds:
+      - |
+        nohup python3 scripts/mcp_server.py --transport streamable-http --port 8080 \
+          > /tmp/oeis_mcp.log 2>&1 & echo $! > /tmp/oeis_mcp.pid
+        echo "Started MCP HTTP server on :8080 (pid $(cat /tmp/oeis_mcp.pid))"
+
+  stop-mcp:
+    desc: Stop background MCP server started by start-mcp-http-min
+    cmds:
+      - |
+        if [ -f /tmp/oeis_mcp.pid ]; then
+          kill "$(cat /tmp/oeis_mcp.pid)" 2>/dev/null || true
+          rm -f /tmp/oeis_mcp.pid
+          echo "Stopped MCP server. Logs in /tmp/oeis_mcp.log"
+        else
+          echo "No pid file at /tmp/oeis_mcp.pid"
+        fi
+
+  inspect-list-min:
+    desc: List tools via inspector through mcp-proxy (expects server at :8080)
+    cmds:
+      - |
+        npx @modelcontextprotocol/inspector \
+          bash -c "mcp-proxy --transport streamablehttp http://localhost:8080/mcp" \
+          --cli --method tools/list
+
+  verify-oeis-file:
+    desc: Verify RESULT_FILE exists and is readable
+    cmds:
+      - |
+        if [ -r "{{.RESULT_FILE}}" ]; then
+          echo "OK: {{.RESULT_FILE}}"
+        else
+          echo "Missing: {{.RESULT_FILE}}"; exit 1
+        fi
+
+  start-mcp-http-data:
+    desc: Start MCP HTTP server using RESULT_FILE env (background)
+    deps:
+      - verify-oeis-file
+    cmds:
+      - |
+        ALL_OEIS_RESULTS_FILE="{{.RESULT_FILE}}" \
+        SOLUTIONS_FILE_PATH="{{.SOLUTIONS_FILE_PATH}}" \
+        OUTPUT_DIR="{{.OUTPUT_DIR}}" \
+        nohup python3 scripts/mcp_server.py --transport streamable-http --port 8080 \
+          > /tmp/oeis_mcp.log 2>&1 & echo $! > /tmp/oeis_mcp.pid
+        echo "Started MCP HTTP server on :8080 (pid $(cat /tmp/oeis_mcp.pid)) using {{.RESULT_FILE}}"

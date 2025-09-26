@@ -27,6 +27,7 @@ echo "TMP: $TMP"
 
 rsync -r $ORIGIN/ $TMP/
 
+
 echo "Finished rsync, fixing permissions and removing Synthetic and .lake dirs..."
 chmod -R u+w $TMP
 rm -rf $TMP/Sequencelib/Synthetic/*
@@ -37,6 +38,7 @@ cd $TMP
 lake exe cache get
 
 echo "Finished lake exe cache get, now starting genseq.."
+
 # start the genseq server and give it time to load
 cd $TMP
 genseq -p 55222 > genseq.log 2>&1 &
@@ -52,10 +54,7 @@ done
 echo "genseq should be listening; about to start synthesize..."
 
 # run the synthesize script
-synthesize -s 0 -e 15000 > p1.log 2>&1  &
-synthesize -s 15001 -e 30000 > p2.log 2>&1  &
-
-
+synthesize -s 0 -e 10 > p1.log 2>&1  &
 echo "synthesize processes started in background, waiting for processes to finish."
 while true; do 
   pgrep -f synthesize > /dev/null 

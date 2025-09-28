@@ -5,12 +5,11 @@ Authors: Walter and Joe's Synth Bot
 -/
 import Mathlib
 import Sequencelib.Meta
-import GenSeq
 
 open Synth
 
 /-!
-# A000007 sequence 
+# A000007 sequence
 -/
 
 
@@ -21,4 +20,3 @@ def A000007 (x : ℕ) : ℕ :=
   Int.toNat <| if x ≤ 0 then 1 else 0
 
 end Sequence
-

@@ -1,7 +1,6 @@
 import Lean
 import Qq
 import Sequencelib.Meta
-import GenSeq
 import Mathlib
 
 open Synth

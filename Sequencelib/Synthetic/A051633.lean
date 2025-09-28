@@ -5,7 +5,6 @@ Authors: Walter and Joe's Synth Bot
 -/
 import Mathlib
 import Sequencelib.Meta
-import GenSeq
 
 open Synth
 

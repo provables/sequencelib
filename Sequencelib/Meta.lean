@@ -8,3 +8,4 @@ import Sequencelib.Meta.OEISInfo
 import Sequencelib.Meta.DeriveTheorems
 import Sequencelib.Meta.Synthetic
 import Sequencelib.Meta.SyntheticProofs
+import Sequencelib.Meta.Codomain

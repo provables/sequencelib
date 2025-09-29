@@ -6,6 +6,7 @@ Authors: Walter Moreira, Joe Stubbs
 import Lean
 import Qq
 import Sequencelib.Meta.Defs
+import Sequencelib.Meta.Codomain
 
 open Lean Expr Elab Term Tactic Meta Qq
 

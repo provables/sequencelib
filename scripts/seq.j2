@@ -3,36 +3,25 @@ Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
 Authors: {{ authors }}
 -/
-
 import Mathlib
 import Sequencelib.Meta
-import GenSeq
+
 open Synth
 
 /-!
-
-# {{ sequence_name }} sequence 
-{% if sequence_description %}
+# {{ sequence_name }} sequence
+{%- if sequence_description -%}
 {{ sequence_description }}
-{% endif %}
+{%- endif %}
 -/
 
 namespace Sequence
 
-{% if sequence_description %}
+{% if sequence_description -%}
 /-- 
 {{ sequence_description }} 
 -/
-{% endif %}
-{% if max_index %}
-@[OEIS := {{ sequece_tag }}, offset := {{ sequence_offset }}, derive := true, maxIndex := {{ max_index }}]
-{% else %}
-@[OEIS := {{ sequece_tag }}, offset := {{ sequence_offset }}]
-{% endif %}
-{% if source %}
+{%- endif -%}
 {{ source }}
-{% else %}
-def {{ sequence_name }} ℕ → ℕ := 0    /- ToDo: Update function definition. -/
-{% endif %}
 
 end Sequence

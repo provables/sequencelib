@@ -41,6 +41,12 @@ def codomainOf {m : Type → Type} [Monad m] [MonadError m] (e : Expr) : m Codom
   | .forallE _ (.const ``Nat _) (.const ``Int _) _ => pure .Int
   | _ => throwError "Only functions of type ℕ → ℕ or ℕ → ℤ are supported"
 
+def codomainOfDecl {m : Type → Type} [Monad m] [MonadEnv m] [MonadError m] (decl : Name) :
+    m Codomain := do
+  let env ← getEnv
+  let some f := env.find? decl |>.map (·.type) | throwError "Declaration {decl} not found"
+  codomainOf f
+
 instance : ToString Codomain where
   toString
   | .Nat => "ℕ"

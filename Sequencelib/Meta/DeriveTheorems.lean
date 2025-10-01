@@ -85,9 +85,7 @@ def deriveTheorems (decl : Name) (offset maxIndex : Nat) (stx : Syntax) : TermEl
     return
   let mut errors := #[]
   for idx in [offset:maxIndex+1] do
-    let u ← IO.checkCanceled
-    if u then
-      IO.println "Cancelled!!"
+    if (← IO.checkCanceled) then
       errors := errors.push "Cancelled"
       break
     let some msg := (← deriveTheoremForIndex decl idx stx cod) | continue

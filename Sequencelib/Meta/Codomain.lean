@@ -51,3 +51,8 @@ instance : ToString Codomain where
   toString
   | .Nat => "ℕ"
   | .Int => "ℤ"
+
+def intToCod {c : Codomain} (x : Int) : ↑c :=
+  match c with
+  | .Nat => x.toNat
+  | .Int => x

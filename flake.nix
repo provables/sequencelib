@@ -33,7 +33,7 @@
       toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_20;
       genseq = synthetic.packages.${system}.default;
       buildNixImage = nix-docker-img.lib.${system}.buildNixImage;
-      blueprints = pkgs.python311.pkgs.buildPythonPackage {
+      blueprints = pkgs.python313.pkgs.buildPythonPackage {
         name = "blueprints";
         src = pkgs.fetchFromGitHub {
           repo = "leanblueprint";
@@ -42,10 +42,10 @@
           sha256 = "sha256-kikeLc0huJHe4Fq207U8sdRrH26bzpo+IVKjsLnrWgY=";
         };
         build-system = [
-          pkgs.python311Packages.setuptools
+          pkgs.python313Packages.setuptools
         ];
 
-        dependencies = with pkgs.python311Packages; [
+        dependencies = with pkgs.python313Packages; [
           plasTeX
           plastexshowmore
           plastexdepgraph
@@ -68,7 +68,7 @@
 
         pythonImportsCheck = [ "leanblueprint" ];
       };
-      python = pkgs.python311.withPackages (ps: [ blueprints ]);
+      python = pkgs.python313.withPackages (ps: [ blueprints ]);
       ruby = pkgs.ruby_3_1.withPackages (ps: [ ps.jekyll ]);
       basePackages = with pkgs; [
         elan

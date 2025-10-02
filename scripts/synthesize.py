@@ -19,6 +19,9 @@ import socket
 import sys
 import time
 import timeit
+from itertools import batched, count, chain
+from functools import cache
+from collections import OrderedDict
 
 from jinja2 import Environment, BaseLoader, FileSystemLoader
 
@@ -57,6 +60,10 @@ SEQDEF = Environment(loader=BaseLoader).from_string(  # type: ignore
 )
 
 
+class SynthesizeError(Exception):
+    pass
+
+
 class BuildException(Exception):
     pass
 
@@ -67,6 +74,100 @@ class AutoDerivationException(BuildException):
 
 class GenseqCrashedException(Exception):
     pass
+
+
+class Context:
+    def __init__(self):
+        self.socket_file = self.get_socket_file()
+        self.solutions_file = self.get_solutions()
+        self.oeis_data = get_all_seq_data()
+
+    def seq(self, seqid):
+        try:
+            return self.oeis_data[seqid]
+        except KeyError:
+            raise SynthesizeError(f"sequence {seqid} not found in OEIS data")
+
+    def offset(self, seqid):
+        return int(self.seq(seqid).get("offset", 0))
+
+    def values(self, seqid):
+        return self.seq(seqid).get("values", [])
+
+    def b_values(self, seqid):
+        return self.seq(seqid).get("b-file-distrib", [])
+
+    def get_socket_file(self):
+        socket = get_genseq_socket()
+        return socket.makefile("rw")
+
+    def req(self, obj):
+        self.socket_file.write(f"{json.dumps(obj)}\n")
+        self.socket_file.flush()
+        response = self.socket_file.readline()
+        if not response:
+            raise ValueError("server returned empty string (might have crashed)")
+        data = json.loads(response)
+        if not data["status"]:
+            raise SynthesizeError(data["error"])
+        return data["result"]
+
+    def _get_solutions(self):
+        solutions = open(SOLUTIONS_FILE_PATH, "r")
+        for idx, (values_line, code_line) in enumerate(batched(solutions, n=2)):
+            seqid, values = values_line.strip().split(":")
+            values = values.split()
+            seqid = f"A{int(seqid[1:]):06d}"
+            yield idx, seqid, values, code_line.strip()
+
+    def get_solutions(self):
+        return OrderedDict(
+            (seqid, {"index": idx, "dsl_code": code, "values": values})
+            for (idx, seqid, values, code) in self._get_solutions()
+        )
+
+    def values_for_sequence(self, seqid):
+        """Find the fill set of (index, values) that we want to process for this sequence.
+
+        Raise ValueError exception if the sequence is not in the OEIS data.
+        """
+        offset = self.offset(seqid)
+        values = zip(count(offset), self.values(seqid))
+        b_file_values = (tuple(x) for x in self.b_values(seqid))
+        return sorted(set(chain(values, b_file_values)))
+
+    @cache
+    def lean_code(self, seqid):
+        dsl_code = self.solutions_file[seqid]["dsl_code"]
+        offset = self.offset(seqid)
+        return self.req(
+            {
+                "cmd": "gen",
+                "args": {"name": seqid, "offset": offset, "source": dsl_code},
+            }
+        )["lean"]
+
+    def check_values(self, seqid, values):
+        lean_code = self.lean_code(seqid)
+        return self.req(
+            {"cmd": "eval", "args": {"src": lean_code, "values": values, "tag": seqid}}
+        )["eval"]
+
+    def check_full_values(self, seqid):
+        values = list(self.values_for_sequence(seqid))
+        return self.check_values(seqid, values)
+
+    def prove(self, seqid, values):
+        lean_code = self.lean_code(seqid)
+        return self.req(
+            {
+                "cmd": "prove_batch",
+                "args": {"name": seqid, "src": lean_code, "values": values},
+            }
+        )["proved"]
+
+    def process(self, start=0, end=10):
+        pass
 
 
 def get_all_seq_data():

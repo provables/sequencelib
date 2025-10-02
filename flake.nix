@@ -151,6 +151,18 @@
         '';
       };
 
+      interactive = pkgs.writeShellApplication {
+        name = "interactive";
+        runtimeInputs = [ python solutions oeis_results ];
+        text = ''
+          cd scripts
+          export TEMPLATE_PATH=${./scripts}
+          export SOLUTIONS_FILE_PATH=${solutions}/solutions
+          export ALL_OEIS_RESULTS_FILE=${oeis_results}/oeis_results_all.json
+          ipython --config=${./scripts/ipython_config.py}
+        '';
+      };
+
       dockerImage = buildNixImage {
         name = "provables/synthesize";
         tag = "latest";
@@ -174,6 +186,7 @@
         app = app;
         inherit path;
         inherit synthesize;
+        inherit interactive;
       };
       devShells = {
         default = devShell;

@@ -183,7 +183,11 @@ class Context:
         )["proved"]
 
     def process(self, start=0, end=10):
-        pass
+        for seq in self.solutions_file:
+            self.check_full_values(seqid)
+            for i in range(4):
+                vals = self.values_for_sequence(seqid)
+                self.prove(seqid, value=self.values_for_sequence())
 
 
 def get_all_seq_data():
@@ -246,11 +250,6 @@ def get_genseq_socket(port, timeout):
             print("trying to reconnect...")
             time.sleep(1) 
 
-    status = reply["status"]
-    if not status:
-        msg = f"Genseq server not ready; status was: {status}"
-        print(msg)
-        raise Exception(msg)
     # server is ready
     print(f"Connected to genseq server socket.")
     return genseq

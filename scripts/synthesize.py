@@ -22,6 +22,7 @@ import timeit
 from itertools import batched, count, chain
 from functools import cache
 from collections import OrderedDict
+import subprocess
 
 from jinja2 import Environment, BaseLoader, FileSystemLoader
 
@@ -46,6 +47,7 @@ OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/tmp")
 # Configurations for the genseq server
 GENSEQ_SERVER = os.environ.get("GENSEQ_SERVER", "127.0.0.1")
 GENSEQ_PORT = int(os.environ.get("GENSEQ_PORT", 8000))
+GENSEQ_TIMEOUT = 60
 GENSEQ_MAX_BUF_SIZE = int(os.environ.get("GENSEQ_MAX_BUF_SIZE", 1048576))
 
 TEMPLATE_PATH = os.environ.get("TEMPLATE_PATH", HERE)
@@ -77,7 +79,9 @@ class GenseqCrashedException(Exception):
 
 
 class Context:
-    def __init__(self):
+    def __init__(self, port=GENSEQ_PORT, timeout=GENSEQ_TIMEOUT):
+        self.port = port
+        self.timeout = timeout
         self.socket_file = self.get_socket_file()
         self.solutions_file = self.get_solutions()
         self.oeis_data = get_all_seq_data()
@@ -98,13 +102,25 @@ class Context:
         return self.seq(seqid).get("b-file-distrib", [])
 
     def get_socket_file(self):
-        socket = get_genseq_socket()
+        socket = get_genseq_socket(self.port, self.timeout)
         return socket.makefile("rw")
+
+    def kill_genseq(self):
+        subprocess.run(["supervisorctl", "restart", "genseq"], capture_output=True)
+
+    def restart(self):
+        self.kill_genseq()
+        self.socket_file = self.get_socket_file()
 
     def req(self, obj):
         self.socket_file.write(f"{json.dumps(obj)}\n")
         self.socket_file.flush()
-        response = self.socket_file.readline()
+        try:
+            response = self.socket_file.readline()
+        except TimeoutError:
+            print(f"Genseq time-out {obj}")
+            self.restart()
+            raise
         if not response:
             raise ValueError("server returned empty string (might have crashed)")
         data = json.loads(response)
@@ -212,17 +228,24 @@ def process_failed_lean_file(tag, declaration):
     out.write_text(declaration)
 
 
-def get_genseq_socket():
+def get_genseq_socket(port, timeout):
     """
     Returns a client socket bound to the genseq server that is ready for
     sending messages.
     """
     # create an IPv4 socket and bind to the GENSEQ coordinates
-    genseq = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    genseq.connect((GENSEQ_SERVER, GENSEQ_PORT))
+    while True:
+        try:
+            genseq = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            genseq.connect((GENSEQ_SERVER, port))
+            genseq.settimeout(timeout)
+            # send a ready check message to the server
+            reply = genseq_send_recv(genseq, {"cmd": "ready"})
+            break
+        except ConnectionRefusedError:
+            print("trying to reconnect...")
+            time.sleep(1) 
 
-    # send a ready check message to the server
-    reply = genseq_send_recv(genseq, {"cmd": "ready"})
     status = reply["status"]
     if not status:
         msg = f"Genseq server not ready; status was: {status}"
@@ -468,7 +491,7 @@ def process_solutions_file(start, stop, start_time):
     ten_values_proved = 0
     fifty_values_proved = 0
     max_values_proved = 0
-    socket = get_genseq_socket()
+    socket = get_genseq_socket(None, None)
     with open(SOLUTIONS_FILE_PATH, "r") as f:
         idx = 0
         current_seq_id = None
@@ -562,7 +585,7 @@ def process_solutions_file(start, stop, start_time):
                     print(f"Genseq server cashed; waiting for it to restart.")
                     while True:
                         try:
-                            socket = get_genseq_socket()
+                            socket = get_genseq_socket(None, None)
                             break
                         except:
                             time.sleep(1)

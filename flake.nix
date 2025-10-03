@@ -107,7 +107,7 @@
         extraInitRc = ''
           export PYTHON=${python}/bin/python
         '';
-        packages = basePackages ++ devEnvPackages ++ [ app interactive ];
+        packages = basePackages ++ devEnvPackages ++ [ interactive ];
       };
 
       scripts = pkgs.stdenv.mkDerivation {

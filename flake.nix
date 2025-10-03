@@ -159,7 +159,9 @@
           E=$(sgenseq)
           GENSEQ_PORT=$(echo "$E" | cut -d' ' -f1)
           GENSEQ_CTRL=$(echo "$E" | cut -d' ' -f2)
-
+          export GENSEQ_PORT
+          export GENSEQ_CTRL
+          ${synthesize}/bin/synthesize2 "$@"
         '';
       };
 

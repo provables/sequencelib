@@ -182,12 +182,12 @@ class Context:
             }
         )["proved"]
 
-    def process(self, start=0, end=10):
-        for seq in self.solutions_file:
-            self.check_full_values(seqid)
-            for i in range(4):
-                vals = self.values_for_sequence(seqid)
-                self.prove(seqid, value=self.values_for_sequence())
+    # def process(self, start=0, end=10):
+    #     for seq in self.solutions_file:
+    #         self.check_full_values(seqid)
+    #         for i in range(4):
+    #             vals = self.values_for_sequence(seqid)
+    #             self.prove(seqid, value=self.values_for_sequence())
 
 
 def get_all_seq_data():

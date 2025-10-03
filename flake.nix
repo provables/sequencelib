@@ -32,6 +32,7 @@
       shell = shell-utils.myShell.${system};
       toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_20;
       genseq = synthetic.packages.${system}.default;
+      sgenseq = synthetic.packages.${system}.sgenseq;
       buildNixImage = nix-docker-img.lib.${system}.buildNixImage;
       blueprints = pkgs.python313.pkgs.buildPythonPackage {
         name = "blueprints";
@@ -151,11 +152,27 @@
         '';
       };
 
+      synthesizeBundled = pkgs.writeShellApplication {
+        name = "synthesize-bundled";
+        runtimeInputs = [ sgenseq synthesize ];
+        text = ''
+          E=$(sgenseq)
+          GENSEQ_PORT=$(echo "$E" | cut -d' ' -f1)
+          GENSEQ_CTRL=$(echo "$E" | cut -d' ' -f2)
+
+        '';
+      };
+
       interactive = pkgs.writeShellApplication {
         name = "interactive";
-        runtimeInputs = [ python solutions oeis_results ];
+        runtimeInputs = [ python solutions oeis_results sgenseq ];
         text = ''
           cd scripts
+          E=$(sgenseq)
+          GENSEQ_PORT=$(echo "$E" | cut -d' ' -f1)
+          GENSEQ_CTRL=$(echo "$E" | cut -d' ' -f2)
+          export GENSEQ_PORT
+          export GENSEQ_CTRL
           export TEMPLATE_PATH=${./scripts}
           export SOLUTIONS_FILE_PATH=${solutions}/solutions
           export ALL_OEIS_RESULTS_FILE=${oeis_results}/oeis_results_all.json
@@ -187,6 +204,7 @@
         inherit path;
         inherit synthesize;
         inherit interactive;
+        inherit synthesizeBundled;
       };
       devShells = {
         default = devShell;

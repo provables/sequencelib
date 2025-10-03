@@ -47,6 +47,7 @@ OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/tmp")
 # Configurations for the genseq server
 GENSEQ_SERVER = os.environ.get("GENSEQ_SERVER", "127.0.0.1")
 GENSEQ_PORT = int(os.environ.get("GENSEQ_PORT", 8000))
+GENSEQ_CTRL = os.environ.get("GENSEQ_CTRL", "supervisorctl")
 GENSEQ_TIMEOUT = 60
 GENSEQ_MAX_BUF_SIZE = int(os.environ.get("GENSEQ_MAX_BUF_SIZE", 1048576))
 
@@ -106,7 +107,7 @@ class Context:
         return socket.makefile("rw")
 
     def kill_genseq(self):
-        subprocess.run(["supervisorctl", "restart", "genseq"], capture_output=True)
+        subprocess.run([GENSEQ_CTRL, "restart", "genseq"], check=True, capture_output=True)
 
     def restart(self):
         self.kill_genseq()

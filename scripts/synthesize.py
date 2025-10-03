@@ -19,10 +19,12 @@ import socket
 import sys
 import time
 import timeit
-from itertools import batched, count, chain
+from itertools import batched, count, chain, islice
 from functools import cache
 from collections import OrderedDict
 import subprocess
+from enum import Enum
+from math import ceil
 
 from jinja2 import Environment, BaseLoader, FileSystemLoader
 
@@ -79,6 +81,15 @@ class GenseqCrashedException(Exception):
     pass
 
 
+class SeqStatus(Enum):
+    OK = 0
+    WRONG = 1  # did not agree with OEIS
+    WRONG_TIMEOUT = 2  # time out trying to check values
+    FAILED = 3  # compilation or proving values failed
+    NO_VALUES = 4  # compilation succeeded but no theorems were generated
+    PROVE_TIMEOUT = 5  # proving values timed out
+
+
 class Context:
     def __init__(self, port=GENSEQ_PORT, timeout=GENSEQ_TIMEOUT):
         self.port = port
@@ -86,6 +97,8 @@ class Context:
         self.socket_file = self.get_socket_file()
         self.solutions_file = self.get_solutions()
         self.oeis_data = get_all_seq_data()
+        self.stats = {}
+        self.start_time = timeit.default_timer()
 
     def seq(self, seqid):
         try:
@@ -107,7 +120,9 @@ class Context:
         return socket.makefile("rw")
 
     def kill_genseq(self):
-        subprocess.run([GENSEQ_CTRL, "restart", "genseq"], check=True, capture_output=True)
+        subprocess.run(
+            [GENSEQ_CTRL, "restart", "genseq"], check=True, capture_output=True
+        )
 
     def restart(self):
         self.kill_genseq()
@@ -144,7 +159,7 @@ class Context:
         )
 
     def values_for_sequence(self, seqid):
-        """Find the fill set of (index, values) that we want to process for this sequence.
+        """Find the fill set of (index, values) that we want to check for this sequence.
 
         Raise ValueError exception if the sequence is not in the OEIS data.
         """
@@ -152,6 +167,13 @@ class Context:
         values = zip(count(offset), self.values(seqid))
         b_file_values = (tuple(x) for x in self.b_values(seqid))
         return sorted(set(chain(values, b_file_values)))
+
+    def values_to_prove(self, seqid):
+        """Construct the set of values (index, value | None) to prove for this sequence."""
+
+        values = dict(self.values_for_sequence(seqid))
+        m = min(max(values.keys()), 100)
+        return list(reversed([(n, values.get(n)) for n in range(self.offset(seqid), m + 1)]))
 
     @cache
     def lean_code(self, seqid):
@@ -171,24 +193,67 @@ class Context:
         )["eval"]
 
     def check_full_values(self, seqid):
-        values = list(self.values_for_sequence(seqid))
-        return self.check_values(seqid, values)
+        try:
+            values = list(self.values_for_sequence(seqid))
+            for idx, value in values:
+                if not self.check_values(seqid, [[idx, value]]):
+                    return SeqStatus.WRONG
+            return SeqStatus.OK
+        except TimeoutError:
+            return SeqStatus.WRONG_TIMEOUT
+
 
     def prove(self, seqid, values):
-        lean_code = self.lean_code(seqid)
-        return self.req(
-            {
-                "cmd": "prove_batch",
-                "args": {"name": seqid, "src": lean_code, "values": values},
-            }
-        )["proved"]
+        try:
+            lean_code = self.lean_code(seqid)
+            if self.req(
+                {
+                    "cmd": "prove_batch",
+                    "args": {"name": seqid, "src": lean_code, "values": values},
+                }
+            )["proved"]:
+                return SeqStatus.OK
+            else:
+                return SeqStatus.FAILED
+        except TimeoutError:
+            return SeqStatus.PROVE_TIMEOUT
 
-    # def process(self, start=0, end=10):
-    #     for seq in self.solutions_file:
-    #         self.check_full_values(seqid)
-    #         for i in range(4):
-    #             vals = self.values_for_sequence(seqid)
-    #             self.prove(seqid, value=self.values_for_sequence())
+    def save_file(self, seqid, status, max_index=None):
+        print(f"Saving {seqid} with {status} and max_index={max_index}")
+        pass
+
+    def process(self, start=0, end=None):
+        for seqid in islice(self.solutions_file, start, end):
+            print(f"------------------------------------------")
+            print(f"Processing sequence {seqid} [index: {self.solutions_file[seqid]['index']:5}]")
+            print(f"------------------------------------------")
+            if self.offset(seqid) < 0:
+                print(f"Skipping {seqid} because of negative offset")
+                continue
+            status = self.check_full_values(seqid)
+            if status != SeqStatus.OK:
+                print(f"Sequence {seqid} did not agree with status: {status}")
+                self.save_file(seqid, status=status)
+                continue
+            values = self.values_to_prove(seqid)
+            # values cannot be empty, because we have at leas the values from the OEIS
+            # entry, even if the b-file is empty.
+            assert values
+            total = len(values)
+            for i, limit in enumerate([total, total / 2, total / 4]):
+                # TODO: convert to a function
+                to_prove = (up_to, _), *_ = values[-ceil(limit):]
+                print(f"Iteration #{i}. Trying to prove up to {up_to}... ", end='')
+                status = self.prove(seqid, to_prove)
+                if status == SeqStatus.OK:
+                    print("success")
+                    self.save_file(seqid, SeqStatus.OK, max_index=up_to)
+                    break
+                print("failed")
+                self.save_file(seqid, status)
+            else:
+                print("Giving up in generating theorems")
+                self.save_file(seqid, SeqStatus.NO_VALUES)
 
 
 def get_all_seq_data():
@@ -249,7 +314,7 @@ def get_genseq_socket(port, timeout):
             break
         except ConnectionRefusedError:
             print("trying to reconnect...")
-            time.sleep(1) 
+            time.sleep(1)
 
     # server is ready
     print(f"Connected to genseq server socket.")
@@ -636,11 +701,13 @@ def main():
     )
     parser.add_argument("-s", "--start", type=int, required=True)
     parser.add_argument("-e", "--end", type=int, required=True)
+    parser.add_argument("-t", "--timeout", type=int, required=True)
     args = parser.parse_args()
     if args.start > args.end:
         print("Error: start must be <= end.")
         sys.exit(1)
-    process_solutions_file(args.start, args.end, start_time)
+    c = Context(timeout=args.timeout)
+    c.process(args.start, args.end)
 
 
 if __name__ == "__main__":

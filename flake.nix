@@ -126,20 +126,8 @@
         '';
       };
 
-      app = pkgs.writeShellApplication {
-        name = "synthesize";
-        runtimeInputs = [ toolchain pkgs.git pkgs.rsync python ];
-        text = ''
-          HOME=''${HOME:-$(mktemp -d)}
-          export HOME
-          ${python}/bin/python -u "$TMP/scripts/synthesize.py" "$@"
-          echo "Output at: $TMP/Sequencelib/Synthetic" | \
-            ${pkgs.boxes}/bin/boxes -d shell -p h2v1
-        '';
-      };
-
       synthesize = pkgs.writeShellApplication {
-        name = "synthesize2";
+        name = "synthesize";
         runtimeInputs = [ python solutions oeis_results ];
         text = ''
           export TEMPLATE_PATH=${./scripts}
@@ -161,7 +149,9 @@
           GENSEQ_CTRL=$(echo "$E" | cut -d' ' -f2)
           export GENSEQ_PORT
           export GENSEQ_CTRL
-          ${synthesize}/bin/synthesize2 "$@"
+          ${synthesize}/bin/synthesize "$@"
+          "$GENSEQ_CTRL" stop all
+          "$GENSEQ_CTRL" shutdown
         '';
       };
 
@@ -179,6 +169,8 @@
           export SOLUTIONS_FILE_PATH=${solutions}/solutions
           export ALL_OEIS_RESULTS_FILE=${oeis_results}/oeis_results_all.json
           ipython --config=${./scripts/ipython_config.py}
+          "$GENSEQ_CTRL" stop all
+          "$GENSEQ_CTRL" shutdown
         '';
       };
 
@@ -188,9 +180,10 @@
         contents = [
           basePackages
           genseq
-          app
           path
           scripts
+          synthesizeBundled
+          interactive
         ];
         created = "now";
         config.Env = [ "PATH=/bin:/sbin:/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/default/sbin" ];
@@ -202,7 +195,6 @@
       packages = {
         docker = dockerImage;
         default = dockerImage;
-        app = app;
         inherit path;
         inherit synthesize;
         inherit interactive;

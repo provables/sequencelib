@@ -549,11 +549,11 @@
         "shell-utils": "shell-utils_4"
       },
       "locked": {
-        "lastModified": 1759556627,
-        "narHash": "sha256-ko5t0o9hSPnWyw6B7BAM+waVBAcOeSPnrqJ3qH19HmU=",
+        "lastModified": 1759557858,
+        "narHash": "sha256-0RL/7X6jNCw7HfuGW4K+thFa1WIzMdW7MEuyq73VCLk=",
         "owner": "provables",
         "repo": "synthetic",
-        "rev": "27497033706fc57f1045ce72af66aa0cecde343a",
+        "rev": "57c2721b9888278fa33bbdcc5dea516c3de2365c",
         "type": "github"
       },
       "original": {

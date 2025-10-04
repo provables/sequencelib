@@ -6,7 +6,7 @@
 start=`date`
 echo "Script is starting at time: $start"
 
-export OUTPUT_PATH=/results/solutions
+export OUTPUT_DIR=/results/solutions
 # run the synthesize script
 synthesize-bundled -s 0 -e 15000 -t 60 > p1.log 2>&1  &
 synthesize-bundled -s 15001 -e 30000 -t 60 > p2.log 2>&1  &

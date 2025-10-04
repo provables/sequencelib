@@ -23,7 +23,7 @@ namespace Sequence
 -/
 {%- endif -%}
 {% if max_index -%}
-@[OEIS := {{ sequence_name }}, offset := {{ offset }}, max_index := {{ max_index }}, derive := true]
+@[OEIS := {{ sequence_name }}, offset := {{ offset }}, maxIndex := {{ max_index }}, derive := true]
 {%- else %}
 @[OEIS := {{ sequence_name }}, offset := {{ offset }}]
 {%- endif %}

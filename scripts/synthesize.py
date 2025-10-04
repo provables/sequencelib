@@ -146,11 +146,14 @@ class Context:
         try:
             response = self.socket_file.readline()
         except TimeoutError:
-            print(f"Genseq time-out {obj}")
+            print(f"Genseq time-out {obj}. Restarting...")
             self.restart()
             raise
         if not response:
-            raise ValueError("server returned empty string (might have crashed)")
+            print("Server returned empty string (might have crashed). Restarting...")
+            self.restart()
+            # TODO: Do we want a different exception and a different status for recording this?
+            raise TimeoutError()
         data = json.loads(response)
         if not data["status"]:
             raise SynthesizeError(data["error"])
@@ -246,7 +249,7 @@ class Context:
         if status == SeqStatus.OK:
             if proved_max:
                 self.stats["proof_max_theorems"] += 1
-            elif max_index > 0:
+            elif max_index > 0: # type: ignore
                 self.stats["proof_some_less_max_theorems"] += 1
         if status == SeqStatus.OK or status == SeqStatus.NO_VALUES:
             print(f"Writing file {seqid}.lean to  {OUTPUT_DIR}.")

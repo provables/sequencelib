@@ -333,6 +333,7 @@ class Context:
                 print("Giving up in generating theorems")
                 self.save_file(seqid, SeqStatus.NO_VALUES)
                 self.stats["total_processed"] += 1
+        self.write_report()
 
 
 def get_all_seq_data():

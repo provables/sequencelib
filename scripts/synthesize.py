@@ -89,6 +89,8 @@ class SeqStatus(Enum):
     FAILED = 3  # compilation or proving values failed
     NO_VALUES = 4  # compilation succeeded but no theorems were generated
     PROVE_TIMEOUT = 5  # proving values timed out
+    CRASHED_PROVING = 6  # Genseq crashed trying prove theorems
+    CRASHED_CHECKING = 7  # Genseq crashed trying to check the values
 
 
 class Context:
@@ -99,6 +101,7 @@ class Context:
         self.solutions_file = self.get_solutions()
         self.oeis_data = get_all_seq_data()
         self.stats = {
+            "crashed": 0,
             "total_processed": 0,
             "negative_offset_skip": 0,
             "not_agreeing_wrong": 0,
@@ -153,7 +156,7 @@ class Context:
             print("Server returned empty string (might have crashed). Restarting...")
             self.restart()
             # TODO: Do we want a different exception and a different status for recording this?
-            raise TimeoutError()
+            raise GenseqCrashedException()
         data = json.loads(response)
         if not data["status"]:
             raise SynthesizeError(data["error"])
@@ -218,6 +221,10 @@ class Context:
             return SeqStatus.OK
         except TimeoutError:
             return SeqStatus.WRONG_TIMEOUT
+        except GenseqCrashedException:
+            return SeqStatus.CRASHED_CHECKING
+        except SynthesizeError:
+            return SeqStatus.WRONG
 
     def prove(self, seqid, values):
         try:
@@ -233,14 +240,20 @@ class Context:
                 return SeqStatus.FAILED
         except TimeoutError:
             return SeqStatus.PROVE_TIMEOUT
+        except GenseqCrashedException:
+            return SeqStatus.CRASHED_PROVING
+        except SynthesizeError:
+            return SeqStatus.FAILED
 
     def save_file(self, seqid, status, max_index=None, proved_max=False):
         print(f"Updating stats for {seqid} with {status} and max_index={max_index}")
-        if status == SeqStatus.WRONG:
+        if status == SeqStatus.CRASHED_PROVING or status == SeqStatus.CRASHED_CHECKING:
+            self.stats["crashed"] += 1
+        if status == SeqStatus.WRONG or status == SeqStatus.CRASHED_CHECKING:
             self.stats["not_agreeing_wrong"] += 1
         if status == SeqStatus.WRONG_TIMEOUT:
             self.stats["not_agreeing_timeout"] += 1
-        if status == SeqStatus.FAILED:
+        if status == SeqStatus.FAILED or status == SeqStatus.CRASHED_PROVING:
             self.stats["proof_failed"] += 1
         if status == SeqStatus.PROVE_TIMEOUT:
             self.stats["proof_timout"] += 1
@@ -249,11 +262,17 @@ class Context:
         if status == SeqStatus.OK:
             if proved_max:
                 self.stats["proof_max_theorems"] += 1
-            elif max_index > 0: # type: ignore
+            elif max_index > 0:  # type: ignore
                 self.stats["proof_some_less_max_theorems"] += 1
         if status == SeqStatus.OK or status == SeqStatus.NO_VALUES:
             print(f"Writing file {seqid}.lean to  {OUTPUT_DIR}.")
-            write_file(declaration=self.lean_code(seqid), tag=seqid, authors=AUTHORS)
+            write_file(
+                declaration=self.lean_code(seqid),
+                tag=seqid,
+                authors=AUTHORS,
+                offset=self.offset(seqid),
+                max_index=max_index,
+            )
 
     def write_report(self):
         if self.stats["total_processed"] == 0:
@@ -475,14 +494,20 @@ def call_genseq_for_lean_eval(socket, seq_id, lean_source, indexes, values):
     return result["eval"]
 
 
-def write_file(declaration, tag, authors):
+def write_file(declaration, tag, authors, offset, max_index=None):
     """Create Lean file from declaration."""
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_PATH))
     template = env.get_template("seq.j2")
     out = Path(OUTPUT_DIR) / f"{tag}.lean"
     out.write_text(
-        template.render(sequence_name=tag, authors=authors, source=declaration)
+        template.render(
+            sequence_name=tag,
+            authors=authors,
+            source=declaration,
+            offset=offset,
+            max_index=max_index,
+        )
     )
 
 
@@ -543,7 +568,7 @@ def process_sequence(socket, seq_id, offset, code, indexes, values, lean_source=
             print(f"{declaration}")
             compile_lean(socket, declaration)
             print(f"Lean declaration compiled for {seq_id}")
-            write_file(declaration, tag, authors)
+            write_file(declaration, tag, authors, offeset, max_index)
             if not max_index:
                 return times == 1, "0"
             return times == 1, max_index

@@ -232,7 +232,7 @@ class Context:
             return SeqStatus.PROVE_TIMEOUT
 
     def save_file(self, seqid, status, max_index=None, proved_max=False):
-        print(f"Updating stats for {seqid} wjth {status} and max_index={max_index}")
+        print(f"Updating stats for {seqid} with {status} and max_index={max_index}")
         if status == SeqStatus.WRONG:
             self.stats["not_agreeing_wrong"] += 1
         if status == SeqStatus.WRONG_TIMEOUT:

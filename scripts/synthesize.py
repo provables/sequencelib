@@ -12,6 +12,7 @@ python -u synthesize.py -s 0 -e 50 > out-8-9-25.log
 """
 
 import argparse
+import datetime
 import json
 import os
 from pathlib import Path
@@ -97,8 +98,19 @@ class Context:
         self.socket_file = self.get_socket_file()
         self.solutions_file = self.get_solutions()
         self.oeis_data = get_all_seq_data()
-        self.stats = {}
+        self.stats = {
+            "total_processed": 0,
+            "negative_offset_skip": 0,
+            "not_agreeing_wrong": 0,
+            "not_agreeing_timeout": 0,
+            "proof_failed": 0,
+            "proof_timout": 0,
+            "proof_no_theorems": 0,
+            "proof_some_less_max_theorems": 0,
+            "proof_max_theorems": 0,
+        }
         self.start_time = timeit.default_timer()
+        self.report_frequency = 20
 
     def seq(self, seqid):
         try:
@@ -173,7 +185,9 @@ class Context:
 
         values = dict(self.values_for_sequence(seqid))
         m = min(max(values.keys()), 100)
-        return list(reversed([(n, values.get(n)) for n in range(self.offset(seqid), m + 1)]))
+        return list(
+            reversed([(n, values.get(n)) for n in range(self.offset(seqid), m + 1)])
+        )
 
     @cache
     def lean_code(self, seqid):
@@ -202,7 +216,6 @@ class Context:
         except TimeoutError:
             return SeqStatus.WRONG_TIMEOUT
 
-
     def prove(self, seqid, values):
         try:
             lean_code = self.lean_code(seqid)
@@ -218,22 +231,62 @@ class Context:
         except TimeoutError:
             return SeqStatus.PROVE_TIMEOUT
 
-    def save_file(self, seqid, status, max_index=None):
-        print(f"Saving {seqid} with {status} and max_index={max_index}")
-        pass
+    def save_file(self, seqid, status, max_index=None, proved_max=False):
+        print(f"Updating stats for {seqid} wjth {status} and max_index={max_index}")
+        if status == SeqStatus.WRONG:
+            self.stats["not_agreeing_wrong"] += 1
+        if status == SeqStatus.WRONG_TIMEOUT:
+            self.stats["not_agreeing_timeout"] += 1
+        if status == SeqStatus.FAILED:
+            self.stats["proof_failed"] += 1
+        if status == SeqStatus.PROVE_TIMEOUT:
+            self.stats["proof_timout"] += 1
+        if status == SeqStatus.NO_VALUES:
+            self.stats["proof_no_theorems"] += 1
+        if status == SeqStatus.OK:
+            if proved_max:
+                self.stats["proof_max_theorems"] += 1
+            elif max_index > 0:
+                self.stats["proof_some_less_max_theorems"] += 1
+        if status == SeqStatus.OK or status == SeqStatus.NO_VALUES:
+            print(f"Writing file {seqid}.lean to  {OUTPUT_DIR}.")
+            write_file(declaration=self.lean_code(seqid), tag=seqid, authors=AUTHORS)
+
+    def write_report(self):
+        if self.stats["total_processed"] == 0:
+            print(
+                f"OEIS Sequence Generator Starting; Start time: {datetime.datetime.now()}"
+            )
+            print(f"Output will be written to: {OUTPUT_DIR}")
+            return
+
+        current_time = timeit.default_timer()
+        total_time = current_time - self.start_time
+        print(f"\n=================================")
+        print(f"REPORT. Current total runtime: {total_time} (seconds)")
+        for k, v in self.stats.items():
+            print(f"{k}: {v}")
+        print("====================================\n")
 
     def process(self, start=0, end=None):
         for seqid in islice(self.solutions_file, start, end):
+            if self.stats["total_processed"] % self.report_frequency == 0:
+                self.write_report()
             print(f"------------------------------------------")
-            print(f"Processing sequence {seqid} [index: {self.solutions_file[seqid]['index']:5}]")
+            print(
+                f"Processing sequence {seqid} [index: {self.solutions_file[seqid]['index']:5}]"
+            )
             print(f"------------------------------------------")
             if self.offset(seqid) < 0:
                 print(f"Skipping {seqid} because of negative offset")
+                self.stats["negative_offset_skip"] += 1
+                self.stats["total_processed"] += 1
                 continue
             status = self.check_full_values(seqid)
             if status != SeqStatus.OK:
                 print(f"Sequence {seqid} did not agree with status: {status}")
                 self.save_file(seqid, status=status)
+                self.stats["total_processed"] += 1
                 continue
             values = self.values_to_prove(seqid)
             # values cannot be empty, because we have at leas the values from the OEIS
@@ -242,18 +295,22 @@ class Context:
             total = len(values)
             for i, limit in enumerate([total, total / 2, total / 4]):
                 # TODO: convert to a function
-                to_prove = (up_to, _), *_ = values[-ceil(limit):]
-                print(f"Iteration #{i}. Trying to prove up to {up_to}... ", end='')
+                to_prove = (up_to, _), *_ = values[-ceil(limit) :]
+                print(f"Iteration #{i}. Trying to prove up to {up_to}... ", end="")
                 status = self.prove(seqid, to_prove)
                 if status == SeqStatus.OK:
                     print("success")
-                    self.save_file(seqid, SeqStatus.OK, max_index=up_to)
+                    self.save_file(
+                        seqid, SeqStatus.OK, max_index=up_to, proved_max=i == 0
+                    )
+                    self.stats["total_processed"] += 1
                     break
                 print("failed")
                 self.save_file(seqid, status)
             else:
                 print("Giving up in generating theorems")
                 self.save_file(seqid, SeqStatus.NO_VALUES)
+                self.stats["total_processed"] += 1
 
 
 def get_all_seq_data():
@@ -415,7 +472,7 @@ def call_genseq_for_lean_eval(socket, seq_id, lean_source, indexes, values):
     return result["eval"]
 
 
-def save_file(declaration, tag, authors):
+def write_file(declaration, tag, authors):
     """Create Lean file from declaration."""
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_PATH))
@@ -483,7 +540,7 @@ def process_sequence(socket, seq_id, offset, code, indexes, values, lean_source=
             print(f"{declaration}")
             compile_lean(socket, declaration)
             print(f"Lean declaration compiled for {seq_id}")
-            save_file(declaration, tag, authors)
+            write_file(declaration, tag, authors)
             if not max_index:
                 return times == 1, "0"
             return times == 1, max_index

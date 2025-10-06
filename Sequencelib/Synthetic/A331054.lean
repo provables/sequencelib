@@ -1,0 +1,21 @@
+/-
+Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
+Released under CC BY-SA 4.0 license as described in the file LICENSE.
+Authors: Walter Moreira and Joe Stubbs
+-/
+import Mathlib
+import Sequencelib.Meta
+
+open Synth
+
+/-!
+# A331054 sequence
+-/
+
+namespace Sequence
+
+@[OEIS := A331054, offset := 0, maxIndex := 4, derive := true]
+def A331054 (x : ℕ) : ℕ :=
+  Int.toNat <| loop (λ (x _y) ↦ x * x) 1 (loop2 (λ (x y) ↦ (x + x) + y) (λ (x _y) ↦ x) x 1 0) % (loop (λ (x _y) ↦ (2 + x) + x) 2 x - 1)
+
+end Sequence

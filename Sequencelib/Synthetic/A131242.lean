@@ -1,0 +1,21 @@
+/-
+Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
+Released under CC BY-SA 4.0 license as described in the file LICENSE.
+Authors: Walter Moreira and Joe Stubbs
+-/
+import Mathlib
+import Sequencelib.Meta
+
+open Synth
+
+/-!
+# A131242 sequence
+-/
+
+namespace Sequence
+
+@[OEIS := A131242, offset := 0, maxIndex := 100, derive := true]
+def A131242 (x : ℕ) : ℕ :=
+  Int.toNat <| loop (λ (x y) ↦ ((y / 2) / (1 + 4)) + x) x 0
+
+end Sequence

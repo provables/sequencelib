@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -9,16 +9,14 @@ import Sequencelib.Meta
 open Synth
 
 /-!
-# A217748 sequence 
+# A217748 sequence
 -/
-
 
 namespace Sequence
 
-@[OEIS := A217748, offset := 3, derive := true, maxIndex := 50]
+@[OEIS := A217748, offset := 3, maxIndex := 52, derive := true]
 def A217748 (n : ℕ) : ℕ :=
   let x := n - 3
-  Int.toNat <| (((2 + x) * x) + if x ≤ 0 then 1 else x)
+  Int.toNat <| ((2 + x) * x) + if x ≤ 0 then 1 else x
 
 end Sequence
-

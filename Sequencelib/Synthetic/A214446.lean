@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -9,16 +9,14 @@ import Sequencelib.Meta
 open Synth
 
 /-!
-# A214446 sequence 
+# A214446 sequence
 -/
-
 
 namespace Sequence
 
-@[OEIS := A214446, offset := 1, derive := true, maxIndex := 37]
+@[OEIS := A214446, offset := 1, maxIndex := 37, derive := true]
 def A214446 (n : ℕ) : ℤ :=
   let x := n - 1
-  ((1 + x) * ((x * x) - 2))
+  (1 + x) * ((x * x) - 2)
 
 end Sequence
-

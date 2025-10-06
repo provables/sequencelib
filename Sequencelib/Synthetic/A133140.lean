@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -9,15 +9,13 @@ import Sequencelib.Meta
 open Synth
 
 /-!
-# A133140 sequence 
+# A133140 sequence
 -/
-
 
 namespace Sequence
 
-@[OEIS := A133140, offset := 0, derive := true, maxIndex := 33]
+@[OEIS := A133140, offset := 0, maxIndex := 32, derive := true]
 def A133140 (x : ℕ) : ℕ :=
-  Int.toNat <| (2 + loop2 (λ (_x y : ℤ) ↦ y) (λ (_x y : ℤ) ↦ y + y) x 0 2)
+  Int.toNat <| 2 + loop2 (λ (_x y) ↦ y) (λ (_x y) ↦ y + y) x 0 2
 
 end Sequence
-

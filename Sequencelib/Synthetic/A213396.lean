@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -9,15 +9,13 @@ import Sequencelib.Meta
 open Synth
 
 /-!
-# A213396 sequence 
+# A213396 sequence
 -/
-
 
 namespace Sequence
 
-@[OEIS := A213396, offset := 0, derive := true, maxIndex := 42]
+@[OEIS := A213396, offset := 0, maxIndex := 41, derive := true]
 def A213396 (x : ℕ) : ℕ :=
-  Int.toNat <| (((1 + ((x * x) + x)) * (2 + x)) / 3)
+  Int.toNat <| ((1 + ((x * x) + x)) * (2 + x)) / 3
 
 end Sequence
-

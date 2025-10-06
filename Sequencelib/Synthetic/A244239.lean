@@ -1,0 +1,22 @@
+/-
+Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
+Released under CC BY-SA 4.0 license as described in the file LICENSE.
+Authors: Walter Moreira and Joe Stubbs
+-/
+import Mathlib
+import Sequencelib.Meta
+
+open Synth
+
+/-!
+# A244239 sequence
+-/
+
+namespace Sequence
+
+@[OEIS := A244239, offset := 9, maxIndex := 100, derive := true]
+def A244239 (n : ℕ) : ℕ :=
+  let x := n - 9
+  Int.toNat <| ((loop (λ (x y) ↦ (y / 2) + x) x 1 / 3) + x) + loop (λ (_x _y) ↦ 2) x 1
+
+end Sequence

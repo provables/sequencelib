@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -9,15 +9,13 @@ import Sequencelib.Meta
 open Synth
 
 /-!
-# A141310 sequence 
+# A141310 sequence
 -/
-
 
 namespace Sequence
 
-@[OEIS := A141310, offset := 0, derive := true, maxIndex := 100]
+@[OEIS := A141310, offset := 0, maxIndex := 100, derive := true]
 def A141310 (x : ℕ) : ℕ :=
-  Int.toNat <| (1 + if (x % 2) ≤ 0 then x else 1)
+  Int.toNat <| 1 + if (x % 2) ≤ 0 then x else 1
 
 end Sequence
-

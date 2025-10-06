@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -9,15 +9,13 @@ import Sequencelib.Meta
 open Synth
 
 /-!
-# A022974 sequence 
+# A022974 sequence
 -/
-
 
 namespace Sequence
 
-@[OEIS := A022974, offset := 0, derive := true, maxIndex := 61]
+@[OEIS := A022974, offset := 0, maxIndex := 60, derive := true]
 def A022974 (x : ℕ) : ℤ :=
-  (2 + (loop (λ (x _y : ℤ) ↦ x * x) 2 2 - x))
+  2 + (loop (λ (x _y) ↦ x * x) 2 2 - x)
 
 end Sequence
-

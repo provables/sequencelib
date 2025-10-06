@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -9,16 +9,14 @@ import Sequencelib.Meta
 open Synth
 
 /-!
-# A187206 sequence 
+# A187206 sequence
 -/
-
 
 namespace Sequence
 
-@[OEIS := A187206, offset := 1, derive := true, maxIndex := 46]
+@[OEIS := A187206, offset := 1, maxIndex := 46, derive := true]
 def A187206 (n : ℕ) : ℕ :=
   let x := n - 1
-  Int.toNat <| loop (λ (x y : ℤ) ↦ 2 + (2 * (2 * ((2 * (x + y)) + x)))) 2 x
+  Int.toNat <| loop (λ (x y) ↦ 2 + (2 * (2 * ((2 * (x + y)) + x)))) 2 x
 
 end Sequence
-

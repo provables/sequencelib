@@ -1,0 +1,21 @@
+/-
+Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
+Released under CC BY-SA 4.0 license as described in the file LICENSE.
+Authors: Walter Moreira and Joe Stubbs
+-/
+import Mathlib
+import Sequencelib.Meta
+
+open Synth
+
+/-!
+# A050292 sequence
+-/
+
+namespace Sequence
+
+@[OEIS := A050292, offset := 0, maxIndex := 50, derive := true]
+def A050292 (x : ℕ) : ℕ :=
+  Int.toNat <| loop2 (λ (x y) ↦ (y - x) / 2) (λ (x _y) ↦ x) (x + x) x 0
+
+end Sequence

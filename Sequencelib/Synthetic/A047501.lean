@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -9,16 +9,14 @@ import Sequencelib.Meta
 open Synth
 
 /-!
-# A047501 sequence 
+# A047501 sequence
 -/
-
 
 namespace Sequence
 
-@[OEIS := A047501, offset := 1, derive := true, maxIndex := 56]
+@[OEIS := A047501, offset := 1, maxIndex := 56, derive := true]
 def A047501 (n : ℕ) : ℕ :=
   let x := n - 1
-  Int.toNat <| (comprN (λ (x : ℤ) ↦ (((x / 2) * x) - x) % 4) x + 1)
+  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x / 2) * x) - x) % (2 + 2))) x + 1
 
 end Sequence
-

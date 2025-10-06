@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -9,16 +9,14 @@ import Sequencelib.Meta
 open Synth
 
 /-!
-# A211221 sequence 
+# A211221 sequence
 -/
-
 
 namespace Sequence
 
-@[OEIS := A211221, offset := 1, derive := true, maxIndex := 37]
+@[OEIS := A211221, offset := 1, maxIndex := 37, derive := true]
 def A211221 (n : ℕ) : ℕ :=
   let x := n - 1
-  Int.toNat <| loop2 (λ (x y : ℤ) ↦ ((y % (x)) + 1) + y) (λ (x y : ℤ) ↦ x + y) x 1 2
+  Int.toNat <| loop2 (λ (x y) ↦ ((y % (x)) + 1) + y) (λ (x y) ↦ x + y) x 1 2
 
 end Sequence
-

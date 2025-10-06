@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -9,16 +9,14 @@ import Sequencelib.Meta
 open Synth
 
 /-!
-# A146510 sequence 
+# A146510 sequence
 -/
-
 
 namespace Sequence
 
-@[OEIS := A146510, offset := 1, derive := true, maxIndex := 55]
+@[OEIS := A146510, offset := 1, maxIndex := 55, derive := true]
 def A146510 (n : ℕ) : ℕ :=
   let x := n - 1
-  Int.toNat <| (1 + (3 * ((3 * (x / 2)) + x)))
+  Int.toNat <| 1 + (3 * ((3 * (x / 2)) + x))
 
 end Sequence
-

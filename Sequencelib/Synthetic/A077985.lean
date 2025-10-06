@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -9,15 +9,13 @@ import Sequencelib.Meta
 open Synth
 
 /-!
-# A077985 sequence 
+# A077985 sequence
 -/
-
 
 namespace Sequence
 
-@[OEIS := A077985, offset := 0, derive := true, maxIndex := 100]
+@[OEIS := A077985, offset := 0, maxIndex := 100, derive := true]
 def A077985 (x : ℕ) : ℤ :=
-  loop2 (λ (x y : ℤ) ↦ (y - x) - x) (λ (x _y : ℤ) ↦ x) x 1 0
+  loop2 (λ (x y) ↦ (y - x) - x) (λ (x _y) ↦ x) x 1 0
 
 end Sequence
-

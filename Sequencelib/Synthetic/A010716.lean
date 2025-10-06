@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter and Joe's Synth Bot
+Authors: Walter Moreira and Joe Stubbs
 -/
 import Mathlib
 import Sequencelib.Meta
@@ -12,10 +12,10 @@ open Synth
 # A010716 sequence
 -/
 
-
 namespace Sequence
 
-@[OEIS := A010716, offset := 0, derive := true, maxIndex := 100]
-def A010716 (_x : ℕ) : ℕ := 5
+@[OEIS := A010716, offset := 0, maxIndex := 100, derive := true]
+def A010716 (x : ℕ) : ℕ :=
+  Int.toNat <| 1 + 4
 
 end Sequence

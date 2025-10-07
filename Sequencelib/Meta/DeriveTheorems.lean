@@ -8,7 +8,7 @@ import Qq
 import Sequencelib.Meta.Defs
 import Sequencelib.Meta.Codomain
 
-open Lean Expr Elab Term Tactic Meta Qq
+open Lean Expr Elab Term Tactic Meta Qq Command
 
 elab "oeis_tactic" : tactic =>
   Lean.Elab.Tactic.withMainContext do
@@ -77,7 +77,7 @@ def deriveTheoremForIndex' (decl : Name) (idx : Nat) (stx : Syntax) :
   let cod ← codomainOfDecl decl
   deriveTheoremForIndex decl idx stx cod
 
-def deriveTheorems (decl : Name) (offset maxIndex : Nat) (stx : Syntax) : TermElabM Unit := do
+def deriveTheorems (decl : Name) (offset maxIndex : Nat) (stx : Syntax) : CommandElabM Unit := do
   let cod ← codomainOfDecl decl
   let env ← getEnv
   if Lean.isNoncomputable env decl then
@@ -88,7 +88,7 @@ def deriveTheorems (decl : Name) (offset maxIndex : Nat) (stx : Syntax) : TermEl
     if (← IO.checkCanceled) then
       errors := errors.push "Cancelled"
       break
-    let some msg := (← deriveTheoremForIndex decl idx stx cod) | continue
+    let some msg := (← Command.liftTermElabM <| deriveTheoremForIndex decl idx stx cod) | continue
     errors := errors.push s!"{msg}"
   if !errors.isEmpty then
     logError (String.intercalate "\n" errors.toList)

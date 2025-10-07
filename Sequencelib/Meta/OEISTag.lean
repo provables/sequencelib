@@ -160,6 +160,6 @@ initialize registerBuiltinAttribute {
         Lean.addAndCompile tagDecl
         Lean.addAndCompile offsetDecl
         if opts.derive then
-          liftCommandElabM <| Command.liftTermElabM <| deriveTheorems decl offst maxIdx stx
+          liftCommandElabM <| deriveTheorems decl offst maxIdx stx
       | _ => throwError "invalid OEIS attribute syntax"
   }

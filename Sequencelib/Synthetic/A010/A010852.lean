@@ -15,7 +15,7 @@ open Synth
 namespace Sequence
 
 @[OEIS := A010852, offset := 0, maxIndex := 53, derive := true]
-def A010852 (x : ℕ) : ℕ :=
+def A010852 (_x : ℕ) : ℕ :=
   Int.toNat <| 1 + (2 * (2 + 4))
 
 end Sequence

@@ -15,8 +15,7 @@ open Synth
 namespace Sequence
 
 @[OEIS := A245206, offset := 1, maxIndex := 1, derive := true]
-def A245206 (n : ℕ) : ℕ :=
-  let x := n - 1
+def A245206 (_n : ℕ) : ℕ :=
   Int.toNat <| loop (λ (x y) ↦ ((x * x) + y) * x) 2 2 - 1
 
 end Sequence

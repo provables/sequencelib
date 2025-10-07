@@ -16,6 +16,6 @@ namespace Sequence
 
 @[OEIS := A172432, offset := 0, maxIndex := 18, derive := true]
 def A172432 (x : ℕ) : ℤ :=
-  x + comprN (λ (x : ℤ) ↦ 0) ((x - 2) - 2 * 4)
+  x + comprN (λ (_x) ↦ 0) ((x - 2) - 2 * 4)
 
 end Sequence

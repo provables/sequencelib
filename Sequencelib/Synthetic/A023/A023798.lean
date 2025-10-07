@@ -18,10 +18,8 @@ namespace Sequence
 def A023798 (n : ℕ) : ℕ :=
   let x := n - 1
   Int.toNat <| comprN
-  (λ (x : ℤ) ↦
-    ((if (((((loop (λ (x y : ℤ) ↦ (2 * ((2 * (x + x)) + x))) ((1 + x)) (1) - 1) % (1 + x)) / (1 + 1)) % 2)) ≤ 0 then (x)
-      else (1) - 1) /
-      (1 + 2)))
+  (λ (x) ↦
+    (if ((((loop (λ (x _y) ↦ 2 * ((2 * (x + x)) + x)) (1 + x) 1 - 1) % (1 + x)) / 2) % 2) ≤ 0 then x else 1 - 1) / 3)
   x
 
 end Sequence

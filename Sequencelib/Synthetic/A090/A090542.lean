@@ -17,6 +17,6 @@ namespace Sequence
 @[OEIS := A090542, offset := 1, maxIndex := 9, derive := true]
 def A090542 (n : ℕ) : ℤ :=
   let x := n - 1
-  comprN (λ (x : ℤ) ↦ (((x + (1 + (2 + 2))) / (((x / (1 + 2)) / 2) + 1)) % 2)) x
+  comprN (λ (x) ↦ ((x + (1 + 4)) / (((x / 3) / 2) + 1)) % 2) x
 
 end Sequence

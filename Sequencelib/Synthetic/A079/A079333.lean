@@ -17,6 +17,6 @@ namespace Sequence
 @[OEIS := A079333, offset := 1, maxIndex := 26, derive := true]
 def A079333 (n : ℕ) : ℤ :=
   let x := n - 1
-  comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (x * (2 + y))) ((2 * (2 + 2))) (x) % (1 + x))) x + 1
+  comprN (λ (x) ↦ loop (λ (x y) ↦ x * (2 + y)) (2 * 4) x % (1 + x)) x + 1
 
 end Sequence

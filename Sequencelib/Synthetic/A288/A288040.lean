@@ -14,9 +14,9 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A288040, offset := 1, maxIndex := 42, derive := true]
+@[OEIS := A288040, offset := 1, maxIndex := 83, derive := true]
 def A288040 (n : ℕ) : ℕ :=
   let x := n - 1
-  Int.toNat <| comprN (λ (x : ℤ) ↦ if ((x % loop (λ (x y : ℤ) ↦ (1 + (x + x))) (2) (2))) ≤ 0 then (1) else (0)) (x + (1 + (2 * 4)))
+  Int.toNat <| comprN (λ (x) ↦ if (x % loop (λ (x _y) ↦ 1 + (x + x)) 2 2) ≤ 0 then 1 else 0) (x + (1 + (2 * 4)))
 
 end Sequence

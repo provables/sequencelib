@@ -17,6 +17,6 @@ namespace Sequence
 @[OEIS := A324560, offset := 1, maxIndex := 66, derive := true]
 def A324560 (n : ℕ) : ℕ :=
   let x := n - 1
-  Int.toNat <| comprN (λ (x : ℤ) ↦ (x % (2 + (x % 2)))) (if x ≤ 0 then 1 else 2 + x)
+  Int.toNat <| comprN (λ (x) ↦ x % (2 + (x % 2))) (if x ≤ 0 then 1 else 2 + x)
 
 end Sequence

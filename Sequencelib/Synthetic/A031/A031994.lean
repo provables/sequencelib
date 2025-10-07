@@ -17,6 +17,6 @@ namespace Sequence
 @[OEIS := A031994, offset := 1, maxIndex := 34, derive := true]
 def A031994 (n : ℕ) : ℤ :=
   let x := n - 1
-  comprN (λ (x : ℤ) ↦ ((x % (1 + (2 + 2))) - (x % (1 + (2 * (2 + 2)))))) x
+  comprN (λ (x) ↦ (x % (1 + 4)) - x % (1 + (2 * 4))) x
 
 end Sequence

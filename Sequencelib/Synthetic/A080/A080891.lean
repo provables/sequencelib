@@ -16,6 +16,6 @@ namespace Sequence
 
 @[OEIS := A080891, offset := 0, maxIndex := 100, derive := true]
 def A080891 (x : ℕ) : ℤ :=
-  1 / loop2 (λ (x y) ↦ comprN (λ (x : ℤ) ↦ 0) x - y) (λ (x _y) ↦ x) x 2 1
+  1 / loop2 (λ (x y) ↦ comprN (λ (_x) ↦ 0) x - y) (λ (x _y) ↦ x) x 2 1
 
 end Sequence

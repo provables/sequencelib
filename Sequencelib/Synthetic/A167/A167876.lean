@@ -16,6 +16,6 @@ namespace Sequence
 
 @[OEIS := A167876, offset := 0, maxIndex := 100, derive := true]
 def A167876 (x : ℕ) : ℕ :=
-  Int.toNat <| loop2 (λ (x y) ↦ comprN (λ (x : ℤ) ↦ 0) (x + y)) (λ (x y) ↦ y - x) x 1 2
+  Int.toNat <| loop2 (λ (x y) ↦ comprN (λ (_x) ↦ 0) (x + y)) (λ (x y) ↦ y - x) x 1 2
 
 end Sequence

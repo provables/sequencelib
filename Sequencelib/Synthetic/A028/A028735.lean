@@ -18,12 +18,7 @@ namespace Sequence
 def A028735 (n : ℕ) : ℕ :=
   let x := n - 1
   Int.toNat <| comprN
-  (λ (x : ℤ) ↦
-    (((loop (λ (x y : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (x * x)) (2) (x) * x) % loop (λ (x y : ℤ) ↦ (1 + (x + x))) (2) (2)))
-            (2) (x) +
-          2) /
-        2) %
-      2))
+  (λ (x) ↦ ((loop (λ (x _y) ↦ (loop (λ (x _y) ↦ x * x) 2 x * x) % loop (λ (x _y) ↦ 1 + (x + x)) 2 2) 2 x + 2) / 2) % 2)
   x
 
 end Sequence

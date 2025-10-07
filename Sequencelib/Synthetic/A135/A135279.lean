@@ -17,6 +17,6 @@ namespace Sequence
 @[OEIS := A135279, offset := 1, maxIndex := 11, derive := true]
 def A135279 (n : ℕ) : ℤ :=
   let x := n - 1
-  (comprN (λ (x : ℤ) ↦ if (((loop (λ (x y : ℤ) ↦ (x * y)) (x) (1) % (1 + x)) - 1)) ≤ 0 then (1) else (0)) x + 1) / 2
+  (comprN (λ (x) ↦ if ((loop (λ (x y) ↦ x * y) x 1 % (1 + x)) - 1) ≤ 0 then 1 else 0) x + 1) / 2
 
 end Sequence

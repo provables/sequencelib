@@ -17,6 +17,6 @@ namespace Sequence
 @[OEIS := A047429, offset := 1, maxIndex := 59, derive := true]
 def A047429 (n : ℕ) : ℕ :=
   let x := n - 1
-  Int.toNat <| (comprN (λ (x : ℤ) ↦ ((x % (2 * (2 + 2))) - 2)) x + 2) + 2
+  Int.toNat <| (comprN (λ (x) ↦ (x % (2 * 4)) - 2) x + 2) + 2
 
 end Sequence

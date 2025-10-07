@@ -15,7 +15,7 @@ open Synth
 namespace Sequence
 
 @[OEIS := A010865, offset := 0, maxIndex := 53, derive := true]
-def A010865 (x : ℕ) : ℕ :=
+def A010865 (_x : ℕ) : ℕ :=
   Int.toNat <| loop (λ (x _y) ↦ 1 + (x * x)) 2 2
 
 end Sequence

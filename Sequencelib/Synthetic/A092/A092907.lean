@@ -16,6 +16,6 @@ namespace Sequence
 
 @[OEIS := A092907, offset := 0, maxIndex := 21, derive := true]
 def A092907 (x : ℕ) : ℤ :=
-  comprN (λ (x : ℤ) ↦ (((x / 2) / (1 + (2 + 2))) % (2 + (2 * (2 + 2))))) x
+  comprN (λ (x) ↦ ((x / 2) / (1 + 4)) % (2 + (2 * 4))) x
 
 end Sequence

@@ -14,9 +14,9 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A329828, offset := 1, maxIndex := 31, derive := true]
+@[OEIS := A329828, offset := 1, maxIndex := 61, derive := true]
 def A329828 (n : ℕ) : ℕ :=
   let x := n - 1
-  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (x % (2 * (2 + (2 + 2)))))) ((x + 1) + x)
+  Int.toNat <| comprN (λ (x) ↦ 1 - (x % (2 * (2 + 4)))) ((x + 1) + x)
 
 end Sequence

@@ -1,0 +1,361 @@
+A274/A274332.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (x + x)) ((x + x)) (1) % (1 + (x + x))) - 1)) (1 + x)
+A274/A274089.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ if ((loop (λ (x y : ℤ) ↦ (x * x)) (2) ((2 + 2)) % (1 + x))) ≤ 0 then (1) else (0)) x + 1) / 2
+A274/A274384.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((((((x / 2) / 2) / 2) / 2) + x) / (1 + 2)) + x) / 2) % 2)) x + 1
+A157/A157319.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * ((1 + 2) * (x % (1 + 2)))) - x)) x
+A062/A062002.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x * loop2 (λ (x y : ℤ) ↦ (y + y)) (λ (x y : ℤ) ↦ x) (x) (1) (1)) / ((2 * 2) + 1)) + 1) % 2)) x
+A039/A039218.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (x % (1 + (2 + ((x / 2) % 2)))))) x
+A039/A039271.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (x % (1 + (2 + ((x / 2) % 2)))))) x - 1
+A039/A039267.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x / 2) * (x % (1 + 2))) % 2)) x
+A039/A039163.lean:  Int.toNat <| comprN
+A093/A093509.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((x % (1 + (2 + 2))) * (x % (2 + (2 + 2))))) x
+A273/A273553.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ loop (λ (x y : ℤ) ↦ (y / loop (λ (x y : ℤ) ↦ (x + x)) (x) ((1 + 2)))) (x) (0)) x
+A030/A030050.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (((x * x) * x) - x)) (2) (2) % (1 + x))) x + 1
+A058/A058917.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ loop (λ (x y : ℤ) ↦ loop (λ (x y : ℤ) ↦ (y - x)) ((x - (x / 2))) ((1 + y))) (x) (1)) x
+A174/A174141.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x / (1 + (2 + 2))) % (2 + (1 + 2))) - 1)) x
+A229/A229838.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((1 + x) * (x / 2)) % (2 + 2))) (x + 2)
+A174/A174138.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x / (1 + (2 + 2))) % (1 + (2 + 2))) + 1) % 2)) x
+A331/A331801.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((2 * (x % (2 + 2))) - (x / (1 + 2))) + 2)) x
+A331/A331802.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (1 + (x / 2))) ((x % (2 + 2))) (x) / 2) - 2)) (1 + x)
+A023/A023808.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ if ((x % (loop (λ (x y : ℤ) ↦ (x * x)) (2) (2) - 1))) ≤ 0 then (x) else (0)) x
+A023/A023809.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ if ((x % loop (λ (x y : ℤ) ↦ (x * x)) (2) (2))) ≤ 0 then (x) else (0)) x
+A023/A023798.lean:  Int.toNat <| comprN
+A215/A215409.lean:  Int.toNat <| 1 + (2 - comprN (λ (x : ℤ) ↦ 0) (x - 2))
+A023/A023807.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ if ((x % (loop (λ (x y : ℤ) ↦ (x * x)) (2) (2) - 2))) ≤ 0 then (x) else (0)) x
+A018/A018386.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (2 * ((x * x) + x))) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018369.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 * (((2 * (2 + x)) * 2) + x))) (2) (1) % (1 + x))) x + 1
+A018/A018294.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 + loop (λ (x y : ℤ) ↦ (2 + ((2 + x) * x))) (2) (2)) % (1 + x))) x + 1
+A018/A018502.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + (x + y)) * (2 + x))) (2) (2) % (1 + x))) x + 1
+A018/A018328.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + (2 + x)) * x)) (2) (2) % (1 + x))) x + 1
+A018/A018304.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x + y) * y)) ((2 + 2)) (1) % (1 + x))) x + 1
+A278/A278718.lean:  1 - comprN (λ (x : ℤ) ↦ 0) (loop2 (λ (x y) ↦ x - y) (λ (x _y) ↦ x) x 1 2)
+A018/A018312.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 * (x * x)) + y)) (2) (2) % (1 + x))) x + 1
+A018/A018257.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 + loop (λ (x y : ℤ) ↦ (2 + (x * x))) (2) (2)) % (1 + x))) x + 1
+A018/A018332.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (2 + ((x + x) * x))) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018298.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((1 + loop (λ (x y : ℤ) ↦ (((2 * (x * x)) - 2) + x)) (2) (2)) % (1 + x))) x + 1
+A018/A018425.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * loop (λ (x y : ℤ) ↦ ((2 + (2 + x)) * x)) (2) (2)) % (1 + x))) x + 1
+A018/A018261.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x + y) * x)) (2) (2) % (1 + x))) x + 1
+A018/A018324.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((1 + loop (λ (x y : ℤ) ↦ ((2 * ((x - 1) + x)) + x)) ((1 + 2)) (x)) % (1 + x))) x + 1
+A018/A018433.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (((y % 2) + x) * x)) (2) ((2 + 2)) % (1 + x))) x + 1
+A018/A018308.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((1 + (2 + (2 + 2))) * (1 + x))) (2) (2) % (1 + x))) x + 1
+A018/A018430.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((1 + (2 + (2 + 2))) * (x + x))) (2) (2) % (1 + x))) x + 1
+A018/A018258.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x * x) + x)) (2) (2) % (1 + x))) x + 1
+A018/A018431.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + y) * ((2 + x) * x))) (2) (1) % (1 + x))) x + 1
+A018/A018385.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((((x - 2) - 2) - 2) * (2 + x))) (2) (2) % (1 + x))) x + 1
+A018/A018309.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x * x) + x)) (2) ((1 + 2)) % (1 + x))) x + 1
+A018/A018556.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + x) * x)) (2) ((2 + 2)) % (1 + x))) x + 1
+A018/A018325.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 * (2 + x))) (((2 * 2) + 1)) (2) % (1 + x))) x + 1
+A018/A018297.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x * x) - x)) (2) ((2 + 2)) % (1 + x))) x + 1
+A018/A018519.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (((2 * (2 + 2)) + x) * x)) (2) (2) % (1 + x))) x + 1
+A018/A018278.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((((x * 2) * 2) * y) + x)) (2) (2) % (1 + x))) x + 1
+A018/A018276.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * loop (λ (x y : ℤ) ↦ ((x * x) + x)) (2) (2)) % (1 + x))) x + 1
+A018/A018501.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + (2 + x)) * x)) (2) ((1 + 2)) % (1 + x))) x + 1
+A018/A018333.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (((x * x) + y) * 2)) (2) (2) % (1 + x))) x + 1
+A173/A173573.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x - 1) / (2 + 2)) % loop (λ (x y : ℤ) ↦ (2 * (2 + x))) (2) (2))) x
+A018/A018444.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x * x) + x)) (2) ((2 + 2)) % (1 + x))) x + 1
+A018/A018256.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (2 + (x * x))) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018352.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * loop (λ (x y : ℤ) ↦ (2 + ((2 + x) * x))) (2) (2)) % (1 + x))) x + 1
+A018/A018452.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((1 + 2) * (x * x))) (2) (2) % (1 + x))) x + 1
+A018/A018393.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + x) * (2 + x))) (2) (2) % (1 + x))) x + 1
+A018/A018391.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (2 * (2 + x))) (2) (2) * loop (λ (x y : ℤ) ↦ (x * x)) (2) (2)) % (1 + x))) x +
+A018/A018329.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (x * x)) (2) (2) - 2) * x)) (2) (x) - x) % (1 + x))) x +
+A018/A018350.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (x * y)) ((1 + (2 + 2))) (2) % (1 + x))) x + 1
+A018/A018283.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (1 + ((2 + x) * x))) (2) (2) % (1 + x))) x + 1
+A018/A018295.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (2 * (x * x))) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018387.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 * ((x * x) + x))) (2) (2) % (1 + x))) x + 1
+A018/A018271.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 * ((x + x) + x))) (2) (2) % (1 + x))) x + 1
+A018/A018267.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x * x) - 1)) (2) ((1 + 2)) % (1 + x))) x + 1
+A018/A018288.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((1 + x) * (y + x))) (2) (2) % (1 + x))) x + 1
+A018/A018322.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((1 + x) * (2 + x))) (2) (2) % (1 + x))) x + 1
+A018/A018498.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 * (2 + (2 + (x * x))))) (2) (2) % (1 + x))) x + 1
+A018/A018359.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 + loop (λ (x y : ℤ) ↦ (x * x)) ((1 + 2)) (2)) % (1 + x))) x + 1
+A018/A018461.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (1 + ((x * x) * x))) (2) ((2 + 2)) - 2) % (1 + x))) x + 1
+A018/A018318.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ ((((x - 2) + x) + x) * x)) (2) (2) - 2) % (1 + x))) x + 1
+A307/A307830.lean:  Int.toNat <| comprN
+A018/A018338.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 * ((x + x) + x))) ((1 + 2)) (1) % (1 + x))) x + 1
+A048/A048972.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((loop2 (λ (x y : ℤ) ↦ (0 - y)) (λ (x y : ℤ) ↦ x) (x) (2) (1) * 2) * 2) - x) + 1)) x
+A018/A018284.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x * x) + y)) (2) ((1 + 2)) % (1 + x))) x + 1
+A018/A018457.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x + y) * x)) (2) ((2 + 2)) % (1 + x))) x + 1
+A018/A018302.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + (x * y)) * x)) (2) (2) % (1 + x))) x + 1
+A018/A018494.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ ((x * x) * x)) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018343.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (y * ((((((1 + x) + x) + x) + x) * 2) - x))) (2) (2) % (1 + x))) x + 1
+A018/A018442.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ ((2 + (2 + x)) * (1 + x))) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018314.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x + y) * x)) (2) ((1 + 2)) % (1 + x))) x + 1
+A018/A018287.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ ((1 + x) * (y + x))) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018268.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 * (x * x)) - x)) (2) (2) % (1 + x))) x + 1
+A018/A018395.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 + loop (λ (x y : ℤ) ↦ (2 + (x * x))) (2) ((2 + 2))) % (1 + x))) x + 1
+A018/A018528.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 * ((2 + x) * x))) (2) (2) % (1 + x))) x + 1
+A018/A018301.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + (x + y)) * x)) (2) (2) % (1 + x))) x + 1
+A018/A018315.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((((x + x) * x) - 1) + x)) (2) (2) % (1 + x))) x + 1
+A018/A018340.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (1 + ((2 + (2 + x)) * x))) (2) (2) % (1 + x))) x + 1
+A018/A018342.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (x * x)) (2) (2) * x) - x)) (2) (x) % (1 + x))) x + 1
+A018/A018317.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * (2 + (2 * loop (λ (x y : ℤ) ↦ ((x * x) + x)) (2) (2)))) % (1 + x))) x + 1
+A018/A018354.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * loop (λ (x y : ℤ) ↦ (2 + (x * x))) (2) ((1 + 2))) % (1 + x))) x + 1
+A018/A018360.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * loop (λ (x y : ℤ) ↦ (((2 + x) * x) + x)) (2) (2)) % (1 + x))) x + 1
+A018/A018401.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (((x * x) * x) - 1)) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018378.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 * (2 + (x * x)))) (2) (2) % (1 + x))) x + 1
+A018/A018321.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ ((1 + x) * (2 + x))) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018376.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ loop (λ (x y : ℤ) ↦ ((2 + y) * x)) (2) (x)) (2) (2) % (1 + x))) x + 1
+A018/A018293.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x * y) + x)) ((2 + 2)) (1) % (1 + x))) x + 1
+A018/A018399.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x + y) * (x + x))) (2) (2) % (1 + x))) x + 1
+A018/A018339.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (((x + x) + y) * x)) (2) (2) % (1 + x))) x + 1
+A018/A018462.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((1 + 2) * ((2 * (x + x)) + x))) (2) (2) % (1 + x))) x + 1
+A018/A018358.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (x * x)) (2) ((2 + 2)) - 1) % (1 + x))) x + 1
+A018/A018255.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((2 * loop (λ (x y : ℤ) ↦ (x * x)) (2) (2)) - 2) % (1 + x))) x + 1
+A018/A018310.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * loop (λ (x y : ℤ) ↦ ((2 + x) * x)) (2) (2)) % (1 + x))) x + 1
+A018/A018347.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 + ((2 + x) * y))) ((2 + 2)) (1) % (1 + x))) x + 1
+A018/A018266.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + (2 + y)) * x)) (2) (2) % (1 + x))) x + 1
+A018/A018289.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * loop (λ (x y : ℤ) ↦ ((2 + y) * (2 + x))) (2) (2)) % (1 + x))) x + 1
+A018/A018392.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ ((2 + x) * (2 + x))) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018323.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 + loop (λ (x y : ℤ) ↦ ((1 + x) * (2 + x))) (2) (2)) % (1 + x))) x + 1
+A018/A018280.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * loop (λ (x y : ℤ) ↦ ((x + y) * x)) (2) (2)) % (1 + x))) x + 1
+A018/A018270.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (((x + x) * x) - 2)) (2) (2) % (1 + x))) x + 1
+A018/A018296.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 + loop (λ (x y : ℤ) ↦ (2 * (x * x))) (2) (2)) % (1 + x))) x + 1
+A266/A266297.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((1 + x) * (x / 2)) % (1 + (2 + 2)))) x
+A018/A018335.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (((x * x) * x) - x)) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018279.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (((2 * (x + 2)) + x) * 2)) (2) (1) % (1 + x))) x + 1
+A018/A018377.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (1 + (x * x))) (2) ((2 + 2)) % (1 + x))) x + 1
+A018/A018412.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + y) * x)) ((2 + 2)) (1) % (1 + x))) x + 1
+A018/A018384.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((1 + x) * (y + x))) (2) ((1 + 2)) % (1 + x))) x + 1
+A018/A018424.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x * x) - x)) (2) ((1 + (2 + 2))) % (1 + x))) x + 1
+A018/A018320.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((((x - 2) + x) + x) * x)) (2) (2) % (1 + x))) x + 1
+A018/A018265.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 * (2 * (2 + x)))) (2) (1) % (1 + x))) x + 1
+A018/A018330.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x + y) * (2 + x))) (2) (2) % (1 + x))) x + 1
+A081/A081032.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((x % 2) - (x % (1 + 2)))) ((x + 2) + x)
+A018/A018336.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (((x * x) * x) - x)) (2) (2) % (1 + x))) x + 1
+A018/A018275.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + x) * x)) (2) (2) % (1 + x))) x + 1
+A018/A018273.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * loop (λ (x y : ℤ) ↦ (2 + (x * x))) (2) (2)) % (1 + x))) x + 1
+A018/A018327.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ ((2 + (2 + x)) * x)) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018394.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((1 + loop (λ (x y : ℤ) ↦ ((2 + x) * (2 + x))) (2) (2)) % (1 + x))) x + 1
+A018/A018195.lean:  Int.toNat <| comprN
+A018/A018286.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 * (x * y)) - x)) ((2 + 2)) (1) % (1 + x))) x + 1
+A018/A018253.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + y) * x)) (2) (2) % (1 + x))) x + 1
+A018/A018269.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 + (2 + (x * x)))) (2) (2) % (1 + x))) x + 1
+A018/A018341.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x * x) - 1)) (2) ((2 + 2)) % (1 + x))) x + 1
+A018/A018382.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (2 * ((2 * (x + x)) + x))) (2) ((1 + 2)) % (1 + x))) x + 1
+A018/A018357.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + x) * ((x / 2) + x))) (2) (2) % (1 + x))) x + 1
+A018/A018290.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (1 + ((x * x) + x))) (2) (2) * 2) % (1 + x))) x + 1
+A018/A018414.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * loop (λ (x y : ℤ) ↦ ((1 + x) * (2 + x))) (2) (2)) % (1 + x))) x + 1
+A018/A018291.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 * loop (λ (x y : ℤ) ↦ (((1 + x) * x) + y)) (2) (2)) % (1 + x))) x + 1
+A018/A018300.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ ((2 + (x + y)) * x)) (2) (2) - 2) % (1 + x))) x + 1
+A018/A018402.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (((x * x) * x) - 1)) (2) (2) % (1 + x))) x + 1
+A086/A086748.lean:  Int.toNat <| (((comprN (λ (x : ℤ) ↦ (((1 + ((x % (1 + 2)) * 2)) * (2 + x)) % ((2 * 2) + 1))) x + 1) * 2) - 2) - 1
+A138/A138097.lean:  (((comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (x / (1 + (x % (2 + 1))))) (x) (x) + 2) % 2)) x + 1) / 2) + 1) + x
+A060/A060275.lean:  Int.toNat <| comprN
+A135/A135043.lean:  comprN (λ (x : ℤ) ↦ (((1 + x) / (1 + 2)) % (1 + 2))) x
+A086/A086858.lean:  Int.toNat <| ((loop (λ (x y) ↦ (loop (λ (x _y) ↦ (x - 1) / (comprN (λ (x : ℤ) ↦ x) 0 + 2)) 2 x / 2) + y) x 1 + x) + x) / (x + 1)
+A135/A135279.lean:  (comprN (λ (x : ℤ) ↦ if (((loop (λ (x y : ℤ) ↦ (x * y)) (x) (1) % (1 + x)) - 1)) ≤ 0 then (1) else (0)) x + 1) / 2
+A131/A131716.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((loop (λ (x y : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (x + y)) (y) (x) - y)) (x) (1) - x) / 2) % 2))
+A119/A119622.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (x * y)) (x) (1) % (1 + x)) - 1)) (1 + x) + 1) * 2
+A123/A123122.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((((x + x) + x) % (1 + (2 + (2 + 2)))) * 2) * 2) - x)) x
+A329/A329836.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (x % loop (λ (x y : ℤ) ↦ (2 * (2 + x))) (2) (2)))) (1 + (x + x))
+A151/A151988.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((x / 2) / 2) % (2 + 1)) * x) % 2)) x
+A080/A080891.lean:  1 / loop2 (λ (x y) ↦ comprN (λ (x : ℤ) ↦ 0) x - y) (λ (x _y) ↦ x) x 2 1
+A245/A245761.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((x + x) % (((x / 2) / 2) + 1))) x
+A329/A329939.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (x % loop (λ (x y : ℤ) ↦ (x * x)) (2) (2)))) (1 + (x + x))
+A240/A240670.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ loop (λ (x y : ℤ) ↦ ((x % y) - (y % 2))) (x) (1)) x
+A329/A329828.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (x % (2 * (2 + (2 + 2)))))) ((x + 1) + x)
+A240/A240767.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ loop2 (λ (x y : ℤ) ↦ (((x / 2) / 2) + y)) (λ (x y : ℤ) ↦ (1 - x)) (x) (1) (x)) x
+A329/A329832.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (x % loop (λ (x y : ℤ) ↦ (x * x)) (2) (2)))) (1 + (x + x))
+A290/A290642.lean:  Int.toNat <| comprN
+A077/A077820.lean:  Int.toNat <| comprN
+A131/A131670.lean:  loop2 (λ (x y) ↦ comprN (λ (x : ℤ) ↦ 0) x - y) (λ (x _y) ↦ x) x 1 1
+A124/A124867.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((((((((x % (1 + 2)) / 2) + (x % 2)) * 2) - 2) + 1) - (x / 2)) + 2) + 2) + 2)) x
+A136/A136724.lean:  Int.toNat <| ((comprN (λ (x : ℤ) ↦ if ((loop (λ (x y : ℤ) ↦ (x * x)) (2) ((2 + 2)) % (1 + x))) ≤ 0 then (1) else (0)) x + 1) * 2) * 2
+A289/A289207.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ 0) (x - 2)
+A004/A004274.lean:  Int.toNat <| x + comprN (λ (x : ℤ) ↦ 0) ((x - 1) - 2)
+A004/A004275.lean:  Int.toNat <| (x + comprN (λ (_x : ℤ) ↦ 0) (x - 2))
+A169/A169870.lean:  Int.toNat <| comprN
+A069/A069909.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((loop (λ (x y : ℤ) ↦ ((x - 1) / (2 - (x % 2)))) (2) (x) / 2) + x) % 2)) x
+A112/A112090.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((((((x - 1) / 2) * x) + 2) / 2) / 2) + 1) % (1 + 2))) x
+A074/A074231.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x / 2) * x) / 2) % 2)) (1 + x)
+A172/A172432.lean:  x + comprN (λ (x : ℤ) ↦ 0) ((x - 2) - 2 * 4)
+A004/A004272.lean:  Int.toNat <| x + comprN (λ (x : ℤ) ↦ 0) (((x - 2) - 2) - 2)
+A004/A004273.lean:  Int.toNat <| (x + comprN (λ (_x : ℤ) ↦ 0) (x - 1))
+A004/A004084.lean:  Int.toNat <| ((comprN (λ (x : ℤ) ↦ if ((x % (2 * (2 + 2)))) ≤ 0 then (x) else (0)) x + 1) + x) + x
+A115/A115419.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - ((((x / 2) / 2) / 2) % 2))) x
+A063/A063196.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ 0) (x - 1) % 2) + x
+A004/A004271.lean:  Int.toNat <| x + comprN (λ (x : ℤ) ↦ 0) ((x - 2) - 2)
+A272/A272669.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x * x) % (1 + (2 * (2 + (2 + 2))))) % (2 + 2)) - 1)) x
+A004/A004276.lean:  Int.toNat <| x + comprN (λ (x : ℤ) ↦ 0) (((x - 1) - 2) - 2)
+A115/A115420.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - ((x / loop (λ (x y : ℤ) ↦ (x * x)) (2) (2)) % 2))) x
+A327/A327423.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((((((((x - ((x / 2) / 2)) / 2) / 2) / 2) + x) / 2) / 2) + x) / 2) + 1) % 2)) x
+A169/A169876.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (x * y)) (x) (1) % (2 + x))) (2 + x)
+A078/A078135.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 + ((((x / 2) / 2) / 2) - (x % (2 + 2))))) x
+A344/A344805.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((2 * ((x + x) % (1 + 2))) + 1) * 2) * 2) - x)) x
+A263/A263800.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ loop (λ (x y : ℤ) ↦ ((x % y) - x)) (x) (x)) x + 1
+A143/A143106.lean:  Int.toNat <| ((comprN (λ (x : ℤ) ↦ ((x / 2) % 2)) (x - 2) + x) * 2) + 1
+A078/A078137.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((2 * (2 + 2)) * (x % (2 + 2))) - x) + 1)) x
+A005/A005776.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (((x % (2 + (x % 2))) * x) % (1 + (2 + 2))))) x
+A090/A090773.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 + (x / 2)) % (2 + 2))) x + x
+A191/A191331.lean:  Int.toNat <| (((comprN (λ (x : ℤ) ↦ ((((((loop (λ (x y : ℤ) ↦ (x / (1 + 2))) (2) (x) / 2) + x) / 2) + x) / 2) % 2)) (1 + x) + 1) *
+A070/A070751.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((((((((((x - ((x / 2) / 2)) / 2) / 2) / 2) + x) / 2) / 2) + x) / 2) / 2) + 1) % 2)) x
+A090/A090542.lean:  comprN (λ (x : ℤ) ↦ (((x + (1 + (2 + 2))) / (((x / (1 + 2)) / 2) + 1)) % 2)) x
+A047/A047440.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 + ((x / 2) * x)) % (2 + 2))) x
+A047/A047591.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((1 + (x / 2)) % (2 + 2)) - (x % 2))) x
+A047/A047568.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((2 + (x / 2)) % (2 + 2)) - 1) - (x % 2))) x
+A047/A047266.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((1 + x) / (1 + 2)) % 2)) x
+A191/A191276.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((1 + x) / (2 + (x % 2))) % 2)) x
+A047/A047460.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((x / 2) % 2)) (x / 2) + x
+A047/A047437.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((1 + (x / 2)) % (2 + 2)) - (x % 2))) x - 1
+A130/A130731.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ 0) (loop2 (λ (_x y) ↦ y) (λ (x _y) ↦ (-x)) x 1 2)
+A026/A026315.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((((((((x - ((x / 2) / 2)) / 2) / 2) / 2) + x) / 2) / 2) + x) / 2) + 1) % 2)) x - 2
+A047/A047420.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x / 2) / 2) * x) % 2)) x
+A260/A260375.lean:  Int.toNat <| comprN
+A047/A047573.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x / 2) * x)) (2) (x) % 2)) x
+A047/A047436.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 + (x / 2)) % (2 + 2))) x + 1
+A242/A242491.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (if ((((1 + ((x / 2) / (1 + (2 + 2)))) * (1 + x)) % (1 + (2 + 2)))) ≤ 0 then (x) else (1) - 1))
+A026/A026316.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((((x + x) + x) + (1 + x)) / loop (λ (x y : ℤ) ↦ (1 + (x + x))) (2) (2)) + 1) + x) % 2)) x
+A047/A047363.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x * x) % (1 + (2 + (2 + 2)))) % 2)) x
+A047/A047302.lean:  Int.toNat <| ((comprN (λ (x : ℤ) ↦ (((x / (1 + 2)) * x) % (1 + 2))) x + x) / 2) + 1
+A047/A047586.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (((x / 2) * x) % (2 + 2)))) x
+A047/A047590.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((2 + x) % (2 * (2 + 2))) - 2)) x
+A047/A047528.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x / 2) * x) % (2 + 2))) (x + 1) - 1
+A052/A052571.lean:  Int.toNat <| loop (λ (x y) ↦ x * y) x (comprN (λ (x : ℤ) ↦ 0) (x - 2))
+A047/A047504.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x / 2) / 2) * x) % 2)) x + 1
+A021/A021275.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (x % (1 + 2))) ((x % (1 + 4)) - 1)
+A005/A005796.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((loop (λ (x y : ℤ) ↦ ((((x / 2) + x) / 2) + y)) (2) (x) / 2) + x) % 2)) x * 2
+A047/A047400.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (x % (2 + 2)))) (x + x)
+A047/A047545.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (((x / 2) * x) + y)) (2) (x) % 2)) x
+A349/A349707.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((((1 - ((x / 2) % (1 + 2))) + (x % 2)) + 1) * x) + 1) / 2) % 2)) x
+A021/A021817.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ 0) ((x % (1 + 4)) - 1)
+A047/A047427.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((1 - ((x / 2) % (2 + 2))) + (x % 2))) x - 1
+A047/A047309.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x * x) % (1 + (2 + (2 + 2)))) % 2)) x + 1
+A052/A052520.lean:  Int.toNat <| loop (λ (x y) ↦ x * y) x (comprN (λ (x : ℤ) ↦ 0) ((x - 2) - 1))
+A021/A021085.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ if ((x % (2 * (2 + 2)))) ≤ 0 then (x) else (0)) (x % (1 + (2 * 4)))
+A047/A047542.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x - (x / 2)) / 2) % 2) * (x % (2 + 2)))) x
+A047/A047515.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (((x + y) * (x / 2)) + x)) (2) (x) % 2)) x
+A047/A047554.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((x / 2) % 2)) ((x / 2) + 1) + x
+A047/A047597.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 + ((x % 2) - ((x / 2) % (2 + 2))))) x - 2
+A047/A047611.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 - ((x / 2) % (2 + 2))) + (x % 2))) x - 2
+A047/A047579.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((((x / 2) + x) / 2) * ((x / 2) / 2)) + x) % 2)) x
+A047/A047607.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x / 2) % (2 + 2)) - 1) - (x % 2))) x
+A047/A047447.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ ((x / 2) % 2)) (x / 2) + x) + 2
+A047/A047514.lean:  Int.toNat <| (1 + x) + comprN (λ (x : ℤ) ↦ (1 - ((x / 2) % 2))) (x / 2)
+A047/A047543.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ (((x / 2) * x) % (2 + 2))) x + 1) + 2
+A047/A047426.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ if ((((x - (x / 2)) / 2) % 2)) ≤ 0 then ((x % (2 + 2))) else (0)) x
+A147/A147832.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((x / 2) % (2 + (2 + 2)))) x + x
+A047/A047559.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((1 + (x / 2)) % (2 + 2)) - 1) - (x % 2))) x
+A047/A047472.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x / 2) % (2 + 2)) - (x % 2))) x
+A047/A047425.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((x + y) / 2)) (2) (x) % 2)) x
+A047/A047327.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((1 + ((x * x) * x)) % (1 + (2 + (2 + 2))))) x
+A047/A047491.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((2 + (x / 2)) % (2 + 2)) - (x % 2))) x
+A047/A047429.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ ((x % (2 * (2 + 2))) - 2)) x + 2) + 2
+A178/A178784.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (1 + ((2 + x) * x))) (2) (2) % (1 + x))) x
+A047/A047556.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 + ((x / 2) * x)) % (2 + 2))) x + 1
+A047/A047413.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ (((x / 2) % (2 + 2)) - (x % 2))) x + 1) + 2
+A194/A194390.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ (((1 + x) / (1 + (2 + (2 + 2)))) % 2)) x + 1) * 2
+A047/A047501.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x / 2) * x) - x) % (2 + 2))) x + 1
+A079/A079333.lean:  comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (x * (2 + y))) ((2 * (2 + 2))) (x) % (1 + x))) x + 1
+A194/A194391.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((x / 2) / (1 + (2 + (2 + 2)))) + 1) % 2) - (x % 2))) x
+A047/A047405.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((1 - ((2 + (x / 2)) % (2 + 2))) + (x % 2))) x
+A047/A047393.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (x / 2) % 4) x
+A047/A047469.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((x % (2 * (2 + 2))) - 2)) x
+A194/A194225.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((2 + x) / (1 + (2 + 2))) * x) % 2)) x - x
+A194/A194408.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((((x / 2) / 2) / 2) + 1) * (2 * (1 + 2))) + 1) / (x + 1))) x
+A154/A154663.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ loop (λ (x y : ℤ) ↦ (y - (2 * (x % y)))) ((x - 1)) (1)) x
+A047/A047449.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (((x - (x / 2)) * x) % (2 + 2)))) x
+A047/A047609.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((2 + (x / 2)) * x) % (2 + 2))) x
+A239/A239048.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + y) * x)) (2) (2) % (1 + x))) x + 2
+A047/A047432.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - ((((x / 2) + x) * x) % (2 + 2)))) x - 1
+A160/A160811.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((2 + y) * x)) (2) (2) / (1 + x))) (2) (x) + 1) - x)) x
+A047/A047598.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ ((x % (2 * (2 + 2))) - 2)) x + 1) + 2
+A047/A047577.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 + (2 - ((x - 2) % (2 * (2 + 2)))))) x
+A120/A120752.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((((((((((1 + x) / (2 + 2)) + x) / 2) / 2) + x) / 2) + x) / 2) / 2) + x) % 2)) (x + 1)
+A047/A047473.lean:  Int.toNat <| 2 + comprN (λ (x : ℤ) ↦ ((x / 2) % (2 + 2))) x
+A047/A047614.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (1 + (x / (2 - (x % 2))))) (2) (x) % 2)) x
+A294/A294369.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((x / 2) % 2)) (x - 2) + x
+A140/A140106.lean:  Int.toNat <| (comprN (λ (_x : ℤ) ↦ 0) (x - 1) / 2)
+A140/A140794.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (x - (x / (2 + y)))) (2) (x) % 2)) x
+A214/A214864.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 - ((((x / 2) / 2) / 2) % 2)) - ((x / 2) % 2))) x
+A047/A047229.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (x % (2 + (x % 2)))) x
+A047/A047442.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop (λ (x y : ℤ) ↦ ((1 - x) * (x / 2))) (2) (x) % 2)) x
+A047/A047551.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((1 + (x / 2)) / 2) % 2)) x
+A047/A047511.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x / 2) * x) + x) % (2 + 2))) x
+A047/A047316.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ (((x * x) / (1 + 2)) % (1 + 2))) (1 + x) + x) / 2
+A047/A047438.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((2 + (x / 2)) * x) % (2 + 2))) x + 1
+A139/A139704.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ if ((x % loop (λ (x y : ℤ) ↦ (1 + (x + x))) (2) (2))) ≤ 0 then (1) else (0)) (x + (1 + (2 * 4)))
+A047/A047357.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ ((x % (2 * (2 + 2))) - 2)) x / 2) + x
+A047/A047589.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((1 + (x / 2)) % (2 + 2))) x
+A034/A034584.lean:  Int.toNat <| (comprN (λ (x : ℤ) ↦ (((((x - 1) / (2 + 2)) + x) / 2) % 2)) x - x) / 2
+A047/A047435.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (((x / 2) * x) % (2 + 2)))) x - 1
+A047/A047462.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x / 2) * x) % (2 + 2))) x
+A047/A047527.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((1 + x) / (2 + 2)) % 2)) x
+A288/A288040.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ if ((x % loop (λ (x y : ℤ) ↦ (1 + (x + x))) (2) (2))) ≤ 0 then (1) else (0)) (x + (1 + (2 * 4)))
+A028/A028726.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ loop2 (λ (x y : ℤ) ↦ y) (λ (x y : ℤ) ↦ (y - x)) (x) (0) (1)) x + 2
+A047/A047459.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((2 + (x / 2)) - x) % (2 + 2)) - (x % 2))) x
+A047/A047434.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((2 + (x / 2)) % (2 + 2)) * (x % 2))) x
+A028/A028747.lean:  Int.toNat <| comprN
+A047/A047475.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((x % (2 * (2 + 2))) - 2)) x + 1
+A047/A047249.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - ((x / (1 + 2)) % 2))) x
+A047/A047547.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (1 + (x / (2 - (x % 2))))) (2) (x) - x) % 2)) x
+A047/A047402.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x / 2) * x) % (2 + 2))) x + 2
+A333/A333841.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - loop (λ (x y : ℤ) ↦ (y - x)) (((x - 2) - 2)) (2))) x
+A047/A047455.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((x % (2 * (2 + 2))) - 2)) x + 2
+A047/A047506.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((2 - ((x / 2) % (2 + 2))) + (x % 2))) x
+A333/A333547.lean:  Int.toNat <| loop (λ (x _y) ↦ comprN (λ (x : ℤ) ↦ (((((x / 2) / 2) * x) * x) % (2 + 2))) x) x (1 + x)
+A028/A028429.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((((((((x / 2) / 2) + 2) / 2) + 2) / 2) / 2) + 1) / 2) % 2)) (x + 1)
+A028/A028737.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ if ((((x / 2) * x) % (2 + 2))) ≤ 0 then (((x + 1) % (1 + 2))) else (0)) x
+A028/A028743.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ if ((((((x * x) / (1 + (2 + 2))) + x) / 2) % (1 + 2))) ≤ 0 then (1) else (0)) x
+A317/A317551.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x / 2) * x) % 2) * (x % (1 + (2 * (2 + 2)))))) x
+A028/A028919.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x / 2) * x) + x) % ((2 + 2) + 1))) x + x
+A028/A028734.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ loop (λ (x y : ℤ) ↦ (((loop (λ (x y : ℤ) ↦ (2 + (0 + x))) (x) (1) - x) * 2) - (2 + y))) (x) (1)) x
+A028/A028735.lean:  Int.toNat <| comprN
+A028/A028762.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x * x) * x) % (1 + (2 + (2 + 2)))) % 2)) (1 + x)
+A028/A028964.lean:  Int.toNat <| comprN
+A085/A085621.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (((x / 2) + x) + y)) (x) (1) % 2) - (x % 2))) x
+A028/A028732.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x * x) * x) % (1 + (2 + loop (λ (x y : ℤ) ↦ (x * x)) (2) (2)))) % 2)) (1 + x)
+A028/A028744.lean:  Int.toNat <| comprN
+A028/A028733.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((x - 1) - ((x / 2) / 2)) / 2) % 2) - ((x / 2) % 2))) (x + 1)
+A324/A324560.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (x % (2 + (x % 2)))) (if x ≤ 0 then 1 else 2 + x)
+A167/A167876.lean:  Int.toNat <| loop2 (λ (x y) ↦ comprN (λ (x : ℤ) ↦ 0) (x + y)) (λ (x y) ↦ y - x) x 1 2
+A193/A193838.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - loop (λ (x y : ℤ) ↦ (loop (λ (x y : ℤ) ↦ (y - x)) (x) (x) + y)) (x) (x))) x
+A152/A152627.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ loop (λ (x y : ℤ) ↦ ((2 - x) + y)) (x) (x)) (2 - x)
+A262/A262389.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x % 2) - ((x / 2) % (1 + (2 + 2)))) + (x % 2)) + 2)) x
+A293/A293481.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - ((x / (1 + (2 + 2))) % 2))) x
+A158/A158411.lean:  Int.toNat <| x - comprN (λ (x : ℤ) ↦ 0) ((x - 2) - 2)
+A262/A262773.lean:  Int.toNat <| (((comprN (λ (x : ℤ) ↦ 0) (x - 1) / 2) / 2) + x) + x
+A158/A158333.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (x % (loop (λ (x y : ℤ) ↦ (1 + (x + x))) (2) (2) * 2)))) (x + x)
+A055/A055568.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x - 1) % (2 + 2)) - (x % (1 + (2 + 2)))) * x)) x
+A010/A010397.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ ((x * x) % ((2 * (2 + (2 + 2))) * (1 + 2)))) (2) (x) - x) % (1 + x))) x
+A111/A111706.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x / 2) / (1 + (2 + 2))) % 2)) (1 + x)
+A010/A010379.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (x * x)) (2) ((x * x)) % (1 + loop (λ (x y : ℤ) ↦ (x * x)) (2) (2))) - 1)) x
+A146/A146029.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((x - 1) / (2 * (2 + 2))) % 2) * x)) x
+A010/A010395.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (x * x)) (2) ((x * x)) % (1 + loop (λ (x y : ℤ) ↦ (x * x)) (2) (2))) - 1)) x
+A145/A145733.lean:  Int.toNat <| comprN
+A010/A010403.lean:  Int.toNat <| comprN
+A267/A267883.lean:  Int.toNat <| if x ≤ 0 then x else comprN (λ (x : ℤ) ↦ 0) (4 - x)
+A010/A010383.lean:  Int.toNat <| comprN
+A145/A145266.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((2 + (((x / (1 + 2)) + x) + x)) + (x % 2)) % (1 + 2)) - 1)) x
+A010/A010399.lean:  Int.toNat <| comprN
+A244/A244151.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x / 2) % (1 + 2)) * if ((x / (1 + 2))) ≤ 0 then (0) else (x))) x + 2
+A133/A133484.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (loop2 (λ (x y : ℤ) ↦ (x + y)) (λ (x y : ℤ) ↦ (y / 2)) (x) (1) (x) % 2)) x + 1
+A133/A133893.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (2 - ((x / (1 + 2)) % (1 + 2)))) x
+A010/A010388.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((x * x) * x) % (1 + (2 * (2 + (2 + 2))))) % (1 + 2)) - 1)) x
+A010/A010398.lean:  Int.toNat <| comprN
+A133/A133508.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((((((1 + ((x * x) + x)) / ((2 * 2) + 1)) + 1) + x) * ((x + 1) / (1 + 2))) + 1) / 2) % 2)) x
+A133/A133894.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((1 + ((x / 2) / 2)) % (2 + 2))) x
+A190/A190482.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((((loop (λ (x y : ℤ) ↦ (1 - x)) ((x % (1 + 2))) (2) + 2) * (1 + (x % 2))) + 1) * 2) + 1) - x)) x
+A133/A133895.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((1 + (x / (1 + (2 + 2)))) % (1 + (2 + 2)))) x
+A010/A010389.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((1 + (2 + 2)) * ((x - 1) % (1 + 2))) % (1 + x))) x
+A010/A010393.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((x / (1 + ((x - 2) % (2 + 2)))) - (x % 2)) + 1) % 2) % (x + 1))) x
+A190/A190719.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((((((((((2 - ((x / 2) % 2)) * (2 + x)) / 2) / 2) + 2) * 2) + x) * 2) - 2) % (1 + 2)) - 1)) x
+A082/A082463.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - (x % (2 * (2 + 2))))) x
+A210/A210576.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((1 + ((x / 2) / ((2 + 2) + 1))) - (x % 2)) - (x % (1 + 2)))) x
+A010/A010384.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((loop (λ (x y : ℤ) ↦ (x * x)) (2) (x) * x) % loop (λ (x y : ℤ) ↦ (1 + (x + x))) (2) (2)) - 1)) x
+A282/A282701.lean:  Int.toNat <| (((((comprN (λ (x : ℤ) ↦ (((((((((x / 2) / 2) / (1 + 2)) + x) / 2) / 2) + 1) % 2) - (x % 2))) x - 1) / 2) + 2) * 2) -
+A061/A061094.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((loop (λ (x y : ℤ) ↦ (x + x)) ((x % (2 + 2))) (1) * 2) - x)) x - 1
+A351/A351831.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((((((1 - (x / (1 + (2 + 2)))) / (2 + 1)) + 1) / (1 + 2)) + x) % 2) + x) % 2)) x
+A031/A031994.lean:  comprN (λ (x : ℤ) ↦ ((x % (1 + (2 + 2))) - (x % (1 + (2 * (2 + 2)))))) x
+A102/A102282.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((loop (λ (x y : ℤ) ↦ y) ((x % (1 + 2))) (1) + x) / 2) % 2)) x
+A271/A271317.lean:  Int.toNat <| comprN
+A335/A335013.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (1 - ((((x / 2) / 2) / 2) % 2))) ((x + x) + x / 3)
+A335/A335129.lean:  Int.toNat <| if (x % 3) ≤ 0 then comprN (λ (x : ℤ) ↦ 0) (x - 1) else x
+A095/A095130.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ 0) (loop2 (λ (_x y) ↦ y) (λ (x y) ↦ y - x) x 0 1)
+A095/A095042.lean:  Int.toNat <| comprN
+A095/A095033.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((x + loop2 (λ (x y : ℤ) ↦ (y + y)) (λ (x y : ℤ) ↦ x) (x) (1) (1)) / (1 + 2)) % 2)) x + 1
+A298/A298705.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ (((loop (λ (x y : ℤ) ↦ loop (λ (x y : ℤ) ↦ (2 + (x - y))) (x) (y)) (x) (1) / 2) + 1) % 2)) x
+A092/A092899.lean:  Int.toNat <| ((comprN (λ (x : ℤ) ↦ ((x / 2) % 2)) (x - 1) + x) * 2) + 1
+A092/A092907.lean:  comprN (λ (x : ℤ) ↦ (((x / 2) / (1 + (2 + 2))) % (2 + (2 * (2 + 2))))) x
+A217/A217761.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((1 - (((x / 2) / 2) / 2)) / 2) + 2) * ((x - 2) / 2))) x
+A032/A032520.lean:  Int.toNat <| comprN (λ (x : ℤ) ↦ ((((((x / 2) / 2) * (x % 2)) + 1) / 2) - 2)) x
+A254/A254130.lean:  Int.toNat <| comprN

@@ -14,7 +14,7 @@ open Synth
 
 namespace Sequence
 
-@[OEIS := A166814, offset := 1, maxIndex := 80, derive := true]
+@[OEIS := A166814, offset := 1, maxIndex := 78, derive := true]
 def A166814 (n : ℕ) : ℕ :=
   let x := n - 1
   Int.toNat <| ((loop (λ (x y) ↦ loop (λ (x y) ↦ 2 + (x + y)) y x) (1 + x) x * x) + x) / 2

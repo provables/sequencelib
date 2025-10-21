@@ -7,7 +7,9 @@ import json
 import requests
 import logging
 
-PREVIOUS = Path(os.environ.get("SEQUENCELIB_LEAN_INFO", "/tmp/sequencelib_lean_info.json"))
+PREVIOUS = Path(
+    os.environ.get("SEQUENCELIB_LEAN_INFO", "/tmp/sequencelib_lean_info.json")
+)
 OUTPUT = Path(os.environ.get("OUTPUT", "/tmp/output"))
 HERE = Path(__file__).parent.resolve()
 
@@ -24,7 +26,7 @@ def load(f):
 
 def save(f, result):
     with open(f, "w") as f:
-        json.dump(result, f, separators=(',', ':'))
+        json.dump(result, f, separators=(",", ":"))
 
 
 def get_oeis_info():
@@ -76,6 +78,31 @@ def update_seq_data(lean_info, previous: dict):
                 seq_data.update(get_data_for_tag(tag))
 
 
+def write_commit(dir):
+    out = dir / "last-commit-processed"
+    output = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=HERE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    dirty = (
+        " (dirty)"
+        if subprocess.run(
+            ["git", "status", "-s"],
+            cwd=HERE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        else ""
+    )
+    out.write_text(f"{output}{dirty}")
+
+
 def main():
     logger.info(f"Loading previous file {PREVIOUS}")
     previous = load(PREVIOUS)
@@ -85,9 +112,11 @@ def main():
     update_seq_data(info, previous)
     logger.info(f"Writing into {OUTPUT}")
     save(OUTPUT, info)
+    write_commit(OUTPUT)
     logger.info("Done")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     logger.info("Started")
     main()

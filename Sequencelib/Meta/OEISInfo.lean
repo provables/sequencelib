@@ -79,13 +79,16 @@ def getOEISInfo : MetaM OEISInfo := do
 def OEISInfoToMod (info : OEISInfo) :
     Std.HashMap Name
       (Std.HashMap Tag (Nat × Std.HashMap Name (Bool × (c : Codomain) × Array (Thm c)))) :=
-  info.fold (fun acc tag oeisTag =>
-    let mod := oeisTag.sequences[0]? |>.map (·.snd.module) |>.getD `no_module
-    let tagsForMod := acc.get? mod |>.getD ∅
-    let declsForTagWithThms := oeisTag.sequences.foldl (fun accs ⟨c, seq⟩ =>
-      ⟨seq.offset, accs.2.insert seq.definition ⟨seq.isComputable, ⟨c, seq.theorems⟩⟩⟩
-    ) <| tagsForMod.get? tag |>.getD ⟨0, ∅⟩
-    acc.insert mod <| tagsForMod.insert tag declsForTagWithThms
+  info.fold (fun byMod tag oeisTag =>
+    oeisTag.sequences.foldl (fun byModInner ⟨c, seq⟩ =>
+      let mod := seq.module
+      let byTags := byModInner.get? mod |>.getD ∅
+      let ⟨_, thms⟩ := byTags |>.get? tag |>.getD ⟨0, ∅⟩
+      let new := thms.insert seq.definition ⟨seq.isComputable, ⟨c, seq.theorems⟩⟩
+      let byTags := byTags.insert tag ⟨seq.offset, new⟩
+      let newByModInner := byModInner.insert mod byTags
+      newByModInner
+    ) byMod
   ) ∅
 
 def showOEISInfo : Command.CommandElabM Unit := do

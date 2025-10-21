@@ -24,8 +24,8 @@ def load(f):
         return {}
 
 
-def save(f, result):
-    with open(f, "w") as f:
+def save(dir, result):
+    with open(dir / "sequencelib_lean_info.json", "w") as f:
         json.dump(result, f, separators=(",", ":"))
 
 

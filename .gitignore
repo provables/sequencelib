@@ -14,3 +14,4 @@ Sequencelib/Synthetic/progress
 Sequencelib/Synthetic/backup
 result
 supervisord.*
+.DS_Store

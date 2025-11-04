@@ -190,6 +190,79 @@
         config.Cmd = [ "${pkgs.bash}/bin/bash" ];
       };
 
+      sequencelib =
+        let
+          hashes = {
+            "aarch64-darwin" = "";
+            "aarch64-linux" = "";
+            "x86_64-darwin" = "";
+            "x86_64-linux" = "";
+          };
+        in
+        pkgs.stdenv.mkDerivation {
+          __structuredAttrs = true;
+          unsafeDiscardReferences.out = true;
+          name = "sequencelib";
+          nativeBuildInputs = [ pkgs.makeWrapper pkgs.cacert ];
+          outputHashAlgo = "sha256";
+          outputHashMode = "recursive";
+          outputHash = hashes.${system};
+          buildInputs = with pkgs; [
+            toolchain
+            gnutar
+            rsync
+            git
+            curl
+            findutils
+            gnused
+            gzip
+          ];
+          src = ./.;
+          buildPhase = ''
+            mkdir -p $out
+            export HOME=$(mktemp -d)
+            lake exe cache get
+            lake build
+            find .lake/build -name \*.trace -exec sed -i -e 's|'$(pwd)'|/base|g' '{}' \;
+            rsync -a .lake/build/ $out
+          '';
+          phases = [ "unpackPhase" "buildPhase" ];
+        };
+
+      sequencelibDocs =
+        let
+          hashes = {
+            "aarch64-darwin" = "";
+            "aarch64-linux" = "";
+            "x86_64-darwin" = "";
+            "x86_64-linux" = "";
+          };
+        in
+        pkgs.stdenv.mkDerivation {
+          name = "sequencelibDocs";
+          nativeBuildInputs = [ pkgs.makeWrapper pkgs.cacert ];
+          outputHashAlgo = "sha256";
+          outputHashMode = "recursive";
+          outputHash = hashes.${system};
+          buildInputs = with pkgs; [
+            toolchain
+            gnutar
+            rsync
+            git
+            curl
+            findutils
+            gzip
+          ];
+          src = ./.;
+          buildPhase = ''
+            mkdir -p $out
+            export HOME=$(mktemp -d)
+            lake exe cache get
+            DOCGEN_SRC="file" lake build Sequencelib:docs
+            rsync -a .lake/build/doc $out/
+          '';
+          dontFixup = true;
+        };
     in
     {
       packages = {
@@ -199,6 +272,7 @@
         inherit synthesize;
         inherit interactive;
         inherit synthesizeBundled;
+        inherit sequencelibDocs sequencelib;
       };
       devShells = {
         default = devShell;

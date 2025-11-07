@@ -222,8 +222,15 @@
             mkdir -p $out
             export HOME=$(mktemp -d)
             lake exe cache get
-            lake build
+            echo "====== Building..."
+            lake build --verbose --no-ansi 
+            echo "====== Fixing traces..."
+            for f in $(find .lake/build -name \*.trace); do
+              jq '.log[].message = ""' "$f" | sponge "$f"
+            done
+            echo "====== Rewriting paths..."
             find .lake/build -name \*.trace -exec sed -i -e 's|'$(pwd)'|/base|g' '{}' \;
+            echo "====== Copying output..."
             rsync -a .lake/build/ $out
           '';
           phases = [ "unpackPhase" "buildPhase" ];

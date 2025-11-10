@@ -17,6 +17,7 @@
   };
   outputs =
     { nixpkgs
+    , self
     , flake-utils
     , shell-utils
     , synthetic
@@ -193,7 +194,7 @@
       sequencelib =
         let
           hashes = {
-            "aarch64-darwin" = "";
+            "aarch64-darwin" = "sha256-Xo8dNzpLg5dt6lGDBUOEkR/orTP8AVulhDZkWCMehGk=";
             "aarch64-linux" = "";
             "x86_64-darwin" = "";
             "x86_64-linux" = "";
@@ -216,6 +217,8 @@
             findutils
             gnused
             gzip
+            jq
+            moreutils
           ];
           src = ./.;
           buildPhase = ''
@@ -239,7 +242,7 @@
       sequencelibDocs =
         let
           hashes = {
-            "aarch64-darwin" = "";
+            "aarch64-darwin" = "sha256-9GnBOLRwiKKz4n+DSgPeFP+keitZ7kaMFs0DkUyR/ZU=";
             "aarch64-linux" = "";
             "x86_64-darwin" = "";
             "x86_64-linux" = "";
@@ -259,16 +262,27 @@
             curl
             findutils
             gzip
+            jq
+            moreutils
+            gnused
           ];
           src = ./.;
+          dontFixup = true;
+          REV = self.rev or builtins.elemAt (builtins.split "-" self.dirtyRev) 0;
           buildPhase = ''
+            git init -b main
+            git commit --allow-empty -m "Empty commit"
+            git remote add origin git@github.com:provables/synthetic.git
+            TEMP_REV=$(git rev-parse HEAD)
             mkdir -p $out
             export HOME=$(mktemp -d)
             lake exe cache get
-            DOCGEN_SRC="file" lake build Sequencelib:docs
+            DOCGEN_SRC="github" lake build Sequencelib:docs --verbose --no-ansi
+            find .lake/build/doc \( -name \*.trace -or -name \*.hash \) -delete
+            find .lake/build/doc -type f -exec sed -i -e 's|'$(pwd)'|/base|g' '{}' \;
+            find .lake/build/doc -type f -exec sed -i -e 's|'$TEMP_REV'|'$REV'|g' '{}' \;
             rsync -a .lake/build/doc $out/
           '';
-          dontFixup = true;
         };
     in
     {

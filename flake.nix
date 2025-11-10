@@ -271,6 +271,8 @@
           REV = self.rev or (builtins.elemAt (builtins.split "-" self.dirtyRev) 0);
           buildPhase = ''
             git init -b main
+            git config user.email "nouser@localhost"
+            git config user.name "No User"
             git commit --allow-empty -m "Empty commit"
             git remote add origin git@github.com:provables/synthetic.git
             TEMP_REV=$(git rev-parse HEAD)

@@ -274,7 +274,7 @@
             git config user.email "nouser@localhost"
             git config user.name "No User"
             git commit --allow-empty -m "Empty commit"
-            git remote add origin git@github.com:provables/synthetic.git
+            git remote add origin git@github.com:provables/sequencelib.git
             TEMP_REV=$(git rev-parse HEAD)
             mkdir -p $out
             export HOME=$(mktemp -d)

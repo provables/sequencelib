@@ -3,7 +3,7 @@
 A platform for formalizing sequences from 
 [The On-Line Encyclopedia of Integer Sequences (OEIS)](https://oeis.org).
 
-The [main site](https://provables.github.io/sequencelib) contains an
+The [main site](https://provables.org/sequencelib) contains an
 automatically generated index of the sequences formalized in this repository.
 You can also find more detailed instructions for developing, building, and contributing.
 
@@ -11,7 +11,7 @@ You can also find more detailed instructions for developing, building, and contr
 
 This project is a standard [Lake](https://lean-lang.org/documentation/setup/) project, so a running 
 Lean installation is enough for building and 
-[contributing](https://provables.github.io/sequencelib/contributing.html). If you are able to
+[contributing](https://provables.org/sequencelib/contributing.html). If you are able to
 use Lean from VSCode, you are ready to use this project by cloning it and opening the root folder 
 in the editor.
 
@@ -45,5 +45,5 @@ the dependent tasks run in order and to skip over unnecessary work.
 
 ## License
 
-* <a href="https://provables.github.io/sequencelib/">Sequencelib</a> © 2025 by <a href="https://github.com/waltermoreira">Walter Moreira</a> and <a href="https://github.com/joestubbs">Joe Stubbs</a> is licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="width: 1em;height:1em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="width: 1em;height:1em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="width: 1em;height:1em;">
+* <a href="https://provables.org/sequencelib/">Sequencelib</a> © 2025 by <a href="https://github.com/waltermoreira">Walter Moreira</a> and <a href="https://github.com/joestubbs">Joe Stubbs</a> is licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="width: 1em;height:1em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="width: 1em;height:1em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="width: 1em;height:1em;">
 * The [OEIS](https://oeis.org) is made available under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="width: 1em;height:1em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="width: 1em;height:1em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="width: 1em;height:1em;">

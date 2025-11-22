@@ -9,3 +9,4 @@ import Sequencelib.Meta.DeriveTheorems
 import Sequencelib.Meta.Synthetic
 import Sequencelib.Meta.SyntheticProofs
 import Sequencelib.Meta.Codomain
+import Sequencelib.Meta.Defs

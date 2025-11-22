@@ -11,47 +11,6 @@ import Sequencelib.Meta.DeriveTheorems
 
 open Lean Meta Elab Qq
 
-abbrev Tag := String
-
-instance : Inhabited Tag := inferInstanceAs (Inhabited String)
-
-inductive Thm (c : Codomain) : Type where
-  | Value (thmName : Name) (seq : Name) (index : Nat) (value : ↑c) : Thm c
-  | Equiv (thmName : Name) (seq1 : Name) (seq2 : Name) : Thm c
-  deriving Inhabited
-
-instance {c : Codomain} : Repr (Thm c) where
-  reprPrec t _ :=
-    match t with
-    | .Value n s i v => by
-      cases c with
-      | Nat => exact s!"[Nat] theorem {n} : {s} {i} = {v}".toFormat
-      | Int => exact s!"[Int] theorem {n} : {s} {i} = {v}".toFormat
-    | .Equiv n s1 s2 => s!"theorem {n} : {s1} = {s2}"
-
-structure Sequence (c : Codomain) where
-  tagName : Tag
-  definition : Name
-  module : Name
-  theorems : Array (Thm c)
-  offset : Nat
-  isComputable : Bool
-  deriving Inhabited, Repr
-
-structure OEISTag where
-  tagName : Tag
-  codomain: Codomain
-  -- We allow different codomains for the sequences associated to a tag because the extension
-  -- doesn't allow raising or easily returning errors. We validate this during collection
-  -- of the data.
-  sequences : Array ((c : Codomain) × Sequence c)
-  offset : Nat
-  deriving Inhabited, Repr
-
-abbrev OEISInfo := Std.HashMap Tag OEISTag
-
-instance : Inhabited OEISInfo := inferInstanceAs (Inhabited <| Std.HashMap _ _)
-
 def addOEISInfo (info : OEISInfo) (tag : OEISTag) : OEISInfo :=
   let (prev, info) := info.getThenInsertIfNew? tag.tagName tag
   match prev with

@@ -286,6 +286,12 @@
             rsync -a .lake/build/doc $out/
           '';
         };
+        fooFun = arg: name: pkgs.writeTextFile {
+          name = "file-${name}";
+          text = ''
+            Something with ${arg}
+          '';
+        };
     in
     {
       packages = {
@@ -296,6 +302,9 @@
         inherit interactive;
         inherit synthesizeBundled;
         inherit sequencelibDocs sequencelib;
+        foo1 = fooFun "1" "foo1";
+        foo2 = fooFun "2" "foo2";
+        inherit fooFun;
       };
       devShells = {
         default = devShell;

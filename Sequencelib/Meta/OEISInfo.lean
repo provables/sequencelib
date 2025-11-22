@@ -57,10 +57,11 @@ def findEquivTheorems {c : Codomain} (decl : Name) (decls : Array Name) :
     result := result.push <| Thm.Equiv n decl decl2
   return result
 
-def getOEISInfo : MetaM OEISInfo := do
+def getOEISInfo (limit : Option Nat := none) : MetaM OEISInfo := do
   let env ← getEnv
   let info := oeisExt.getState env
-  return .ofList (← info.toList.mapM (fun (tag, oeisTag) => do
+  let list := limit.map info.toList.take |>.getD info.toList
+  return .ofList (← list.mapM (fun (tag, oeisTag) => do
     return (tag, ⟨
       tag,
       oeisTag.codomain,
@@ -156,3 +157,5 @@ elab (name := oeisTags) "#oeis_info_json" : command => do
   let info ← Command.liftTermElabM getOEISInfo
   let result := OEISInfoToJson info
   logInfo m!"{result}"
+
+--def OEISDataForTag (tag : Tag) : IO Nat := sorry

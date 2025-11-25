@@ -42,7 +42,6 @@ unsafe
 def run (p : Parsed) : IO UInt32 := do
   let l := p.flag? "limit" |>.map (·.as! Nat)
   if p.hasFlag "oeisdata" then
-    IO.println "Requested oeisdata"
     let x ← toIO <| OEISRepoM.run' <| fullInfo l
     match x with
     | .ok r => do

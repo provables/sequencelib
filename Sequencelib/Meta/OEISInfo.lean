@@ -7,6 +7,7 @@ import Lean
 import Qq
 import Batteries
 import Sequencelib.Meta.Defs
+import Sequencelib.Meta.ToJson
 import Sequencelib.Meta.OEISTag
 
 open Lean Meta Elab Qq
@@ -106,32 +107,13 @@ def showOEISInfo : Command.CommandElabM Unit := do
           msgs := msgs.push m!"...... {repr thm}"
   logInfo <| MessageData.joinSep msgs.toList "\n"
 
-def ThmToJson {c : Codomain} (thm : Thm c) : Json :=
-  match thm with
-  | .Value thmName declName index value =>
-    Json.mkObj [
-      ("type", "value"),
-      ("declaration", Json.str declName.toString),
-      ("theorem", Json.str thmName.toString),
-      ("index", Json.num index),
-      ("value", Json.num (by
-        cases c with
-        | Nat => exact ↑value
-        | Int => exact ↑value
-      ))
-    ]
-  | .Equiv thmName seq1 seq2 =>
-    Json.mkObj [
-      ("type", "equiv"),
-      ("theorem", thmName.toString),
-      ("seq1", seq1.toString),
-      ("seq2", seq2.toString)
-    ]
-
 def ThmToName {c : Codomain} (thm : Thm c) : Name :=
   match thm with
   | .Value n _ _ _ => n
   | .Equiv n _ _ => n
+
+elab (name := oeisInfo) "#oeis_info" : command =>
+  showOEISInfo
 
 def OEISInfoToJson (info : OEISInfo) : Json :=
   Json.mkObj <| OEISInfoToMod info |>.toList.map (fun (mod, tagsForMod) =>
@@ -149,9 +131,6 @@ def OEISInfoToJson (info : OEISInfo) : Json :=
     )
   )
 )
-
-elab (name := oeisInfo) "#oeis_info" : command =>
-  showOEISInfo
 
 elab (name := oeisTags) "#oeis_info_json" : command => do
   let info ← Command.liftTermElabM getOEISInfo

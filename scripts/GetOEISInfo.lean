@@ -1,5 +1,6 @@
 import Cli.Basic
 import Sequencelib.Meta
+import Sequencelib.Meta.ToJson
 import Sequencelib.Meta.OEISRepo
 import Lean
 
@@ -33,9 +34,9 @@ def augmentInfo (info : OEISInfo) : OEISRepoM OEISFullInfo := do
   return result
 
 unsafe
-def fullInfo (limit : Option Nat := none) : OEISRepoM OEISFullInfo := do
+def fullInfo (limit : Option Nat := none) : OEISRepoM Json := do
   let info ← getOEISInfo limit
-  augmentInfo info
+  return FullInfoToJson (← augmentInfo info)
 
 unsafe
 def run (p : Parsed) : IO UInt32 := do
@@ -45,7 +46,7 @@ def run (p : Parsed) : IO UInt32 := do
     let x ← toIO <| OEISRepoM.run' <| fullInfo l
     match x with
     | .ok r => do
-      IO.println s!"Result: {repr r}"
+      IO.println s!"{r}"
       return 0
     | .error e => do
       throw <| IO.Error.userError s!"Error: {e}"

@@ -10,6 +10,11 @@ open Synth
 
 /-!
 # A017379 sequence
+
+## References
+
+- T. Gauthier; and J. Urban (2023). Learning Program Synthesis for Integer Sequences from Scratch.
+  The Thirty-Seventh AAAI Conference on Artificial Intelligence (AAAI-23)
 -/
 
 namespace Sequence

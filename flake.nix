@@ -242,7 +242,7 @@
       sequencelibDocs =
         let
           hashes = {
-            "aarch64-darwin" = "sha256-YEG7ME2LgCl4ThTSmT/ZtHyM3f/huK9xkd1eRodZj1k=";
+            "aarch64-darwin" = "sha256-tM3JoAj3m3o9IsUEU0E8Ee/TcPHFvVoNKbYk/kCIV18=";
             "aarch64-linux" = "";
             "x86_64-darwin" = "";
             "x86_64-linux" = "";
@@ -270,6 +270,7 @@
           dontFixup = true;
           REV = self.rev or (builtins.elemAt (builtins.split "-" self.dirtyRev) 0);
           buildPhase = ''
+            echo "Using REV = $REV"
             git init -b main
             git config user.email "nouser@localhost"
             git config user.name "No User"

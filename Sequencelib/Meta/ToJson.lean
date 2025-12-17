@@ -28,7 +28,7 @@ def FullInfoToJson (d : OEISFullInfo) : Json :=
   Json.mkObj <| d.toList.map (fun (tag, fullData) =>
     (tag, Json.mkObj [
       ("tag", tag),
-      ("codomain", s!"{repr fullData.info.codomain}"),
+      ("codomain", s!"{fullData.info.codomain}"),
       ("offset", Json.num fullData.info.offset),
       ("description", fullData.repoInfo.description),
       ("keywords", Json.arr <| fullData.repoInfo.keywords.toArray.map Json.str),

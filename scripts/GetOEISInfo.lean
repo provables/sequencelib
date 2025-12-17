@@ -1,7 +1,7 @@
 import Cli.Basic
-import Sequencelib.Meta
 import Sequencelib.Meta.ToJson
 import Sequencelib.Meta.OEISRepo
+import Sequencelib.Meta.OEISInfo
 import Lean
 
 open Lean Elab Meta Cli

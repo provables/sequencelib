@@ -32,6 +32,9 @@
       pkgs = nixpkgs.legacyPackages.${system};
       shell = shell-utils.myShell.${system};
       toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_20;
+      inherit (lean-toolchain.lib.${system}) buildLeanPackage;
+      inherit (lean-toolchain.lib.${system}) mathlib;
+      mathlib-4_20 = mathlib "4.20.1";
       genseq = synthetic.packages.${system}.default;
       sgenseq = synthetic.packages.${system}.sgenseq;
       buildNixImage = nix-docker-img.lib.${system}.buildNixImage;
@@ -286,12 +289,49 @@
             rsync -a .lake/build/doc $out/
           '';
         };
-        fooFun = arg: name: pkgs.writeTextFile {
-          name = "file-${name}";
-          text = ''
-            Something with ${arg}
+      fooFun = arg: name: pkgs.writeTextFile {
+        name = "file-${name}";
+        text = ''
+          Something with ${arg}
+        '';
+      };
+      # TODO: Make this --v  work
+      oeisinfoLean = buildLeanPackage {
+        name = "oeisinfoLean";
+        # outputHashAlgo = "sha256";
+        # outputHashMode = "recursive";
+        # outputHash = "";
+        # src = builtins.path {
+        #   path = ./.;
+        #   name = "oeisinfoLean-src";
+        #   filter = path: type: baseNameOf path != "";
+        # };
+        src = ./.;
+        buildInputs = [ mathlib-4_20 pkgs.rsync ];
+        writable = [ "Cli" "batteries" "Qq" "MD4Lean" ];
+        buildPhase = ''
+          lake build oeisinfo
+          LEAN_PATH="$out/lib$(for f in $(ls ${mathlib-4_20}/); do 
+              echo -n ":${mathlib-4_20}/$f/.lake/build/lib/lean"; 
+            done
+          )"
+          echo "LEAN_PATH = $LEAN_PATH"
+          mkdir -p $out/{bin,lib}
+          cp .lake/build/bin/oeisinfo $out/bin
+          rsync -a .lake/build/lib/lean/ $out/lib
+        '';
+      };
+      oeisinfo = pkgs.writeShellApplication {
+        name = "oeisinfo";
+        text = ''
+          LEAN_PATH=$(echo -n ".lake/build/lib/lean";
+            for f in $(ls .lake/packages/); do 
+              echo -n ":.lake/packages/$f/.lake/build/lib/lean"; 
+            done)
           '';
-        };
+      };
+      # TODO: Add lake exe cache get with only oleans to leantoolchain-nix
+      # TODO: Add oeisinfo -o as derivation
     in
     {
       packages = {
@@ -305,6 +345,7 @@
         foo1 = fooFun "1" "foo1";
         foo2 = fooFun "2" "foo2";
         inherit fooFun;
+        inherit oeisinfoLean;
       };
       devShells = {
         default = devShell;

@@ -1,7 +1,13 @@
 /-
-Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
-Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Walter Moreira and Joe Stubbs
+* Copyright (c) 2025 Walter Moreira, Joe Stubbs.
+  Released under CC BY-SA 4.0 license as described in the file LICENSE.
+  Authors: Walter Moreira and Joe Stubbs
+  Translation to Lean 4 and integration into Sequencelib.
+
+* Copyright (c) Thibault Gauthier, Josef Urban.
+  Released under GPL-3.0 license.
+  Authors: Thibault Gauthier, Josef Urban.
+  Original SML code for the sequence.
 -/
 import Mathlib
 import Sequencelib.Meta

@@ -242,7 +242,7 @@
       sequencelibDocs =
         let
           hashes = {
-            "aarch64-darwin" = "sha256-tM3JoAj3m3o9IsUEU0E8Ee/TcPHFvVoNKbYk/kCIV18=";
+            "aarch64-darwin" = "sha256-X7egNhx8EHHa7o9APh75a95bjKiHdC5d6fwP6t52oFY=";
             "aarch64-linux" = "";
             "x86_64-darwin" = "";
             "x86_64-linux" = "";

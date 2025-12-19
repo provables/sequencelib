@@ -194,53 +194,17 @@
         config.Cmd = [ "${pkgs.bash}/bin/bash" ];
       };
 
-      sequencelib =
-        let
-          hashes = {
-            "aarch64-darwin" = "sha256-Xo8dNzpLg5dt6lGDBUOEkR/orTP8AVulhDZkWCMehGk=";
-            "aarch64-linux" = "";
-            "x86_64-darwin" = "";
-            "x86_64-linux" = "";
-          };
-        in
-        pkgs.stdenv.mkDerivation {
-          __structuredAttrs = true;
-          unsafeDiscardReferences.out = true;
-          name = "sequencelib";
-          nativeBuildInputs = [ pkgs.makeWrapper pkgs.cacert ];
-          outputHashAlgo = "sha256";
-          outputHashMode = "recursive";
-          outputHash = hashes.${system};
-          buildInputs = with pkgs; [
-            toolchain
-            gnutar
-            rsync
-            git
-            curl
-            findutils
-            gnused
-            gzip
-            jq
-            moreutils
-          ];
-          src = ./.;
-          buildPhase = ''
-            mkdir -p $out
-            export HOME=$(mktemp -d)
-            lake exe cache get
-            echo "====== Building..."
-            lake build --verbose --no-ansi 
-            echo "====== Fixing traces..."
-            for f in $(find .lake/build -name \*.trace); do
-              jq '.log[].message = ""' "$f" | sponge "$f"
-            done
-            echo "====== Rewriting paths..."
-            find .lake/build -name \*.trace -exec sed -i -e 's|'$(pwd)'|/base|g' '{}' \;
-            echo "====== Copying output..."
-            rsync -a .lake/build/ $out
-          '';
-          phases = [ "unpackPhase" "buildPhase" ];
-        };
+      sequencelib = buildLeanPackage {
+        name = "sequencelib";
+        writable = [ "Cli" "batteries" "Qq" "MD4Lean" ];
+        buildInputs = [ pkgs.rsync ];
+        src = ./.;
+        buildPhase = ''
+          mkdir -p $out
+          lake build -v Sequencelib
+          rsync -a .lake/build/ $out
+        '';
+      };
 
       sequencelibDocs =
         let
@@ -308,6 +272,7 @@
         # };
         src = ./.;
         buildInputs = [ mathlib-4_20 pkgs.rsync ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
         writable = [ "Cli" "batteries" "Qq" "MD4Lean" ];
         buildPhase = ''
           lake build oeisinfo
@@ -315,10 +280,10 @@
               echo -n ":${mathlib-4_20}/$f/.lake/build/lib/lean"; 
             done
           )"
-          echo "LEAN_PATH = $LEAN_PATH"
           mkdir -p $out/{bin,lib}
           cp .lake/build/bin/oeisinfo $out/bin
           rsync -a .lake/build/lib/lean/ $out/lib
+          wrapProgram $out/bin/oeisinfo --prefix LEAN_PATH ":" "$LEAN_PATH"
         '';
       };
       oeisinfo = pkgs.writeShellApplication {
@@ -328,7 +293,7 @@
             for f in $(ls .lake/packages/); do 
               echo -n ":.lake/packages/$f/.lake/build/lib/lean"; 
             done)
-          '';
+        '';
       };
       # TODO: Add lake exe cache get with only oleans to leantoolchain-nix
       # TODO: Add oeisinfo -o as derivation

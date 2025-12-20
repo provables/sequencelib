@@ -440,9 +440,26 @@
         "nix-docker-img": "nix-docker-img",
         "nixpkgs": "nixpkgs_4",
         "oeis_results": "oeis_results",
+        "sequencelib-cache": "sequencelib-cache",
         "shell-utils": "shell-utils_2",
         "solutions": "solutions",
         "synthetic": "synthetic"
+      }
+    },
+    "sequencelib-cache": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1766203087,
+        "narHash": "sha256-/JLcd7MPBLbkUvfjb8VtM5ogfk7H4ECYggOFQeiBKk0=",
+        "ref": "refs/heads/main",
+        "rev": "9c3a5eef282ce49aed4b13cacecc5591a8ef3776",
+        "revCount": 1,
+        "type": "git",
+        "url": "ssh://git@provables.wetdog.digital/users/git/sequencelib-cache.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@provables.wetdog.digital/users/git/sequencelib-cache.git"
       }
     },
     "shell-utils": {

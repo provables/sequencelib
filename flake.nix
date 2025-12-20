@@ -14,6 +14,10 @@
       url = "git+ssh://git@provables.wetdog.digital/users/git/oeis_results";
       flake = false;
     };
+    sequencelib-cache = {
+      url = "git+ssh://git@provables.wetdog.digital/users/git/sequencelib-cache.git";
+      flake = false;
+    };
   };
   outputs =
     { nixpkgs
@@ -25,6 +29,7 @@
     , nix-docker-img
     , solutions
     , oeis_results
+    , sequencelib-cache
     , ...
     }:
     flake-utils.lib.eachDefaultSystem (system:
@@ -200,6 +205,8 @@
         buildInputs = [ pkgs.rsync ];
         src = ./.;
         buildPhase = ''
+          mkdir -p .lake/build
+          rsync -a --chmod=u=rwX ${sequencelib-cache}/ .lake/build/
           mkdir -p $out
           lake build -v Sequencelib
           rsync -a .lake/build/ $out

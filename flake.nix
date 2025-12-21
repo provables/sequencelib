@@ -203,7 +203,16 @@
         name = "sequencelib";
         writable = [ "Cli" "batteries" "Qq" "MD4Lean" ];
         buildInputs = [ pkgs.rsync ];
-        src = ./.;
+        src = pkgs.lib.fileset.toSource {
+          root = ./.; 
+          fileset = pkgs.lib.fileset.unions [
+            ./Sequencelib
+            ./Tests
+            ./lakefile.toml
+            ./lake-manifest.json
+            ./Sequencelib.lean
+          ];
+        };
         buildPhase = ''
           mkdir -p .lake/build
           rsync -a --chmod=u=rwX ${sequencelib-cache}/ .lake/build/
@@ -278,12 +287,12 @@
         #   filter = path: type: baseNameOf path != "";
         # };
         src = ./.;
-        buildInputs = [ mathlib-4_20 pkgs.rsync ];
+        buildInputs = [ mathlib-4_20 sequencelib pkgs.rsync ];
         nativeBuildInputs = [ pkgs.makeWrapper ];
         writable = [ "Cli" "batteries" "Qq" "MD4Lean" ];
         buildPhase = ''
           lake build oeisinfo
-          LEAN_PATH="$out/lib$(for f in $(ls ${mathlib-4_20}/); do 
+          LEAN_PATH="${sequencelib}/lib/lean$(for f in $(ls ${mathlib-4_20}/); do 
               echo -n ":${mathlib-4_20}/$f/.lake/build/lib/lean"; 
             done
           )"

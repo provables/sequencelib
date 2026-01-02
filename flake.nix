@@ -275,8 +275,7 @@
           Something with ${arg}
         '';
       };
-      # TODO: Make this --v  work
-      oeisinfoLean = buildLeanPackage {
+      oeisinfo = buildLeanPackage {
         name = "oeisinfoLean";
         # outputHashAlgo = "sha256";
         # outputHashMode = "recursive";
@@ -302,15 +301,6 @@
           wrapProgram $out/bin/oeisinfo --prefix LEAN_PATH ":" "$LEAN_PATH"
         '';
       };
-      oeisinfo = pkgs.writeShellApplication {
-        name = "oeisinfo";
-        text = ''
-          LEAN_PATH=$(echo -n ".lake/build/lib/lean";
-            for f in $(ls .lake/packages/); do 
-              echo -n ":.lake/packages/$f/.lake/build/lib/lean"; 
-            done)
-        '';
-      };
       # TODO: Add lake exe cache get with only oleans to leantoolchain-nix
       # TODO: Add oeisinfo -o as derivation
     in
@@ -326,7 +316,7 @@
         foo1 = fooFun "1" "foo1";
         foo2 = fooFun "2" "foo2";
         inherit fooFun;
-        inherit oeisinfoLean;
+        inherit oeisinfo;
       };
       devShells = {
         default = devShell;

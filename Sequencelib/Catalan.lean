@@ -84,8 +84,3 @@ theorem Catalan₂_eq_Catalan₁ : Catalan₂ = Catalan₁ := by
   | zero => simp [Catalan₂, Catalan₁]
   | succ _ ih =>
     simp [Catalan₂_recurse, Catalan₁_recurse, ih]
-
-run_meta do
-  dbg_trace "foo"
-  let x ← getOEISInfo (some 5)
-  dbg_trace "{repr x}"

@@ -201,10 +201,16 @@
 
       sequencelib = buildLeanPackage {
         name = "sequencelib";
-        writable = [ "Cli" "batteries" "Qq" "MD4Lean" ];
+        outputHashAlgo = "sha256";
+        outputHashMode = "recursive";
+        outputHash = "";
+        writable = [ "Cli" "batteries" "Qq" "MD4Lean" "doc-gen4" ];
         buildInputs = [ pkgs.rsync ];
+        nativeBuildInputs = with pkgs; [
+          cacert
+        ];
         src = pkgs.lib.fileset.toSource {
-          root = ./.; 
+          root = ./.;
           fileset = pkgs.lib.fileset.unions [
             ./Sequencelib
             ./Tests
@@ -217,7 +223,9 @@
           mkdir -p .lake/build
           rsync -a --chmod=u=rwX ${sequencelib-cache}/ .lake/build/
           mkdir -p $out
-          lake build -v Sequencelib
+          lake build lean4checker
+          lake build -v Sequencelib.Catalan
+          lake env .lake/packages/lean4checker/.lake/build/bin/lean4checker Sequencelib.Catalan
           rsync -a .lake/build/ $out
         '';
       };

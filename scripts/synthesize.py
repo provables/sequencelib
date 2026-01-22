@@ -245,7 +245,7 @@ class Context:
         except SynthesizeError:
             return SeqStatus.FAILED
 
-    def save_file(self, seqid, status, max_index=None, proved_max=False):
+    def save_file(self, seqid, status, max_index=None, proved_max=False, lean_src=None):
         print(f"Updating stats for {seqid} with {status} and max_index={max_index}")
         if status == SeqStatus.CRASHED_PROVING or status == SeqStatus.CRASHED_CHECKING:
             self.stats["crashed"] += 1
@@ -265,13 +265,18 @@ class Context:
             elif max_index > 0:  # type: ignore
                 self.stats["proof_some_less_max_theorems"] += 1
         if status == SeqStatus.OK or status == SeqStatus.NO_VALUES:
-            print(f"Writing file {seqid}.lean to  {OUTPUT_DIR}.")
+            if not lean_src:
+                lean_src = self.lean_code(seqid)
             write_file(
-                declaration=self.lean_code(seqid),
+                declaration=lean_src,
                 tag=seqid,
                 authors=AUTHORS,
                 offset=self.offset(seqid),
                 max_index=max_index,
+            )
+        else:
+            print(
+                f"Not writing file.. status was: {status}; evaluation: {status == SeqStatus.OK}; type: {type(status)}\n"
             )
 
     def write_report(self):
@@ -501,6 +506,7 @@ def write_file(declaration, tag, authors, offset, max_index=None):
     env = Environment(loader=FileSystemLoader(TEMPLATE_PATH))
     template = env.get_template("seq.j2")
     out = Path(OUTPUT_DIR) / f"{tag}.lean"
+    print(f"Writing output file to: {out}")
     out.write_text(
         template.render(
             sequence_name=tag,

@@ -25,12 +25,15 @@ theorem loop'_eq_loop : loop' = loop := by
         apply List.range'_1_concat
       aesop
   | negSucc m =>
+    unfold loop'
     reduce; rfl
 
 theorem loop2_eq_loop2' (f g : ℤ → ℤ → ℤ) (a : ℤ) (b c : ℤ) :
     loop2 f g a b c = (loop2' (uncurry f) (uncurry g) a (b, c)).1 := by
   match a with
-  | .negSucc _ => reduce; rfl
+  | .negSucc _ =>
+    unfold loop2 loop2'
+    reduce; rfl
   | .ofNat a =>
     simp
     induction a generalizing b c with
@@ -50,7 +53,9 @@ theorem loop2'_rec (f g : ℤ × ℤ → ℤ) (n : ℕ) (b : ℤ × ℤ) :
 theorem loop2_out (f g : ℤ → ℤ → ℤ) (a : ℤ) (b c : ℤ) :
     loop2 f g a b c = b ∨ ∃ b' c', loop2 f g a b c = f b' c' := by
   match a with
-  | .negSucc _ => reduce; left; rfl
+  | .negSucc _ =>
+    unfold loop2
+    reduce; left; rfl
   | .ofNat 0 => reduce; left; rfl
   | .ofNat (n + 1) =>
     rw [loop2_eq_loop2', show Int.ofNat (n + 1) = n + 1 by rfl, loop2'_rec]

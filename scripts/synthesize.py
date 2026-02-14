@@ -206,6 +206,52 @@ class Context:
             }
         )["lean"]
 
+    def try_compile_lean(self, lean_src):
+        """
+        Try to compile some Lean source code by making a call to the OEIS-LT server.
+        `c` should be a synthesize.Context() object.
+        `lean_src` should be a string with the source code.
+        """
+
+        body = {"cmd": "compile", "args": {"src": lean_src}}
+        try:
+            rsp = self.req(body)
+            return True, None
+        except Exception as e:
+            return False, str(e)
+
+    def check_one_value(self, tag, lean_src, idx, value):
+        """
+        Use OEIS-LT to check a single value
+        """
+        return self.req(
+            {
+                "cmd": "eval",
+                "args": {"src": lean_src, "values": [[idx, value]], "tag": tag},
+            }
+        )["eval"]
+
+    def check_values_for_src(self, tag, lean_src):
+        """
+        Use OEIS-LT to check whether `lean_src` for sequence `tag` agrees with the known values.
+        """
+
+        values = list(self.values_for_sequence(tag))
+        # note: we check one value at a time to avoid timeouts..
+        for idx, value in values:
+            try:
+                if not self.check_one_value(tag, lean_src, idx, value):
+                    return SeqStatus.WRONG
+            except TimeoutError:
+                return SeqStatus.WRONG_TIMEOUT
+            except GenseqCrashedException:
+                return SeqStatus.CRASHED_CHECKING
+            except SynthesizeError:
+                return SeqStatus.WRONG
+            except Exception as e:
+                return SeqStatus.WRONG
+        return SeqStatus.OK
+
     def check_values(self, seqid, values):
         lean_code = self.lean_code(seqid)
         return self.req(

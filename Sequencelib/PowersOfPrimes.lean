@@ -47,19 +47,19 @@ theorem PowersOfPrimes_two : PowersOfPrimes 2 = 2 := by
 theorem PowersOfPrimes_three : PowersOfPrimes 3 = 3 := by
   simp [PowersOfPrimes]
   rw [← (show count IsPrimePow 3 = 1 by decide)]
-  exact nth_count (by decide)
+  exact nth_count (by decide +kernel)
 
 theorem PowersOfPrimes_four : PowersOfPrimes 4 = 4 := by
   simp [PowersOfPrimes]
-  rw [← (show count IsPrimePow 4 = 2 by decide)]
+  rw [← (show count IsPrimePow 4 = 2 by decide +kernel)]
   exact nth_count (by decide)
 
 theorem PowersOfPrimes_five : PowersOfPrimes 5 = 5 := by
   simp [PowersOfPrimes]
-  rw [← (show count IsPrimePow 5 = 3 by decide)]
-  exact nth_count (by decide)
+  rw [← (show count IsPrimePow 5 = 3 by decide +kernel)]
+  exact nth_count (by decide +kernel)
 
 theorem PowersOfPrimes_six : PowersOfPrimes 6 = 7 := by
   simp [PowersOfPrimes]
-  rw [← (show count IsPrimePow 7 = 4 by decide)]
-  exact nth_count (by decide)
+  rw [← (show count IsPrimePow 7 = 4 by decide +kernel)]
+  exact nth_count (by decide +kernel)

@@ -21,14 +21,14 @@ HERE = Path(__file__).resolve().parent
 # import llms
 
 # For using OpenAI
-# LLM_BASE_URL = "https://api.openai.com/v1"
-# LLM_API_KEY = ""
-# MODEL = "gpt-5.2"
+LLM_BASE_URL = "https://api.openai.com/v1"
+LLM_API_KEY = ""
+MODEL = "gpt-5.2"
 
 # For using Tejas
-LLM_BASE_URL = "https://ai.tejas.tacc.utexas.edu/v1"
-LLM_API_KEY = ""
-MODEL = "Llama-4-Maverick-17B-128E-Instruct"
+# LLM_BASE_URL = "https://ai.tejas.tacc.utexas.edu/v1"
+# LLM_API_KEY = ""
+# MODEL = "Llama-4-Maverick-17B-128E-Instruct"
 
 
 # class SeqStatus(Enum):
@@ -311,54 +311,9 @@ def sanitize_lean(lean_src):
     return lean_src
 
 
-def try_compile_lean(c, lean_src):
-    """
-    Try to compile some Lean source code by making a call to the OEIS-LT server.
-    `c` should be a synthesize.Context() object.
-    `lean_src` should be a string with the source code.
-    """
-
-    body = {"cmd": "compile", "args": {"src": lean_src}}
-    try:
-        rsp = c.req(body)
-        return True, None
-    except Exception as e:
-        return False, str(e)
-
-
 def write_success_file(correct_sequences):
     with open("compiled_core_seqs.json", "w") as f:
         json.dump(correct_sequences, f)
-
-
-def check_one_value(c, tag, lean_src, idx, value):
-    return c.req(
-        {
-            "cmd": "eval",
-            "args": {"src": lean_src, "values": [[idx, value]], "tag": tag},
-        }
-    )["eval"]
-
-
-def check_values(c, tag, lean_src):
-    """
-    Use OEIS-LT to check whether `lean_src` for sequence `tag` agrees with the known values.
-    """
-
-    values = list(c.values_for_sequence(tag))
-    for idx, value in values:
-        try:
-            if not check_one_value(c, tag, lean_src, idx, value):
-                return SeqStatus.WRONG
-        except TimeoutError:
-            return SeqStatus.WRONG_TIMEOUT
-        except GenseqCrashedException:
-            return SeqStatus.CRASHED_CHECKING
-        except SynthesizeError:
-            return SeqStatus.WRONG
-        except Exception as e:
-            return SeqStatus.WRONG
-    return SeqStatus.OK
 
 
 def prove_values(c, tag, lean_src, values):
@@ -401,8 +356,11 @@ def formalization_loop():
     # Max number of attempts per oeis sequence
     MAX_TRIES = 20
 
+    # The maximum number of sequences to process in this loop
+    max_seqs_to_process = 1
+
     # sequences that we know are too hard for the LLM
-    sequences_to_skip = ["A000001"]
+    sequences_to_skip = []  # ["A000001"]
 
     # sequences that the AI loop was able to generate code that compiled correctly
     correct_sequences = []
@@ -419,11 +377,13 @@ def formalization_loop():
 
     # counters ---
     current_sequence_nbr = 0
+    seqs_processed = 0
     total_llm_calls = 0
-    prev_too_many_requests_call_total = (
-        0  # nbr of LLM calls when previously hitting the Too Many Requests error
-    )
+
+    # nbr of LLM calls when previously hitting the Too Many Requests error
     # used to make sure we are not hitting the error back-to-back.
+    prev_too_many_requests_call_total = 0
+
     start_sequence_index = 1  # This is the first index that will be processed; set to 1 to start from beginning
 
     for tag in core_seqs.keys():
@@ -441,6 +401,11 @@ def formalization_loop():
         print(
             f"~~~~~~~~~~~~~~~~~~~~\nStarting work on sequence: {tag}; This is sequence {current_sequence_nbr} out of {len(core_seqs.keys())};\nTotal Tejas calls so far:{total_llm_calls}\n~~~~~~~~~~~~~~~~~~~~"
         )
+        seqs_processed += 1
+        if seqs_processed > max_seqs_to_process:
+            print(f"Hit max number of sequences to process, quitting...")
+            return correct_sequences
+
         done = False
         tries = 1
         lean_src = ""
@@ -494,7 +459,7 @@ def formalization_loop():
                     "The code contained an import --- do not include any imports!"
                 )
             else:
-                compiled, error_msg = try_compile_lean(c=c, lean_src=lean_src)
+                compiled, error_msg = c.try_compile_lean(lean_src=lean_src)
             if compiled:
                 print(f"Code successfully compiled for sequence: {tag}")
                 print(f"Code: {lean_src}")
@@ -557,7 +522,7 @@ def evaluation_loop():
         print(
             f"Calling check values for sequence {tag} ({total_seqs}/{len(compiled_core)})"
         )
-        rsp = check_values(c=c, tag=tag, lean_src=lean_src)
+        rsp = c.check_values_for_src(tag=tag, lean_src=lean_src)
         status = None
         if rsp == SeqStatus.WRONG:
             wrong += 1

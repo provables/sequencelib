@@ -2,10 +2,10 @@ import Mathlib
 
 --open Turing TM0
 
--- type of tape symbols
+-- Symbols: type of tape symbols
 variable (Γ : Type*)
 
--- type of "labels" or TM states
+-- States: type of TM states
 variable (Λ : Type*)
 
 abbrev Stmt := Γ × Turing.Dir

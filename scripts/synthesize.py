@@ -94,7 +94,7 @@ class SeqStatus(Enum):
 
 
 class Context:
-    def __init__(self, port=GENSEQ_PORT, timeout=GENSEQ_TIMEOUT):
+    def __init__(self, port=GENSEQ_PORT, timeout=GENSEQ_TIMEOUT, output_dir=OUTPUT_DIR):
         self.port = port
         self.timeout = timeout
         self.socket_file = self.get_socket_file()
@@ -114,6 +114,7 @@ class Context:
         }
         self.start_time = timeit.default_timer()
         self.report_frequency = 20
+        self.output_dir = output_dir
 
     def seq(self, seqid):
         try:
@@ -291,6 +292,34 @@ class Context:
         except SynthesizeError:
             return SeqStatus.FAILED
 
+    def prove_values(self, tag, lean_src, values):
+        """
+        Use OEIS-LT to try and prove theorems about values related to `lean_src`.
+        The values should be passed
+
+
+        :param c: Description
+        :param tag: Description
+        :param lean_src: Description
+        :param values: Description
+        """
+        try:
+            if self.req(
+                {
+                    "cmd": "prove_batch",
+                    "args": {"name": tag, "src": lean_src, "values": values},
+                }
+            )["proved"]:
+                return SeqStatus.OK
+            else:
+                return SeqStatus.FAILED
+        except TimeoutError:
+            return SeqStatus.PROVE_TIMEOUT
+        except GenseqCrashedException:
+            return SeqStatus.CRASHED_PROVING
+        except SynthesizeError:
+            return SeqStatus.FAILED
+
     def save_file(self, seqid, status, max_index=None, proved_max=False, lean_src=None):
         print(f"Updating stats for {seqid} with {status} and max_index={max_index}")
         if status == SeqStatus.CRASHED_PROVING or status == SeqStatus.CRASHED_CHECKING:
@@ -313,7 +342,7 @@ class Context:
         if status == SeqStatus.OK or status == SeqStatus.NO_VALUES:
             if not lean_src:
                 lean_src = self.lean_code(seqid)
-            write_file(
+            self.write_file(
                 declaration=lean_src,
                 tag=seqid,
                 authors=AUTHORS,
@@ -324,6 +353,23 @@ class Context:
             print(
                 f"Not writing file.. status was: {status}; evaluation: {status == SeqStatus.OK}; type: {type(status)}\n"
             )
+
+    def write_file(self, declaration, tag, authors, offset, max_index=None):
+        """Create Lean file from declaration."""
+
+        env = Environment(loader=FileSystemLoader(TEMPLATE_PATH))
+        template = env.get_template("seq.j2")
+        out = Path(self.output_dir) / f"{tag}.lean"
+        print(f"Writing output file to: {out}")
+        out.write_text(
+            template.render(
+                sequence_name=tag,
+                authors=authors,
+                source=declaration,
+                offset=offset,
+                max_index=max_index,
+            )
+        )
 
     def write_report(self):
         if self.stats["total_processed"] == 0:

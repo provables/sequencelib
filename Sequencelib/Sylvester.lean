@@ -97,7 +97,7 @@ private theorem sylvester_coprime_of_lt {m n : ℕ} (h : m < n) :
 
 theorem sylvester_coprime {m n : ℕ} (h : m ≠ n) :
     Coprime (Sylvester m) (Sylvester n) := by
-  rcases h.lt_or_lt with c | c
+  rcases h.gt_or_lt.symm with c | c
   · exact sylvester_coprime_of_lt c
   · exact (sylvester_coprime_of_lt c).symm
 
@@ -241,8 +241,11 @@ theorem partialSums_sylvester_eq_one_minus_one_div_pred (j : ℕ) :
       have : (((Sylvester j) * (Sylvester j - 1)) : ℚ) ≠ 0 := by positivity
       exact mul_right_injective₀ this
     dsimp
-    rw [mul_add, mul_sub, mul_one, mul_assoc ((Sylvester j) : ℚ),
-      mul_sub (((Sylvester j) : ℚ) * (Sylvester j - 1)), cast_pred (by positivity)]
-    field_simp
+    congr
+    rw [Sylvester, cast_add, cast_mul, cast_pred]
+    field_simp [Sylvester]
+    simp
+    ring
+    positivity
 
 end Sequence

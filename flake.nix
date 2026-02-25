@@ -31,7 +31,7 @@
     let
       pkgs = nixpkgs.legacyPackages.${system};
       shell = shell-utils.myShell.${system};
-      toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_20;
+      toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_27;
       genseq = synthetic.packages.${system}.default;
       sgenseq = synthetic.packages.${system}.sgenseq;
       buildNixImage = nix-docker-img.lib.${system}.buildNixImage;

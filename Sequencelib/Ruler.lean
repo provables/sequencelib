@@ -54,5 +54,5 @@ theorem A001511_eq_A001511v2 : A001511 = A001511v2 := by
         · obtain ⟨j, hj⟩ : ∃ k, m + 1 = 2 * k := Even.exists_two_nsmul _ hi
           simp [hj, hv j (by omega)]
           rfl
-        · simp [hi]
+        · simp only [Nat.left_eq_add]
           exact factorization_eq_zero_of_not_dvd <| Odd.not_two_dvd_nat <| not_even_iff_odd.mp hi

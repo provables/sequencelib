@@ -42,7 +42,7 @@ Objects of the category `Grp` that have (extended) cardinality equal to `n`.
 We use `ENat.card` because the more usual `Nat.card` is defined as 0 for infinite arguments,
 so it would yield the wrong count for order 0.
 -/
-abbrev GrpOfOrder (n : ℕ) := {G : Grp.{0} // ENat.card G = n}
+abbrev GrpOfOrder (n : ℕ) := {G : GrpCat.{0} // ENat.card G = n}
 
 /--
 Two groups are related if they are isomorphic in the category `Grp`.
@@ -203,7 +203,7 @@ theorem NonIsoSubgroupsSymmOfOrder_two : NonIsoSubgroupsSymmOfOrder 2 = 1 := by
   haveI : Subsingleton (SubgroupsSymmOfOrder 2) :=
     Subsingleton.intro fun ⟨a, ha⟩ ⟨b, hb⟩ => by simp [this a ha, this b hb |>.symm]
   unfold NonIsoSubgroupsSymmOfOrder NonIsoSubgroupsSymm
-  exact Nat.card_of_subsingleton ⟦⟨⊤, by simp [SubgroupsSymmOfOrder, Nat.card_perm]; rfl⟩⟧
+  exact Nat.card_of_subsingleton ⟦⟨⊤, by simp [SubgroupsSymmOfOrder]; rfl⟩⟧
 
 /-!
 ## Prime power values of the sequence

@@ -25,6 +25,7 @@ import Sequencelib.PowersOfPrimes
 import Sequencelib.PowersOfTwo
 import Sequencelib.Primes
 import Sequencelib.Recaman
+import Sequencelib.Refactorable
 import Sequencelib.Sylvester
 import Sequencelib.Synthetic.A000.A000004
 import Sequencelib.Synthetic.A000.A000007

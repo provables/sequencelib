@@ -1,16 +1,15 @@
 /-
 Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
 Released under CC BY-SA 4.0 license as described in the file LICENSE.
-Authors: Joe Stubbs
+Authors: Walter Moreira
 -/
 import Mathlib
 import Sequencelib.Meta
 
 /-!
-# The Ruler function
+# Refactorable Numbers
 
-The ruler function: exponent of the highest power of 2 dividing 2n.
-Equivalently, the 2-adic valuation of 2n.
+Refactorable numbers: number of divisors of k divides k. Also known as tau numbers.
 -/
 
 namespace Sequence

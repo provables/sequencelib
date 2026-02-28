@@ -5,10 +5,11 @@ Authors: Walter Moreira, Joe Stubbs
 -/
 import Lean
 import Sequencelib.Meta
+import Tests.AnotherModule
 
 open Lean
 
-@[OEIS := A01, offset := 3]
+@[OEIS := A01, offset := 1]
 def foo (n : Nat) : Nat := n
 
 @[OEIS := A02]
@@ -63,12 +64,18 @@ info: Std.HashMap.ofList [("A02",
   { tagName := "A01",
     codomain := Codomain.Nat,
     sequences := #[⟨Codomain.Nat, { tagName := "A01",
+                      definition := `another_foo,
+                      module := `Tests.AnotherModule,
+                      theorems := #[],
+                      offset := 1,
+                      isComputable := true }⟩,
+                   ⟨Codomain.Nat, { tagName := "A01",
                       definition := `foo,
                       module := `Tests.TestInfo,
                       theorems := #[[Nat] theorem foo_five : foo 5 = 6, [Nat] theorem foo_seven : foo 7 = 7],
-                      offset := 3,
+                      offset := 1,
                       isComputable := true }⟩],
-    offset := 3 })]
+    offset := 1 })]
 -/
 #guard_msgs in
 run_meta do
@@ -90,14 +97,16 @@ info: {"Tests.TestInfo":
      "isComputable": true,
      "codomain": "Codomain.Nat"}}},
   "A01":
-  {"offset": 3,
+  {"offset": 1,
    "decls":
    {"foo":
     {"thms":
      {"foo_seven": {"value": 7, "type": "value", "theorem": "foo_seven", "index": 7, "declaration": "foo"},
       "foo_five": {"value": 6, "type": "value", "theorem": "foo_five", "index": 5, "declaration": "foo"}},
      "isComputable": true,
-     "codomain": "Codomain.Nat"}}}}}
+     "codomain": "Codomain.Nat"}}}},
+ "Tests.AnotherModule":
+ {"A01": {"offset": 1, "decls": {"another_foo": {"thms": {}, "isComputable": true, "codomain": "Codomain.Nat"}}}}}
 -/
 #guard_msgs in
 run_meta do

@@ -6,8 +6,9 @@ Authors: Walter Moreira, Joe Stubbs
 import Lean
 import Qq
 import Sequencelib.Meta.Defs
+import Sequencelib.Meta.Codomain
 
-open Lean Expr Elab Term Tactic Meta Qq
+open Lean Expr Elab Term Tactic Meta Qq Command
 
 elab "oeis_tactic" : tactic =>
   Lean.Elab.Tactic.withMainContext do
@@ -63,21 +64,31 @@ def deriveTheorem {c : Codomain} (decl : Name) (idx : Nat) (value : ↑c) (stx :
   Lean.addAndCompile thmDecl
   return none
 
-def deriveTheorems (decl : Name) (offset maxIndex : Nat) (stx : Syntax) : TermElabM Unit := do
+def deriveTheoremForIndex (decl : Name) (idx : Nat) (stx : Syntax) (cod : Codomain) :
+    TermElabM (Option String) := do
+  let value ← instantiateMVars (
+    ← Term.elabTerm (← `(term|$(mkIdent decl):ident $(quote idx))) (some (mkConst cod [])))
+  Term.synthesizeSyntheticMVarsNoPostponing
+  let z ← unsafe evalExpr cod (mkConst cod []) value
+  deriveTheorem decl idx z stx
+
+def deriveTheoremForIndex' (decl : Name) (idx : Nat) (stx : Syntax) :
+    TermElabM (Option String) := do
+  let cod ← codomainOfDecl decl
+  deriveTheoremForIndex decl idx stx cod
+
+def deriveTheorems (decl : Name) (offset maxIndex : Nat) (stx : Syntax) : CommandElabM Unit := do
+  let cod ← codomainOfDecl decl
   let env ← getEnv
-  let some f := env.find? decl |>.map (·.type) | return
-  let cod ← codomainOf f
   if Lean.isNoncomputable env decl then
     logError m!"Auto derivation of theorems not implemented for noncomputable function {decl}"
     return
   let mut errors := #[]
   for idx in [offset:maxIndex+1] do
-    let value ← instantiateMVars (
-      ← Term.elabTerm (← `(term|$(mkIdent decl):ident $(quote idx))) (some (mkConst cod [])))
-    Term.synthesizeSyntheticMVarsNoPostponing
-    let z ← unsafe evalExpr cod (mkConst cod []) value
-    let x ← deriveTheorem decl idx z stx
-    if let some msg := x then
-      errors := errors.push s!"{msg}"
+    if (← IO.checkCanceled) then
+      errors := errors.push "Cancelled"
+      break
+    let some msg := (← Command.liftTermElabM <| deriveTheoremForIndex decl idx stx cod) | continue
+    errors := errors.push s!"{msg}"
   if !errors.isEmpty then
     logError (String.intercalate "\n" errors.toList)

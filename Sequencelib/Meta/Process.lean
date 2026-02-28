@@ -1,7 +1,6 @@
 import Lean
 import Qq
 import Sequencelib.Meta
-import GenSeq
 import Mathlib
 
 open Synth
@@ -268,7 +267,7 @@ def processDef (definition : TSyntax `Lean.Parser.Command.definition) :
 def fixFormatting (s : String) : String :=
   let y := (s.splitOn "\n").flatMap (fun line =>
     if line.startsWith "/-!" then
-      ["/-!", line.drop 3]
+      ["/-!", line.drop 3 |>.toString]
     else if line.startsWith "@[OEIS" then
       [", ".intercalate
         (line.splitOn "," |>.map (fun word => " := ".intercalate (word.splitOn ":=")))]
@@ -385,11 +384,11 @@ def processPath (fpath : FilePath) (backup : Bool := true) : ProcessM Unit := do
 def processStateFromJson (fpath : FilePath) : IO ProcessState := do
   let f ← IO.FS.readFile fpath
   let .ok j := Json.parse f | throw <| IO.Error.mkInvalidArgument 1 "json parse failed"
-  let m : RBMap String Json _ ← IO.ofExcept <| RBMap.fromJson? j (cmp := compare)
+  let m : NameMap Json ← IO.ofExcept <| NameMap.fromJson? j
   let mut seqInfo : Std.HashMap Name SeqInfo := ∅
   for (k, v) in m do
     let w ← IO.ofExcept <| v.getObjValAs? (Array String) "keywords"
-    seqInfo := seqInfo.insert k.toName (if "sign" ∈ w then ⟨.Int⟩ else ⟨.Nat⟩)
+    seqInfo := seqInfo.insert k (if "sign" ∈ w then ⟨.Int⟩ else ⟨.Nat⟩)
   return {(default : ProcessState) with seqInfo := seqInfo}
 
 def processDir (dirPath : FilePath) : ProcessM Unit := do

@@ -36,7 +36,7 @@
     let
       pkgs = nixpkgs.legacyPackages.${system};
       shell = shell-utils.myShell.${system};
-      toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_20;
+      toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_28;
       inherit (lean-toolchain.lib.${system}) buildLeanPackage;
       inherit (lean-toolchain.lib.${system}) mathlib;
       mathlib-4_20 = mathlib "4.20.1";
@@ -233,7 +233,7 @@
       sequencelibDocs =
         let
           hashes = {
-            "aarch64-darwin" = "sha256-+XhHmBPtvwUJqvvsZ2a4/paP7YA7VZIzgj15stpR/Ss=";
+            "aarch64-darwin" = "sha256-X7egNhx8EHHa7o9APh75a95bjKiHdC5d6fwP6t52oFY=";
             "aarch64-linux" = "";
             "x86_64-darwin" = "";
             "x86_64-linux" = "";
@@ -261,6 +261,7 @@
           dontFixup = true;
           REV = self.rev or (builtins.elemAt (builtins.split "-" self.dirtyRev) 0);
           buildPhase = ''
+            echo "Using REV = $REV"
             git init -b main
             git config user.email "nouser@localhost"
             git config user.name "No User"

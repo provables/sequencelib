@@ -42,7 +42,7 @@ Objects of the category `Grp` that have (extended) cardinality equal to `n`.
 We use `ENat.card` because the more usual `Nat.card` is defined as 0 for infinite arguments,
 so it would yield the wrong count for order 0.
 -/
-abbrev GrpOfOrder (n : ℕ) := {G : Grp.{0} // ENat.card G = n}
+abbrev GrpOfOrder (n : ℕ) := {G : GrpCat.{0} // ENat.card G = n}
 
 /--
 Two groups are related if they are isomorphic in the category `Grp`.
@@ -203,6 +203,59 @@ theorem NonIsoSubgroupsSymmOfOrder_two : NonIsoSubgroupsSymmOfOrder 2 = 1 := by
   haveI : Subsingleton (SubgroupsSymmOfOrder 2) :=
     Subsingleton.intro fun ⟨a, ha⟩ ⟨b, hb⟩ => by simp [this a ha, this b hb |>.symm]
   unfold NonIsoSubgroupsSymmOfOrder NonIsoSubgroupsSymm
-  exact Nat.card_of_subsingleton ⟦⟨⊤, by simp [SubgroupsSymmOfOrder, Nat.card_perm]; rfl⟩⟧
+  exact Nat.card_of_subsingleton ⟦⟨⊤, by simp [SubgroupsSymmOfOrder]; rfl⟩⟧
+
+/-!
+## Prime power values of the sequence
+-/
+
+theorem nonIsoSubgroupsSymmOfOrder_prime
+  (p : ℕ) (hp : Nat.Prime p) :
+  NonIsoSubgroupsSymmOfOrder p = 1 :=
+by
+  classical
+  -- to use `mulEquivOfPrimeCardEq` and Cauchy's theorem in the `Fact`-style
+  letI : Fact (Nat.Prime p) := ⟨hp⟩
+
+  unfold NonIsoSubgroupsSymmOfOrder
+  -- `Nat.card α = 1` iff `α` is subsingleton and nonempty
+  refine (Nat.card_eq_one_iff_unique (α := NonIsoSubgroupsSymm p)).2 ?_
+  refine ⟨?_, ?_⟩
+
+  · -- Subsingleton: any two subgroups of order `p` are isomorphic (prime-order groups are all isomorphic)
+    refine ⟨?_⟩
+    intro x y
+    refine Quotient.inductionOn₂ x y ?_
+    intro G H
+    apply Quotient.sound
+    refine ⟨mulEquivOfPrimeCardEq (p := p) ?_ ?_⟩
+    · exact G.property
+    · exact H.property
+
+  · -- Nonempty: exhibit a subgroup of `SymmetricGroup p` of order `p`
+    have hcard_fin : Nat.card (Fin p) = p := by
+      simp
+      -- JFS update: changed simpa statement for simp
+      -- simpa using (Nat.card_eq_of_equiv_fin (Equiv.refl (Fin p)))
+
+    have hcard_symm : Nat.card (SymmetricGroup p) = p.factorial := by
+      simpa [SymmetricGroup, hcard_fin] using (Nat.card_perm (α := Fin p))
+
+    have hpdvd : p ∣ p.factorial :=
+      (Nat.Prime.dvd_factorial (n := p) (p := p) hp).2 le_rfl
+
+    have hdiv : p ∣ Nat.card (SymmetricGroup p) := by
+      -- IMPORTANT: use `rw`, not `simpa`, to avoid rewriting `Nat.card` into `Fintype.card`
+      rw [hcard_symm]
+      exact hpdvd
+
+    obtain ⟨σ, hσ⟩ :=
+      exists_prime_orderOf_dvd_card' (G := SymmetricGroup p) p hdiv
+
+    let K : Subgroup (SymmetricGroup p) := Subgroup.zpowers σ
+    have hK : Nat.card K = p := by
+      simpa [K, hσ] using (Nat.card_zpowers (a := σ))
+
+    exact ⟨Quotient.mk _ ⟨K, hK⟩⟩
 
 end Sequence

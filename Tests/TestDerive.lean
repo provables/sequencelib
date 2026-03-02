@@ -12,13 +12,13 @@ open Lean
 def fooDerive (n : Nat) : Nat := n + 1
 
 /--
-error: unknown identifier 'fooDerive_zero'
+error: Unknown identifier `fooDerive_zero`
 -/
 #guard_msgs in
 #check fooDerive_zero
 
 /--
-error: unknown identifier 'fooDerive_eleven'
+error: Unknown identifier `fooDerive_eleven`
 -/
 #guard_msgs in
 #check fooDerive_eleven

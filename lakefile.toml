@@ -24,6 +24,16 @@ name = "«doc-gen4»"
 git = "https://github.com/leanprover/doc-gen4"
 rev = "v4.28.0"
 
+[[require]]
+name = "Cli"
+git = "https://github.com/leanprover/lean4-cli"
+rev = "v4.28.0"
+
+[[require]]
+name = "lean4checker"
+git = "https://github.com/leanprover/lean4checker"
+rev = "v4.28.0"
+
 [[lean_exe]]
 name = "oeisinfo"
 root = "scripts.GetOEISInfo"

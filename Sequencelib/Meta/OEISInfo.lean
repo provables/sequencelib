@@ -76,6 +76,28 @@ def getOEISInfo : MetaM OEISInfo := do
     ⟩)
   ))
 
+def getOEISTag (tag : Tag) : MetaM OEISTag := do
+  let env ← getEnv
+  let info := oeisExt.getState env
+  let some oeis := info.get? tag | throwError s!"`{tag}` not found"
+  return ⟨
+    tag,
+    oeis.codomain,
+    ← oeis.sequences.mapM (fun ⟨c, seq⟩ => do
+        let new_thms := (← findValueTheorems seq)
+          |>.append (← findEquivTheorems seq.definition <| oeis.sequences.map (·.snd.definition))
+        let isComputable := !isNoncomputable env seq.definition
+        return ⟨
+          c, {seq with theorems := seq.theorems.append new_thms, isComputable := isComputable}
+        ⟩
+    ),
+    oeis.offset
+  ⟩
+
+-- run_meta do
+--   let x ← getOEISTag "A000001"
+-- TODO: see if we can populate the database from here
+
 def OEISInfoToMod (info : OEISInfo) :
     Std.HashMap Name
       (Std.HashMap Tag (Nat × Std.HashMap Name (Bool × (c : Codomain) × Array (Thm c)))) :=

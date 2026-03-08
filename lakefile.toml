@@ -34,6 +34,11 @@ name = "lean4checker"
 git = "https://github.com/leanprover/lean4checker"
 rev = "v4.28.0"
 
+[[require]]
+name = "leansqlite"
+git = "https://github.com/leanprover/leansqlite.git"
+rev = "2765af4d645eb7a482f6555ac4e5cf9fb69e1ab1"
+
 [[lean_exe]]
 name = "oeisinfo"
 root = "scripts.GetOEISInfo"

@@ -38,6 +38,26 @@ structure Sequence (c : Codomain) where
   isComputable : Bool
   deriving Inhabited, Repr
 
+structure SimpleSequence where
+  tagName : Tag
+  definition : Name
+  mod : Name
+  isComputable : Bool
+  derive : Bool
+  maxIndex : Nat
+  deriving Inhabited, Repr
+
+structure SimpleTag where
+  tagName : Tag
+  codomain: Codomain
+  offset : Nat
+  sequences : Array SimpleSequence
+  deriving Inhabited, Repr
+
+structure TagWithInfo extends SimpleTag where
+  theorems : Array (Thm codomain)
+  deriving Inhabited, Repr
+
 structure OEISTag where
   tagName : Tag
   codomain: Codomain
@@ -48,9 +68,24 @@ structure OEISTag where
   offset : Nat
   deriving Inhabited, Repr
 
+abbrev SimpleTags := Std.HashMap Tag SimpleTag
+abbrev TagsWithInfo := Std.HashMap Tag TagWithInfo
 abbrev OEISInfo := Std.HashMap Tag OEISTag
 
 instance : Inhabited OEISInfo := inferInstanceAs (Inhabited <| Std.HashMap _ _)
+
+def addSimpleTag (tags : SimpleTags) (tag : SimpleTag) : SimpleTags :=
+  let (prev, tags) := tags.getThenInsertIfNew? tag.tagName tag
+  match prev with
+  | some v => tags.insert tag.tagName {v with sequences := v.sequences ++ tag.sequences}
+  | _ => tags
+
+def addSimpleTagFn (as : Array (Array SimpleTag)) : SimpleTags :=
+  as.foldl (fun tags tagss =>
+    tagss.foldl (fun inner_tags tag =>
+      addSimpleTag inner_tags tag
+    ) tags
+  ) ∅
 
 def addOEISInfo (info : OEISInfo) (tag : OEISTag) : OEISInfo :=
   let (prev, info) := info.getThenInsertIfNew? tag.tagName tag
@@ -66,20 +101,21 @@ def addOEISInfoFn (as : Array (Array OEISTag)) : OEISInfo :=
     ) info
   ) result
 
-initialize oeisExt : SimplePersistentEnvExtension OEISTag OEISInfo ←
+initialize oeisExt : SimplePersistentEnvExtension SimpleTag SimpleTags ←
   registerSimplePersistentEnvExtension {
-    addImportedFn := addOEISInfoFn
-    addEntryFn := addOEISInfo
+    addImportedFn := addSimpleTagFn
+    addEntryFn := addSimpleTag
   }
 
 def addOEISEntry {m : Type → Type} [MonadEnv m]
-    (declName : Name) (module : Name) (oeisTag : String) (codomain: Codomain) (offset : Nat) :
+    (oeisTag : String) (declName : Name) (mod : Name) (codomain: Codomain) (offset : Nat)
+    (isComputable : Bool) (derive : Bool) (maxIndex : Nat) :
     m Unit :=
   modifyEnv (oeisExt.addEntry · {
     tagName := oeisTag,
     codomain := codomain,
-    sequences := #[⟨codomain, ⟨oeisTag, declName, module, #[], offset, default⟩⟩],
     offset := offset
+    sequences := #[⟨oeisTag, declName, mod, isComputable, derive, maxIndex⟩],
   })
 
 structure OEISOptions where
@@ -127,6 +163,7 @@ initialize registerBuiltinAttribute {
         let declType := env.find? decl |>.getD default |>.type
         let c ← codomainOf declType
         let mod ← getMainModule
+        let isComputable := Lean.isNoncomputable env decl
         let oldDoc := (← findDocString? env decl).getD ""
         let newDoc := [s!
           "* [The On-Line Encyclopedia of Integer Sequences (OEIS): {seqStr}](https://oeis.org/{seqStr})",
@@ -134,7 +171,7 @@ initialize registerBuiltinAttribute {
           oldDoc
         ]
         addDocStringCore decl <| "\n\n".intercalate <| newDoc.filter (· ≠ "")
-        addOEISEntry decl mod seqStr c offst
+        addOEISEntry seqStr decl mod c offst isComputable opts.derive maxIdx
         let tagDeclName := Name.append decl <| Name.mkSimple "OEIS"
         let tagDecl := Declaration.defnDecl {
           name := tagDeclName

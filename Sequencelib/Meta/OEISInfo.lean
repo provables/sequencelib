@@ -46,6 +46,18 @@ def findValueTheorems {c : Codomain} (seq : Sequence c) (off : Nat := 0) :
     result := result.push <| .Value n seq.definition i value
   return result
 
+def findValueTheorems' (seq : SimpleSequence) (c : Codomain) (offst : Nat) :
+    MetaM (Array (Thm c)) := do
+  let env ← getEnv
+  let mut result := #[]
+  for i in [offst:SearchMaxIndex + 1] do
+    let some p := Suffixes[i]? | continue
+    let n := Name.appendAfter seq.definition s!"_{p}"
+    let some type := env.find? n |>.map (·.type) | continue
+    let some value ← matchValueTheorem c type seq.definition i | continue
+    result := result.push <| .Value n seq.definition i value
+  return result
+
 def findEquivTheorems {c : Codomain} (decl : Name) (decls : Array Name) :
     MetaM (Array (Thm c)) := do
   let env ← getEnv
@@ -57,64 +69,88 @@ def findEquivTheorems {c : Codomain} (decl : Name) (decls : Array Name) :
     result := result.push <| Thm.Equiv n decl decl2
   return result
 
-def getOEISInfo : MetaM OEISInfo := do
+def findEquivTheorems' (seqs : Array SimpleSequence) (c : Codomain) : MetaM (Array (Thm c)) := do
+  let env ← getEnv
+  let mut result := #[]
+  for seq1 in seqs do
+    for seq2 in seqs do
+      if seq1.definition != seq2.definition then
+        let n := Name.appendAfter seq1.definition s!"_eq_{seq2.definition.getString!}"
+        let some type := env.find? n |>.map (·.type) | continue
+        let some _ ← matchEquivTheorem type seq1.definition seq2.definition | continue
+        result := result.push <| Thm.Equiv n seq1.definition seq2.definition
+  return result
+
+
+def getTagsWithInfo : MetaM TagsWithInfo := do
   let env ← getEnv
   let info := oeisExt.getState env
-  return .ofList (← info.toList.mapM (fun (tag, oeisTag) => do
-    return (tag, ⟨
-      tag,
-      oeisTag.codomain,
-      ← oeisTag.sequences.mapM (fun ⟨c, seq⟩ => do
-        let new_thms := (← findValueTheorems seq)
-          |>.append (← findEquivTheorems seq.definition <| oeisTag.sequences.map (·.snd.definition))
-        let isComputable := !isNoncomputable env seq.definition
-        return ⟨
-          c, {seq with theorems := seq.theorems.append new_thms, isComputable := isComputable}
-        ⟩
-      ),
-      oeisTag.offset
-    ⟩)
+  return .ofList (← info.toList.mapM (fun (tag, simpleTag) => do
+    return (tag, TagWithInfo.mk simpleTag (
+      (← simpleTag.sequences.mapM (fun seq => do
+        return (← findValueTheorems' seq simpleTag.codomain simpleTag.offset)
+      )).flatten.append (← findEquivTheorems' simpleTag.sequences simpleTag.codomain)
+    ))
   ))
 
-def getOEISTag (tag : Tag) : MetaM OEISTag := do
-  let env ← getEnv
-  let info := oeisExt.getState env
-  let some oeis := info.get? tag | throwError s!"`{tag}` not found"
-  return ⟨
-    tag,
-    oeis.codomain,
-    ← oeis.sequences.mapM (fun ⟨c, seq⟩ => do
-        let new_thms := (← findValueTheorems seq)
-          |>.append (← findEquivTheorems seq.definition <| oeis.sequences.map (·.snd.definition))
-        let isComputable := !isNoncomputable env seq.definition
-        return ⟨
-          c, {seq with theorems := seq.theorems.append new_thms, isComputable := isComputable}
-        ⟩
-    ),
-    oeis.offset
-  ⟩
+-- def getOEISInfo : MetaM OEISInfo := do
+--   let env ← getEnv
+--   let info := oeisExt.getState env
+--   return .ofList (← info.toList.mapM (fun (tag, oeisTag) => do
+--     return (tag, ⟨
+--       tag,
+--       oeisTag.codomain,
+--       ← oeisTag.sequences.mapM (fun ⟨c, seq⟩ => do
+--         let new_thms := (← findValueTheorems seq)
+--           |>.append (← findEquivTheorems seq.definition <| oeisTag.sequences.map (·.snd.definition))
+--         let isComputable := !isNoncomputable env seq.definition
+--         return ⟨
+--           c, {seq with theorems := seq.theorems.append new_thms, isComputable := isComputable}
+--         ⟩
+--       ),
+--       oeisTag.offset
+--     ⟩)
+--   ))
+
+-- def getOEISTag (tag : Tag) : MetaM OEISTag := do
+--   let env ← getEnv
+--   let info := oeisExt.getState env
+--   let some oeis := info.get? tag | throwError s!"`{tag}` not found"
+--   return ⟨
+--     tag,
+--     oeis.codomain,
+--     ← oeis.sequences.mapM (fun ⟨c, seq⟩ => do
+--         let new_thms := (← findValueTheorems seq)
+--           |>.append (← findEquivTheorems seq.definition <| oeis.sequences.map (·.snd.definition))
+--         let isComputable := !isNoncomputable env seq.definition
+--         return ⟨
+--           c, {seq with theorems := seq.theorems.append new_thms, isComputable := isComputable}
+--         ⟩
+--     ),
+--     oeis.offset
+--   ⟩
 
 -- run_meta do
 --   let x ← getOEISTag "A000001"
 -- TODO: see if we can populate the database from here
 
-def OEISInfoToMod (info : OEISInfo) :
+def OEISInfoToMod (info : TagsWithInfo) :
     Std.HashMap Name
       (Std.HashMap Tag (Nat × Std.HashMap Name (Bool × (c : Codomain) × Array (Thm c)))) :=
   info.fold (fun byMod tag oeisTag =>
-    oeisTag.sequences.foldl (fun byModInner ⟨c, seq⟩ =>
-      let mod := seq.module
+    oeisTag.sequences.foldl (fun byModInner seq =>
+      let mod := seq.mod
       let byTags := byModInner.get? mod |>.getD ∅
       let ⟨_, thms⟩ := byTags |>.get? tag |>.getD ⟨0, ∅⟩
-      let new := thms.insert seq.definition ⟨seq.isComputable, ⟨c, seq.theorems⟩⟩
-      let byTags := byTags.insert tag ⟨seq.offset, new⟩
+      let new := thms.insert seq.definition ⟨seq.isComputable, ⟨oeisTag.codomain, oeisTag.theorems⟩⟩
+      let byTags := byTags.insert tag ⟨oeisTag.offset, new⟩
       let newByModInner := byModInner.insert mod byTags
       newByModInner
     ) byMod
   ) ∅
 
 def showOEISInfo : Command.CommandElabM Unit := do
-  let info ← Command.liftTermElabM getOEISInfo
+  let info ← Command.liftTermElabM getTagsWithInfo
   let mut msgs := #[]
   for (mod, tagsForMod) in OEISInfoToMod info do
     msgs := msgs.push m!"Module: {mod}"
@@ -154,7 +190,7 @@ def ThmToName {c : Codomain} (thm : Thm c) : Name :=
   | .Value n _ _ _ => n
   | .Equiv n _ _ => n
 
-def OEISInfoToJson (info : OEISInfo) : Json :=
+def OEISInfoToJson (info : TagsWithInfo) : Json :=
   Json.mkObj <| OEISInfoToMod info |>.toList.map (fun (mod, tagsForMod) =>
     (mod.toString, Json.mkObj <| tagsForMod.toList.map (fun (tag, ⟨offst, declsForTag⟩) =>
       (tag, Json.mkObj [
@@ -175,6 +211,6 @@ elab (name := oeisInfo) "#oeis_info" : command =>
   showOEISInfo
 
 elab (name := oeisTags) "#oeis_info_json" : command => do
-  let info ← Command.liftTermElabM getOEISInfo
+  let info ← Command.liftTermElabM getTagsWithInfo
   let result := OEISInfoToJson info
   logInfo m!"{result}"

@@ -163,7 +163,7 @@ initialize registerBuiltinAttribute {
         let declType := env.find? decl |>.getD default |>.type
         let c ← codomainOf declType
         let mod ← getMainModule
-        let isComputable := Lean.isNoncomputable env decl
+        let isComputable := not <| Lean.isNoncomputable env decl
         let oldDoc := (← findDocString? env decl).getD ""
         let newDoc := [s!
           "* [The On-Line Encyclopedia of Integer Sequences (OEIS): {seqStr}](https://oeis.org/{seqStr})",

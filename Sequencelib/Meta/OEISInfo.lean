@@ -34,18 +34,6 @@ def matchEquivTheorem (e : Expr) (name1 : Name) (name2 : Name) : MetaM (Option U
       none
   | _ => pure none
 
-def findValueTheorems {c : Codomain} (seq : Sequence c) (off : Nat := 0) :
-    MetaM (Array (Thm c)) := do
-  let env ← getEnv
-  let mut result := #[]
-  for i in [off:SearchMaxIndex + 1] do
-    let some p := Suffixes[i]? | continue
-    let n := Name.appendAfter seq.definition s!"_{p}"
-    let some type := env.find? n |>.map (·.type) | continue
-    let some value ← matchValueTheorem c type seq.definition i | continue
-    result := result.push <| .Value n seq.definition i value
-  return result
-
 def findValueTheorems' (seq : SimpleSequence) (c : Codomain) (offst : Nat) :
     MetaM (Array (Thm c)) := do
   let env ← getEnv
@@ -56,17 +44,6 @@ def findValueTheorems' (seq : SimpleSequence) (c : Codomain) (offst : Nat) :
     let some type := env.find? n |>.map (·.type) | continue
     let some value ← matchValueTheorem c type seq.definition i | continue
     result := result.push <| .Value n seq.definition i value
-  return result
-
-def findEquivTheorems {c : Codomain} (decl : Name) (decls : Array Name) :
-    MetaM (Array (Thm c)) := do
-  let env ← getEnv
-  let mut result := #[]
-  for decl2 in decls do
-    let n := Name.appendAfter decl s!"_eq_{decl2.getString!}"
-    let some type := env.find? n |>.map (·.type) | continue
-    let some _ ← matchEquivTheorem type decl decl2 | continue
-    result := result.push <| Thm.Equiv n decl decl2
   return result
 
 def findEquivTheorems' (seqs : Array SimpleSequence) (c : Codomain) : MetaM (Array (Thm c)) := do
@@ -81,57 +58,37 @@ def findEquivTheorems' (seqs : Array SimpleSequence) (c : Codomain) : MetaM (Arr
         result := result.push <| Thm.Equiv n seq1.definition seq2.definition
   return result
 
+def toTagWithInfo (s : SimpleTag) : MetaM TagWithInfo := do
+  return TagWithInfo.mk s (
+    (← s.sequences.mapM fun seq =>
+      findValueTheorems' seq s.codomain s.offset
+    ).flatten.append (← findEquivTheorems' s.sequences s.codomain)
+  )
 
 def getTagsWithInfo : MetaM TagsWithInfo := do
   let env ← getEnv
   let info := oeisExt.getState env
-  return .ofList (← info.toList.mapM (fun (tag, simpleTag) => do
-    return (tag, TagWithInfo.mk simpleTag (
-      (← simpleTag.sequences.mapM (fun seq => do
-        return (← findValueTheorems' seq simpleTag.codomain simpleTag.offset)
-      )).flatten.append (← findEquivTheorems' simpleTag.sequences simpleTag.codomain)
-    ))
-  ))
+  return .ofList (← info.toList.mapM fun (tag, simpleTag) => do
+    return (tag, ← toTagWithInfo simpleTag)
+  )
 
--- def getOEISInfo : MetaM OEISInfo := do
---   let env ← getEnv
---   let info := oeisExt.getState env
---   return .ofList (← info.toList.mapM (fun (tag, oeisTag) => do
---     return (tag, ⟨
---       tag,
---       oeisTag.codomain,
---       ← oeisTag.sequences.mapM (fun ⟨c, seq⟩ => do
---         let new_thms := (← findValueTheorems seq)
---           |>.append (← findEquivTheorems seq.definition <| oeisTag.sequences.map (·.snd.definition))
---         let isComputable := !isNoncomputable env seq.definition
---         return ⟨
---           c, {seq with theorems := seq.theorems.append new_thms, isComputable := isComputable}
---         ⟩
---       ),
---       oeisTag.offset
---     ⟩)
---   ))
+def getTagWithInfo (tag : Tag) : MetaM TagWithInfo := do
+  let env ← getEnv
+  let info := oeisExt.getState env
+  let some t := info.get? tag | throwError "tag `{tag}` not found"
+  toTagWithInfo t
 
--- def getOEISTag (tag : Tag) : MetaM OEISTag := do
---   let env ← getEnv
---   let info := oeisExt.getState env
---   let some oeis := info.get? tag | throwError s!"`{tag}` not found"
---   return ⟨
---     tag,
---     oeis.codomain,
---     ← oeis.sequences.mapM (fun ⟨c, seq⟩ => do
---         let new_thms := (← findValueTheorems seq)
---           |>.append (← findEquivTheorems seq.definition <| oeis.sequences.map (·.snd.definition))
---         let isComputable := !isNoncomputable env seq.definition
---         return ⟨
---           c, {seq with theorems := seq.theorems.append new_thms, isComputable := isComputable}
---         ⟩
---     ),
---     oeis.offset
---   ⟩
+@[OEIS := A000001, offset := 3, maxIndex := 4, derive := true]
+def foo (n : Nat) := n
 
--- run_meta do
---   let x ← getOEISTag "A000001"
+@[OEIS := A000001]
+noncomputable def bar (n : Nat) := n
+
+theorem bar_eq_foo : bar = foo := by sorry
+
+run_meta do
+   let x ← getTagWithInfo "A000001"
+   dbg_trace (repr x)
 -- TODO: see if we can populate the database from here
 
 def OEISInfoToMod (info : TagsWithInfo) :

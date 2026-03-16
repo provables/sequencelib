@@ -78,17 +78,9 @@ def getTagWithInfo (tag : Tag) : MetaM TagWithInfo := do
   let some t := info.get? tag | throwError "tag `{tag}` not found"
   toTagWithInfo t
 
-@[OEIS := A000001, offset := 3, maxIndex := 4, derive := true]
-def foo (n : Nat) := n
-
-@[OEIS := A000001]
-noncomputable def bar (n : Nat) := n
-
-theorem bar_eq_foo : bar = foo := by sorry
-
-run_meta do
-   let x ← getTagWithInfo "A000001"
-   dbg_trace (repr x)
+-- run_meta do
+--    let x ← getTagWithInfo "A000001"
+--    dbg_trace (repr x)
 -- TODO: see if we can populate the database from here
 
 def OEISInfoToMod (info : TagsWithInfo) :

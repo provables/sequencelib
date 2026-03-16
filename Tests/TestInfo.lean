@@ -22,7 +22,7 @@ noncomputable def baz (n : Nat) : Nat := n
 def bazSign (n : Nat) : Int := -n
 
 /--
-warning: declaration uses 'sorry'
+warning: declaration uses `sorry`
 -/
 #guard_msgs in
 theorem foo_five : foo 5 = 6 := by sorry
@@ -35,51 +35,54 @@ theorem baz_eq_bar : baz = bar := rfl
 
 /--
 info: Std.HashMap.ofList [("A02",
-  { tagName := "A02",
-    codomain := Codomain.Nat,
-    sequences := #[⟨Codomain.Nat, { tagName := "A02",
-                      definition := `bar,
-                      module := `Tests.TestInfo,
-                      theorems := #[[Nat] theorem bar_one : bar 1 = 1],
-                      offset := 0,
-                      isComputable := true }⟩,
-                   ⟨Codomain.Nat, { tagName := "A02",
-                      definition := `baz,
-                      module := `Tests.TestInfo,
-                      theorems := #[theorem baz_eq_bar : baz = bar],
-                      offset := 0,
-                      isComputable := false }⟩],
-    offset := 0 }),
+  { toSimpleTag := { tagName := "A02",
+                     codomain := Codomain.Nat,
+                     offset := 0,
+                     sequences := #[{ tagName := "A02",
+                                      definition := `bar,
+                                      mod := `Tests.TestInfo,
+                                      isComputable := true,
+                                      derive := false,
+                                      maxIndex := 0 },
+                                    { tagName := "A02",
+                                      definition := `baz,
+                                      mod := `Tests.TestInfo,
+                                      isComputable := false,
+                                      derive := false,
+                                      maxIndex := 0 }] },
+    theorems := #[[Nat] theorem bar_one : bar 1 = 1, theorem baz_eq_bar : baz = bar] }),
  ("A03",
-  { tagName := "A03",
-    codomain := Codomain.Int,
-    sequences := #[⟨Codomain.Int, { tagName := "A03",
-                      definition := `bazSign,
-                      module := `Tests.TestInfo,
-                      theorems := #[],
-                      offset := 0,
-                      isComputable := true }⟩],
-    offset := 0 }),
+  { toSimpleTag := { tagName := "A03",
+                     codomain := Codomain.Int,
+                     offset := 0,
+                     sequences := #[{ tagName := "A03",
+                                      definition := `bazSign,
+                                      mod := `Tests.TestInfo,
+                                      isComputable := true,
+                                      derive := false,
+                                      maxIndex := 0 }] },
+    theorems := #[] }),
  ("A01",
-  { tagName := "A01",
-    codomain := Codomain.Nat,
-    sequences := #[⟨Codomain.Nat, { tagName := "A01",
-                      definition := `another_foo,
-                      module := `Tests.AnotherModule,
-                      theorems := #[],
-                      offset := 1,
-                      isComputable := true }⟩,
-                   ⟨Codomain.Nat, { tagName := "A01",
-                      definition := `foo,
-                      module := `Tests.TestInfo,
-                      theorems := #[[Nat] theorem foo_five : foo 5 = 6, [Nat] theorem foo_seven : foo 7 = 7],
-                      offset := 1,
-                      isComputable := true }⟩],
-    offset := 1 })]
+  { toSimpleTag := { tagName := "A01",
+                     codomain := Codomain.Nat,
+                     offset := 1,
+                     sequences := #[{ tagName := "A01",
+                                      definition := `another_foo,
+                                      mod := `Tests.AnotherModule,
+                                      isComputable := true,
+                                      derive := false,
+                                      maxIndex := 0 },
+                                    { tagName := "A01",
+                                      definition := `foo,
+                                      mod := `Tests.TestInfo,
+                                      isComputable := true,
+                                      derive := false,
+                                      maxIndex := 0 }] },
+    theorems := #[[Nat] theorem foo_five : foo 5 = 6, [Nat] theorem foo_seven : foo 7 = 7] })]
 -/
 #guard_msgs in
 run_meta do
-  let info ← getOEISInfo
+  let info ← getTagsWithInfo
   logInfo m!"{repr info}"
 
 /--
@@ -89,11 +92,15 @@ info: {"Tests.TestInfo":
   {"offset": 0,
    "decls":
    {"baz":
-    {"thms": {"baz_eq_bar": {"type": "equiv", "theorem": "baz_eq_bar", "seq2": "bar", "seq1": "baz"}},
+    {"thms":
+     {"baz_eq_bar": {"type": "equiv", "theorem": "baz_eq_bar", "seq2": "bar", "seq1": "baz"},
+      "bar_one": {"value": 1, "type": "value", "theorem": "bar_one", "index": 1, "declaration": "bar"}},
      "isComputable": false,
      "codomain": "Codomain.Nat"},
     "bar":
-    {"thms": {"bar_one": {"value": 1, "type": "value", "theorem": "bar_one", "index": 1, "declaration": "bar"}},
+    {"thms":
+     {"baz_eq_bar": {"type": "equiv", "theorem": "baz_eq_bar", "seq2": "bar", "seq1": "baz"},
+      "bar_one": {"value": 1, "type": "value", "theorem": "bar_one", "index": 1, "declaration": "bar"}},
      "isComputable": true,
      "codomain": "Codomain.Nat"}}},
   "A01":
@@ -106,9 +113,17 @@ info: {"Tests.TestInfo":
      "isComputable": true,
      "codomain": "Codomain.Nat"}}}},
  "Tests.AnotherModule":
- {"A01": {"offset": 1, "decls": {"another_foo": {"thms": {}, "isComputable": true, "codomain": "Codomain.Nat"}}}}}
+ {"A01":
+  {"offset": 1,
+   "decls":
+   {"another_foo":
+    {"thms":
+     {"foo_seven": {"value": 7, "type": "value", "theorem": "foo_seven", "index": 7, "declaration": "foo"},
+      "foo_five": {"value": 6, "type": "value", "theorem": "foo_five", "index": 5, "declaration": "foo"}},
+     "isComputable": true,
+     "codomain": "Codomain.Nat"}}}}}
 -/
 #guard_msgs in
 run_meta do
-  let info := OEISInfoToJson <| ← getOEISInfo
+  let info := OEISInfoToJson <| ← getTagsWithInfo
   logInfo m!"{info}"

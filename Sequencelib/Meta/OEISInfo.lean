@@ -8,6 +8,7 @@ import Qq
 import Batteries
 import Sequencelib.Meta.Defs
 import Sequencelib.Meta.OEISTag
+import Sequencelib.Meta.Db
 
 open Lean Meta Elab Qq
 
@@ -81,7 +82,12 @@ def getTagWithInfo (tag : Tag) : MetaM TagWithInfo := do
 -- run_meta do
 --    let x ← getTagWithInfo "A000001"
 --    dbg_trace (repr x)
--- TODO: see if we can populate the database from here
+-- #eval do
+--   let act := do
+--     ensureDb
+--     populateDb default
+--   DbError.toIO <| DbM.run' act "./sequencelib.sql" "./sequencelib2.db"
+--   IO.println "done"
 
 def OEISInfoToMod (info : TagsWithInfo) :
     Std.HashMap Name

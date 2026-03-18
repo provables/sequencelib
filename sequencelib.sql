@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS "declaration" (
 	"module"	TEXT NOT NULL,
 	"name"	TEXT NOT NULL,
 	"computable"	INTEGER NOT NULL,
-	"tag"	INTEGER NOT NULL UNIQUE,
 	"declaration_id"	INTEGER NOT NULL,
 	"sequence_id"	INTEGER NOT NULL,
 	PRIMARY KEY("declaration_id"),

@@ -5,13 +5,7 @@ abbrev DbId := UInt64
 
 -- TODO: see if we can populate the database from here
 def populateDb (tags : TagsWithInfo) (oeisData : System.FilePath) : DbM Unit := do
-  let db ← DbM.get
-  let s ← db.prepare "INSERT INTO keyword (keyword_id, keyword, description, type) VALUES (?, ?, ?, ?);"
-  s.bindInt32 1 5
-  s.bindText 2 "foo"
-  s.bindText 3 "my description"
-  s.bindInt32 4 0
-  s.exec
+  sorry
 
 def insertOrUpdateKeyword (keyword description : String) (type : Int64) : DbM Int64 := do
   let db ← DbM.get

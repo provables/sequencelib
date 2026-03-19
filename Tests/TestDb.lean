@@ -10,10 +10,9 @@ def runTest {α : Type} [ToString α] (act : DbM α) : IO Unit := do
   let (_, file) ← IO.FS.createTempFile
   let block := do
     ensureDb
-    let i ← act
-    return i
+    act
   let i ← DbError.toIO <| DbM.run' block "./sequencelib.sql" file
-  dbg_trace "{i}"
+  dbg_trace i
 
 /--
 info: 1

@@ -73,9 +73,29 @@ def insertOrUpdateSequence (tag off codomain: Int64) (description : String) : Db
       db.lastInsertRowId
   return d
 
-
-def insertSequenceKeyword (sequenceId keywordId : Int64) : DbM Int64 := do
+def insertSequenceKeyword (sequenceId keywordId : Int64) : DbM Unit := do
   let db ← DbM.get
-  let ins ← db sql!"INSERT INTO sequence_keyword (sequence_id, keyword_id) VALUES ({sequenceId}, {keywordId})"
-  ins.exec
-  db.lastInsertRowId
+  let s ← db sql! "INSERT OR IGNORE INTO sequence_keyword (sequence_id, keyword_id) VALUES ({sequenceId}, {keywordId});"
+  s.exec
+
+def insertDeclarationKeyword (declarationId keywordId : Int64) : DbM Unit := do
+  let db ← DbM.get
+  let s ← db sql!
+    "INSERT OR IGNORE INTO sequence_keyword (sequence_id, keyword_id) \
+     VALUES ({declarationId}, {keywordId});"
+  s.exec
+
+def insertOrUpdateSequenceValue (sequenceId index value : Int64) : DbM Int64 := do
+  let db ← DbM.get
+  db.transaction do
+    let s ← db sql!
+      "SELECT sequence_value_id FROM sequence_value WHERE \
+       sequence_id = {sequenceId}, index = {index}, value = {value};"
+    if (← s.step) then
+      s.columnInt64 0
+    else
+      let ins ← db sql!
+        "INSERT INTO sequence_value (sequence_id, index, value) \
+         VALUES ({sequenceId}, {index}, {value})"
+      ins.exec
+      db.lastInsertRowId

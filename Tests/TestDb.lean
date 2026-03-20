@@ -21,17 +21,27 @@ def testKeyword : DbM Unit := do
     | .NoResultsError _ => pure ()
     | e => throw e
 
-def testInsert : DbM Unit := do
+def testInsertKeyword : DbM Unit := do
   let i ← insertOrUpdateKeyword "foo" "foo descr" 0
   assert (i == 1) "id should be 1"
 
-def testUpdate : DbM Unit := do
+def testUpdateKeyword : DbM Unit := do
   let i ← insertOrUpdateKeyword "foo" "foo1" 0
   let j ← insertOrUpdateKeyword "foo" "foo2" 1
   assert (i == j) "ids should be equal"
   let (d, t) ← getKeyword "foo"
   assert (d == "foo2") "wrong description"
   assert (t == 1) "wrong type"
+
+def testInsertSequenceKeyword : DbM Unit := do
+  let _ ← insertSequenceKeyword 1 1
+  let _ ← insertSequenceKeyword 2 1
+  let _ ← insertSequenceKeyword 2 2
+  try
+    let _ ← insertSequenceKeyword 2 2
+  catch
+    | .InnerIOError _ => pure ()
+    | e => throw e
 
 def runTest (act : DbM Unit) : IO Unit := do
   IO.FS.withTempFile fun _ file => do
@@ -40,7 +50,6 @@ def runTest (act : DbM Unit) : IO Unit := do
       act
     DbError.toIO <| DbM.run' block "./sequencelib.sql" file
 
-#eval runTest testKeyword
 def runTests : CommandElabM Unit := do
   let env ← getEnv
   let testType ← liftTermElabM <| Term.elabTerm (← `(term|DbM Unit)) (some q(Type))

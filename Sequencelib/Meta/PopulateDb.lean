@@ -43,3 +43,9 @@ def insertOrUpdateKeyword (keyword description : String) (type : Int64) : DbM In
       ins.exec
       db.lastInsertRowId
   return d
+
+def insertSequenceKeyword (sequenceId keywordId : Int64) : DbM Int64 := do
+  let db ← DbM.get
+  let ins ← db sql!"INSERT INTO sequence_keyword (sequence_id, keyword_id) VALUES ({sequenceId}, {keywordId})"
+  ins.exec
+  db.lastInsertRowId

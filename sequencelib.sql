@@ -29,12 +29,14 @@ CREATE TABLE IF NOT EXISTS "sequence_keyword" (
 	"keyword_id"	INTEGER NOT NULL,
 	FOREIGN KEY("keyword_id") REFERENCES "keyword"("keyword_id"),
 	FOREIGN KEY("sequence_id") REFERENCES "sequence"("sequence_id")
+	UNIQUE ("sequence_id", "keyword_id")
 );
 CREATE TABLE IF NOT EXISTS "declaration_keyword" (
 	"declaration_id"	INTEGER NOT NULL,
 	"keyword_id"	INTEGER NOT NULL,
 	FOREIGN KEY("keyword_id") REFERENCES "keyword"("keyword_id"),
 	FOREIGN KEY("declaration_id") REFERENCES "declaration"("declaration_id")
+	UNIQUE ("declaration_id", "keyword_id")
 );
 CREATE TABLE IF NOT EXISTS "sequence_value" (
 	"sequence_value_id" INTEGER NOT NULL,

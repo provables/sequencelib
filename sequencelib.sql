@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS "sequence_value" (
 	"value"	INTEGER NOT NULL,
 	PRIMARY KEY("sequence_value_id")
 	FOREIGN KEY("sequence_id") REFERENCES "sequence"("sequence_id")
+	UNIQUE ("sequence_id", "index", "value")
 );
 CREATE TABLE IF NOT EXISTS "theorem_equivalence" (
 	"declaration_left_id"	INTEGER NOT NULL,

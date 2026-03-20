@@ -9,12 +9,16 @@ inductive DbError
   | OpenError (e : IO.Error)
   | InnerIOError (e : IO.Error)
   | MissingSchema (f : System.FilePath) (e : IO.Error)
+  | NoResultsError (q : String)
+  | GeneralError (e : String)
 
 instance : Repr DbError where
   reprPrec a _ := match a with
     | .OpenError e => s!"OpenError: {e}"
     | .InnerIOError e => s!"InnerIOError: {e}"
     | .MissingSchema f e => s!"MissingSchema: {f}, {e}"
+    | .NoResultsError q => s!"NoResultsError: {q}"
+    | .GeneralError e => s!"GeneralError: {e}"
 
 abbrev DbM := ReaderT DbContext <| EIO DbError
 

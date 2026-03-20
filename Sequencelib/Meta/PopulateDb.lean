@@ -7,6 +7,17 @@ abbrev DbId := UInt64
 def populateDb (tags : TagsWithInfo) (oeisData : System.FilePath) : DbM Unit := do
   sorry
 
+def getKeyword (keyword : String) : DbM (String × Int64) := do
+  let db ← DbM.get
+  let s ← db.prepare "SELECT description, type FROM keyword WHERE keyword = ?;"
+  s.bindText 1 keyword
+  let hasRow ← s.step
+  if not hasRow then
+    throw <| .NoResultsError (← s.expandedSql)
+  let descr ← s.columnText 0
+  let type ← s.columnInt64 1
+  return (descr, type)
+
 def insertOrUpdateKeyword (keyword description : String) (type : Int64) : DbM Int64 := do
   let db ← DbM.get
   let d ← db.transaction do

@@ -44,8 +44,12 @@ def insertOrUpdateKeyword (keyword description : String) (type : Int64) : DbM In
       db.lastInsertRowId
   return d
 
-def insertSequenceKeyword (sequenceId keywordId : Int64) : DbM Int64 := do
+def insertSequenceKeyword (sequenceId keywordId : Int64) : DbM Unit := do
   let db ← DbM.get
-  let ins ← db sql!"INSERT INTO sequence_keyword (sequence_id, keyword_id) VALUES ({sequenceId}, {keywordId})"
-  ins.exec
-  db.lastInsertRowId
+  let s ← db sql! "INSERT OR IGNORE INTO sequence_keyword (sequence_id, keyword_id) VALUES ({sequenceId}, {keywordId})"
+  s.exec
+
+def insertDeclarationKeyword (declarationId keywordId : Int64) : DbM Unit := do
+  let db ← DbM.get
+  let s ← db sql!"INSERT OR IGNORE INTO sequence_keyword (sequence_id, keyword_id) VALUES ({declarationId}, {keywordId})"
+  s.exec

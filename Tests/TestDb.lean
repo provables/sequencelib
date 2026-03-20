@@ -34,14 +34,16 @@ def testUpdateKeyword : DbM Unit := do
   assert (t == 1) "wrong type"
 
 def testInsertSequenceKeyword : DbM Unit := do
-  let _ ← insertSequenceKeyword 1 1
-  let _ ← insertSequenceKeyword 2 1
-  let _ ← insertSequenceKeyword 2 2
-  try
-    let _ ← insertSequenceKeyword 2 2
-  catch
-    | .InnerIOError _ => pure ()
-    | e => throw e
+  insertSequenceKeyword 1 1
+  insertSequenceKeyword 2 1
+  insertSequenceKeyword 2 2
+  insertSequenceKeyword 2 2
+
+def testInsertDeclarationKeyword : DbM Unit := do
+  insertDeclarationKeyword 1 1
+  insertDeclarationKeyword 2 1
+  insertDeclarationKeyword 2 2
+  insertDeclarationKeyword 2 2
 
 def runTest (act : DbM Unit) : IO Unit := do
   IO.FS.withTempFile fun _ file => do

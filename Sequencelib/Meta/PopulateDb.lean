@@ -44,6 +44,36 @@ def insertOrUpdateKeyword (keyword description : String) (type : Int64) : DbM In
       db.lastInsertRowId
   return d
 
+def insertOrUpdateSequence (tag off codomain: Int64) (description : String) : DbM Int64 := do
+  let db ← DbM.get
+  let d ← db.transaction do
+    let s ← db.prepare "SELECT sequence_id FROM sequence WHERE tag = ?;"
+    s.bindInt64 1 tag
+    let hasRow ← s.step
+    if hasRow then
+      -- update
+      let sid ← s.columnInt64 0
+      let upd ← db.prepare "UPDATE sequence SET tag = ?, description = ?, offset = ?, codomain = ?, sequence_id = ? WHERE tag = ?;"
+      upd.bindInt64 1 tag
+      upd.bindText 2 description
+      upd.bindInt64 3 off
+      upd.bindInt64 4 codomain
+      upd.bindInt64 5 sid
+      upd.bindInt64 6 tag
+      upd.exec
+      pure sid
+    else
+     -- insert
+      let ins ← db.prepare "INSERT INTO sequence (tag, description, offset, codomain) VALUES (?, ?, ?, ?);"
+      ins.bindInt64 1 tag
+      ins.bindText 2 description
+      ins.bindInt64 3 off
+      ins.bindInt64 4 codomain
+      ins.exec
+      db.lastInsertRowId
+  return d
+
+
 def insertSequenceKeyword (sequenceId keywordId : Int64) : DbM Int64 := do
   let db ← DbM.get
   let ins ← db sql!"INSERT INTO sequence_keyword (sequence_id, keyword_id) VALUES ({sequenceId}, {keywordId})"

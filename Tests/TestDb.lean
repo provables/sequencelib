@@ -49,6 +49,13 @@ def testInsertSequence : DbM Unit := do
   let i ← insertOrUpdateSequence 5 1 0 "the number of divisors of n"
   assert (i == 1) "id should be 1"
 
+def testInsertOrUpdateSequenceValue : DbM Unit := do
+  let i ← insertOrUpdateSequenceValue 3 0 1
+  assert (i == 1) "id should be 1"
+  let i ← insertOrUpdateSequenceValue 4 0 1
+  assert (i == 2) "id should be 2"
+  let i ← insertOrUpdateSequenceValue 3 0 1
+  assert (i == 1) "id should be 1"
 
 def runTest (act : DbM Unit) : IO Unit := do
   IO.FS.withTempFile fun _ file => do

@@ -85,17 +85,17 @@ def insertDeclarationKeyword (declarationId keywordId : Int64) : DbM Unit := do
      VALUES ({declarationId}, {keywordId});"
   s.exec
 
-def insertOrUpdateSequenceValue (sequenceId index value : Int64) : DbM Int64 := do
+def insertOrUpdateSequenceValue (sequenceId n value : Int64) : DbM Int64 := do
   let db ← DbM.get
   db.transaction do
     let s ← db sql!
       "SELECT sequence_value_id FROM sequence_value WHERE \
-       sequence_id = {sequenceId}, index = {index}, value = {value};"
+       sequence_id = {sequenceId} AND n = {n} AND value = {value};"
     if (← s.step) then
       s.columnInt64 0
     else
       let ins ← db sql!
-        "INSERT INTO sequence_value (sequence_id, index, value) \
-         VALUES ({sequenceId}, {index}, {value})"
+        "INSERT INTO sequence_value (sequence_id, n, value) \
+         VALUES ({sequenceId}, {n}, {value});"
       ins.exec
       db.lastInsertRowId

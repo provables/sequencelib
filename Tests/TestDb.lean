@@ -57,6 +57,18 @@ def testInsertOrUpdateSequenceValue : DbM Unit := do
   let i ← insertOrUpdateSequenceValue 3 0 1
   assert (i == 1) "id should be 1"
 
+def testInsertTheoremValue : DbM Unit := do
+  insertTheoremValue 1 2 "mod1" "foo"
+  let db ← DbM.get
+  let s ← db sql! "SELECT * FROM theorem_value WHERE declaration_id = 1;"
+  let c ← s.step
+  assert c "should have at least one row"
+  let x ← s.columnInt64 0
+  let y ← s.columnInt64 1
+  let z ← s.columnText 2
+  let w ← s.columnText 3
+  assert ((x, y, z, w) = (1, 2, "mod1", "foo")) "wrong values"
+
 def runTest (act : DbM Unit) : IO Unit := do
   IO.FS.withTempFile fun _ file => do
     let block := do

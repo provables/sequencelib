@@ -99,3 +99,12 @@ def insertOrUpdateSequenceValue (sequenceId n value : Int64) : DbM Int64 := do
          VALUES ({sequenceId}, {n}, {value});"
       ins.exec
       db.lastInsertRowId
+
+def insertTheoremValue (declarationId sequenceValueId : Int64) (module name : String) :
+    DbM Unit := do
+  let db ← DbM.get
+  db.transaction do
+    let s ← db sql!
+      "INSERT INTO theorem_value (declaration_id, sequence_value_id, module, name) \
+       VALUES ({declarationId}, {sequenceValueId}, {module}, {name});"
+    s.exec

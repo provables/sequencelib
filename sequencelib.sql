@@ -50,8 +50,8 @@ CREATE TABLE IF NOT EXISTS "sequence_value" (
 CREATE TABLE IF NOT EXISTS "theorem_equivalence" (
 	"declaration_left_id"	INTEGER NOT NULL,
 	"declaration_right_id"	INTEGER NOT NULL,
-	"name"	TEXT NOT NULL,
 	"module"	TEXT NOT NULL,
+	"name"	TEXT NOT NULL,
 	FOREIGN KEY("declaration_left_id") REFERENCES "declaration"("declaration_id"),
 	FOREIGN KEY("declaration_right_id") REFERENCES "declaration"("declaration_id")
 );

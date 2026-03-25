@@ -73,6 +73,31 @@ def insertOrUpdateSequence (tag off codomain: Int64) (description : String) : Db
       db.lastInsertRowId
   return d
 
+def insertOrUpdateDeclaration (sequenceId : Int64) (module name : String) (computable : Bool) :
+    DbM Int64 := do
+  let db ← DbM.get
+  db.transaction do
+    let s ← db sql!
+      "SELECT declaration_id FROM declaration WHERE module = {module} AND name = {name};"
+    if (← s.step) then
+      let did ← s.columnInt64 0
+      let upd ← db sql!
+        "UPDATE
+          declaration
+         SET
+          sequence_id = {sequenceId}, module = {module},
+          name = {name}, computable = {computable}
+         WHERE
+          declaration_id = {did};"
+      upd.exec
+      pure did
+    else
+      let ins ← db sql!
+        "INSERT INTO declaration (sequence_id, module, name, computable)
+         VALUES ({sequenceId}, {module}, {name}, {computable});"
+      ins.exec
+      db.lastInsertRowId
+
 def insertSequenceKeyword (sequenceId keywordId : Int64) : DbM Unit := do
   let db ← DbM.get
   let s ← db sql! "INSERT OR IGNORE INTO sequence_keyword (sequence_id, keyword_id) VALUES ({sequenceId}, {keywordId});"
@@ -107,4 +132,13 @@ def insertTheoremValue (declarationId sequenceValueId : Int64) (module name : St
     let s ← db sql!
       "INSERT INTO theorem_value (declaration_id, sequence_value_id, module, name) \
        VALUES ({declarationId}, {sequenceValueId}, {module}, {name});"
+    s.exec
+
+def insertTheoremEquivalence (declarationLeftId declarationRightId : Int64) (module name : String) :
+    DbM Unit := do
+  let db ← DbM.get
+  db.transaction do
+    let s ← db sql!
+      "INSERT INTO theorem_equivalence (declaration_left_id, declaration_right_id, module, name) \
+       VALUES ({declarationLeftId}, {declarationRightId}, {module}, {name});"
     s.exec

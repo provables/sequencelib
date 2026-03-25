@@ -69,6 +69,28 @@ def testInsertTheoremValue : DbM Unit := do
   let w ← s.columnText 3
   assert ((x, y, z, w) = (1, 2, "mod1", "foo")) "wrong values"
 
+def testInsertTheoremEquivalence : DbM Unit := do
+  insertTheoremEquivalence 1 2 "mod1" "foo"
+  let db ← DbM.get
+  let s ← db sql!
+    "SELECT * FROM theorem_equivalence \
+     WHERE declaration_left_id = 1 AND declaration_right_id = 2;"
+  let c ← s.step
+  assert c "should have at least one row"
+  let x ← s.columnInt64 0
+  let y ← s.columnInt64 1
+  let z ← s.columnText 2
+  let w ← s.columnText 3
+  assert ((x, y, z, w) = (1, 2, "mod1", "foo")) "wrong values"
+
+def testInsertOrUpdateDeclaration : DbM Unit := do
+  let i ← insertOrUpdateDeclaration 1 "mod1" "foo" true
+  assert (i == 1) "id should be 1"
+  let i ← insertOrUpdateDeclaration 2 "mod2" "bar" false
+  assert (i == 2) "id should be 2"
+  let i ← insertOrUpdateDeclaration 3 "mod1" "foo" false
+  assert (i == 1) "id should be 1"
+
 def runTest (act : DbM Unit) : IO Unit := do
   IO.FS.withTempFile fun _ file => do
     let block := do

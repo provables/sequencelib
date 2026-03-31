@@ -6,15 +6,22 @@ open Lean
 
 abbrev DbId := UInt64
 
--- #eval do
---   let x ← IO.FS.readFile <| ("/Users/walter/repos/oeisdata" : System.FilePath) / "seq/A000/A000001.seq"
---   dbg_trace x
+def populateSequence (env : Environment) (tag : Option TagWithInfo) (sequenceData : System.FilePath) :
+    DbM Unit := do
+  let x ← .ofExcept <| (← fileToOEISRepoItem env sequenceData).mapError DbError.OEISRepoParseError
+  IO.println s!"RepoItem: {repr x}"
 
 -- TODO: see if we can populate the database from here
 def populateDb (env : Environment) (tags : TagsWithInfo) (oeisData : System.FilePath) :
-    DbM Unit := do
-  let x ← .ofExcept <| (← fileToOEISRepoItem env (oeisData / "seq/A000/A000001.seq")).mapError DbError.OEISRepoParseError
-  IO.println s!"RepoItem: {repr x}"
+    DbM (Array String) := do
+  let mut result := #[]
+  for f in (← System.FilePath.walkDir (oeisData / "seq") (fun _ => return true)) do
+    if f.extension != "seq" then continue
+    let tagName := f.fileStem |>.getD ""
+    let tag := tags.get? tagName
+    populateSequence env tag f
+    result := result.push tagName
+  return result
 
 def getKeyword (keyword : String) : DbM (String × Int64) := do
   let db ← DbM.get

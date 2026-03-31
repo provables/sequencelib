@@ -1,11 +1,20 @@
 import Sequencelib.Meta.OEISTag
 import Sequencelib.Meta.Db
+import Sequencelib.Meta.OEISRepo
+
+open Lean
 
 abbrev DbId := UInt64
 
+-- #eval do
+--   let x ← IO.FS.readFile <| ("/Users/walter/repos/oeisdata" : System.FilePath) / "seq/A000/A000001.seq"
+--   dbg_trace x
+
 -- TODO: see if we can populate the database from here
-def populateDb (tags : TagsWithInfo) (oeisData : System.FilePath) : DbM Unit := do
-  sorry
+def populateDb (env : Environment) (tags : TagsWithInfo) (oeisData : System.FilePath) :
+    DbM Unit := do
+  let x ← .ofExcept <| (← fileToOEISRepoItem env (oeisData / "seq/A000/A000001.seq")).mapError DbError.OEISRepoParseError
+  IO.println s!"RepoItem: {repr x}"
 
 def getKeyword (keyword : String) : DbM (String × Int64) := do
   let db ← DbM.get

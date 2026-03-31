@@ -10,6 +10,7 @@ inductive DbError
   | InnerIOError (e : IO.Error)
   | MissingSchema (f : System.FilePath) (e : IO.Error)
   | NoResultsError (q : String)
+  | OEISRepoParseError (e : String)
   | GeneralError (e : String)
 
 instance : Repr DbError where
@@ -18,6 +19,7 @@ instance : Repr DbError where
     | .InnerIOError e => s!"InnerIOError: {e}"
     | .MissingSchema f e => s!"MissingSchema: {f}, {e}"
     | .NoResultsError q => s!"NoResultsError: {q}"
+    | .OEISRepoParseError e => s!"OEISRepoParseError: {e}"
     | .GeneralError e => s!"GeneralError: {e}"
 
 abbrev DbM := ReaderT DbContext <| EIO DbError

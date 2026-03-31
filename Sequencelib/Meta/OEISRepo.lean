@@ -2,20 +2,18 @@ import Lean.Elab.Command
 
 open Lean Syntax Elab
 
-namespace OEISRepoSyntax
-
 declare_syntax_cat signed_num
 declare_syntax_cat keywords
 declare_syntax_cat values
 declare_syntax_cat offset
 
-scoped syntax "-" noWs num : signed_num
-scoped syntax num : signed_num
-scoped syntax "%K" ident (ident,+) : keywords
-scoped syntax "%" noWs ident ident (signed_num,+,?) : values
-scoped syntax "%O" ident signed_num "," signed_num : offset
+syntax "-" noWs num : signed_num
+syntax num : signed_num
+syntax "%K" ident (ident,+) : keywords
+syntax "%" noWs ident ident (signed_num,+,?) : values
+syntax "%O" ident signed_num "," signed_num : offset
 
-structure OEISRepoData where
+structure OEISRepoItem where
   tag : String
   description : String
   offset : Int
@@ -23,7 +21,7 @@ structure OEISRepoData where
   values : Array Int
   deriving Inhabited, Repr
 
-def toOEISRepoData (env : Environment) (s : String) : Except String OEISRepoData := do
+def toOEISRepoItem (env : Environment) (s : String) : Except String OEISRepoItem := do
   let mut result := default
   for line in s.lines do
     result ← match (line.take 2).toString with
@@ -54,4 +52,12 @@ def toOEISRepoData (env : Environment) (s : String) : Except String OEISRepoData
       | _ => pure result
   return result
 
-end OEISRepoSyntax
+def fileToOEISRepoItem (env : Environment) (file : System.FilePath) :
+    IO (Except String OEISRepoItem) := do
+  return toOEISRepoItem env (← IO.FS.readFile file)
+
+-- #eval do
+--   let env ← importModules #[{module := `Sequencelib.Meta.OEISRepo}] {}
+--   let x := toOEISRepoData env "%K foo bar,baz"
+--   dbg_trace (repr x)
+-- --def parse (file : System.FilePath)

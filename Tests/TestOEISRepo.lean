@@ -1,6 +1,6 @@
 import Sequencelib.Meta.OEISRepo
 
-open Lean OEISRepoSyntax
+open Lean
 
 /--
 info: Except.ok { tag := "A382995",
@@ -13,7 +13,7 @@ info: Except.ok { tag := "A382995",
 -/
 #guard_msgs in
 run_elab do
-  dbg_trace repr (toOEISRepoData (← getEnv) "\
+  dbg_trace repr (toOEISRepoItem (← getEnv) "\
 %I A382995 #15 Apr 12 2025 09:49:37
 %S A382995 1,1,0,1,-1,3,1,-2,6,0,1,-3,11,-8,5,1,-4,18,-28,20,0,1,-5,27,-66,85,
 %T A382995 -30,7,1,-6,38,-128,260,-238,70,0,1,-7,51,-220,629,-1014,735,-136,9,1,

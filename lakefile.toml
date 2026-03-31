@@ -49,6 +49,11 @@ name = "postprocess"
 root = "scripts.PostProcess"
 supportInterpreter = true
 
+[[lean_exe]]
+name = "populatedb"
+root = "scripts.PopulateDb"
+supportInterpreter = true
+
 [[lean_lib]]
 name = "Tests"
 

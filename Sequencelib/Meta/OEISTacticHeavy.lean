@@ -9,26 +9,58 @@ import Mathlib
 
 open Lean Expr Elab Term Tactic Meta Qq Command
 
+def rwThms : List Name := [
+  ``Nat.add_comm,
+  ``Nat.add_assoc,
+  ``Nat.mul_comm,
+  ``Nat.mul_assoc,
+  ``Nat.add_zero,
+  ``Nat.factorization_mul,
+  ``Nat.zero_add,
+  ``Nat.mul_one,
+  ``Nat.one_mul,
+  ``Nat.mul_add,
+  ``Nat.add_mul,
+  ``Nat.pow_succ,
+  ``Nat.pow_zero,
+  ``Nat.succ_eq_add_one,
+  ``Nat.add_succ,
+  ``Nat.succ_add
+]
 
-def makeTactics (name : Name) : TacticM (List (TSyntax `tactic)) :=
-  return [
-    ← `(tactic|try rfl),
-    ← `(tactic|try decide),
-    ← `(tactic|try simp [$(mkIdent name):ident]),
-    ← `(tactic|try unfold $(mkIdent name):ident),
-    ← `(tactic|try norm_num),
-    ← `(tactic|try repeat omega),
-    ← `(tactic|try ring),
-    ← `(tactic|try aesop),
-    ← `(tactic|try grind)
+/-- Build rw tactic candidates from the curated theorem list. -/
+def makeRwTactics (thms : List Name) : TacticM (List (TSyntax `tactic)) :=
+  thms.mapM fun thmName =>
+    `(tactic| rw [$(mkIdent thmName):ident])
 
-  ]
+/--
+This function defines the full list of tactics that oeis_tactic_heavy will use.
+Note that order of tactic matters, as the main dfsTactic function performs a
+depth-first search starting with the first tactic in the list.
 
+Note also that `try` should be avoided in the tactic list for this implementation,
+as we rely on a tactic failing to know when to backtrack.
+-/
+def makeTactics (name : Name) : TacticM (List (TSyntax `tactic)) := do
+  let t1 ← `(tactic| rfl)
+  let t2 ← `(tactic| decide)
+  let t3 ← `(tactic| simp [$(mkIdent name):ident])
+  let t4 ← `(tactic| unfold $(mkIdent name):ident)
+  let t5 ← `(tactic| norm_num)
+  let t6 ← `(tactic| repeat omega)
+  let t7 ← `(tactic| ring)
+  let t8 ← `(tactic| aesop)
+  let t9 ← `(tactic| grind)
+  let baseTactics := [t1, t2, t3, t4, t5, t6, t7, t8, t9]
+  let rwTactics ← makeRwTactics rwThms
+  return baseTactics ++ rwTactics
 
+/-- Main function that implements the depth-first search across a tactic tree -/
 partial def dfsTactic
     (tactics  : List (TSyntax `tactic))
     (maxDepth : Nat)
     (depth    : Nat := 0)
+    (path     : List String := []) -- for logging
     : TacticM Bool := do
 
   if depth > maxDepth then -- base case
@@ -38,19 +70,31 @@ partial def dfsTactic
   for tac in tactics do
     -- get state of current goal
     let savedState ← saveState
+    let tacStr := toString (← PrettyPrinter.ppTactic tac)
 
-    -- try to use tactic, every tactic is wrapped in a try so it shouldn't error out
-    let ok ← try evalTactic tac; pure true catch _ => pure false
-    if !ok then -- if it did fail, restore the state and continue to next tactic
+    -- try to use tactic
+    let ok ← try
+      evalTactic tac
+      pure true
+    catch e =>
+      let msg ← e.toMessageData.toString
+      if msg.contains "maximum number of heartbeats" then -- TODO: a bit of a hack
+        logInfo m!"[TIMEOUT] path so far: {(path ++ [tacStr])}"
+        savedState.restore
+        return false  -- abort entire search since we hit the heartbeat limit
+      pure false -- some other exception, just set ok to false
+
+    if !ok then -- if tactic failed, restore the state and continue to next tactic
       savedState.restore
       continue
 
     -- Otherwise, the tactic did not fail, so check if goals are closed
-    -- if goals are closed, we're done
-    if (← getUnsolvedGoals).isEmpty then
+    if (← getUnsolvedGoals).isEmpty then  -- if goals are closed, we're done
+      logInfo m!"[SUCCESS] path: {(path ++ [tacStr])}"
       return true
 
-    -- Otherwise, goals remain, so recurs
+    -- Otherwise, goals remain, so recurs further down
+    logInfo m!"[PROGRESS depth={depth}] {tacStr} made progress, going deeper"
     if ← dfsTactic tactics maxDepth (depth + 1) then
       return true
 
@@ -74,6 +118,7 @@ def extractConstName : TacticM Name := do
         return f.constName
 
 
+-- TODO: depth isn't optional, something wrong with my syntax..
 elab "oeis_tactic_heavy" name?:(ident)? "depth" ":=" maxDepth:num ? : tactic => do
   let depth := maxDepth.map (·.getNat) |>.getD 3
   let name ← match name? with
@@ -102,7 +147,6 @@ example : f 2 = 2 := by
 
 
 -- The OEIS ruler example
-
 def A001511 : (n : ℕ) → ℕ
 | 0 => 0
 | n + 1 =>
@@ -130,6 +174,12 @@ def A001511v2 (n : ℕ) : ℕ :=
 example : A001511v2 1 = 1 := by
   oeis_tactic_heavy depth := 1
 
+set_option maxHeartbeats 800000 in
 example : A001511v2 2 = 2 := by
-  -- oeis_tactic_heavy depth := 2 /-- This one fails which makes sense since the actual proof requires a rw -/
-  sorry
+  oeis_tactic_heavy depth := 4
+
+example : A001511v2 2 = 2 := by
+  unfold A001511v2
+  rw [Nat.factorization_mul]
+  norm_num
+  repeat omega

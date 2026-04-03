@@ -96,7 +96,7 @@ partial def dfsTactic
 
     -- Otherwise, goals remain, so recurs further down
     logInfo m!"[PROGRESS depth={depth}] {tacStr} made progress, going deeper"
-    if ← dfsTactic tactics maxDepth (depth + 1) then
+    if ← dfsTactic tactics maxDepth (depth + 1) (path ++ [tacStr]) then
       return true
 
     -- Restore state and backtrack

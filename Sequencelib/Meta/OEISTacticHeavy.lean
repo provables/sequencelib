@@ -28,6 +28,18 @@ def rwThms : List Name := [
   ``Nat.succ_add
 ]
 
+def tactics (name : Name) : List (TacticM (TSyntax `tactic)) := [
+  `(tactic| rfl),
+  `(tactic| decide),
+  `(tactic| simp [$(mkIdent name):ident]),
+  `(tactic| unfold $(mkIdent name):ident),
+  `(tactic| norm_num),
+  `(tactic| repeat omega),
+  `(tactic| ring),
+  `(tactic| aesop),
+  `(tactic| grind)
+]
+
 /-- Build rw tactic candidates from the curated theorem list. -/
 def makeRwTactics (thms : List Name) : TacticM (List (TSyntax `tactic)) :=
   thms.mapM fun thmName =>
@@ -42,18 +54,7 @@ Note also that `try` should be avoided in the tactic list for this implementatio
 as we rely on a tactic failing to know when to backtrack.
 -/
 def makeTactics (name : Name) : TacticM (List (TSyntax `tactic)) := do
-  let t1 ← `(tactic| rfl)
-  let t2 ← `(tactic| decide)
-  let t3 ← `(tactic| simp [$(mkIdent name):ident])
-  let t4 ← `(tactic| unfold $(mkIdent name):ident)
-  let t5 ← `(tactic| norm_num)
-  let t6 ← `(tactic| repeat omega)
-  let t7 ← `(tactic| ring)
-  let t8 ← `(tactic| aesop)
-  let t9 ← `(tactic| grind)
-  let baseTactics := [t1, t2, t3, t4, t5, t6, t7, t8, t9]
-  let rwTactics ← makeRwTactics rwThms
-  return baseTactics ++ rwTactics
+  return (← tactics name |>.mapM id) ++ (← makeRwTactics rwThms)
 
 /-- Main function that implements the depth-first search across a tactic tree -/
 partial def dfsTactic

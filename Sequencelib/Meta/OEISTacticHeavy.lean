@@ -35,6 +35,25 @@ def rwThms : List Name := [
   ``Nat.succ_add
 ]
 
+def simpThms : List Name := [
+  ``Nat.add_comm,
+  ``Nat.add_assoc,
+  ``Nat.mul_comm,
+  ``Nat.mul_assoc,
+  ``Nat.add_zero,
+  ``Nat.factorization_mul,
+  ``Nat.zero_add,
+  ``Nat.mul_one,
+  ``Nat.one_mul,
+  ``Nat.mul_add,
+  ``Nat.add_mul,
+  ``Nat.pow_succ,
+  ``Nat.pow_zero,
+  ``Nat.succ_eq_add_one,
+  ``Nat.add_succ,
+  ``Nat.succ_add
+]
+
 def tactics (name : Name) : List (TacticM (TSyntax `tactic)) := [
   `(tactic| rfl),
   `(tactic| decide),
@@ -52,6 +71,11 @@ def makeRwTactics (thms : List Name) : TacticM (List (TSyntax `tactic)) :=
   thms.mapM fun thmName =>
     `(tactic| rw [$(mkIdent thmName):ident])
 
+def makeSimpTactics (thms : List Name) : TacticM (List (TSyntax `tactic)) :=
+  thms.mapM fun thmName =>
+    `(tactic| simp only [$(mkIdent thmName):ident])
+
+
 /--
 This function defines the full list of tactics that oeis_tactic_heavy will use.
 Note that order of tactic matters, as the main dfsTactic function performs a
@@ -61,7 +85,7 @@ Note also that `try` should be avoided in the tactic list for this implementatio
 as we rely on a tactic failing to know when to backtrack.
 -/
 def makeTactics (name : Name) : TacticM (List (TSyntax `tactic)) := do
-  return (← tactics name |>.mapM id) ++ (← makeRwTactics rwThms)
+  return (← tactics name |>.mapM id) ++ (← makeRwTactics rwThms) ++ (← makeSimpTactics simpThms)
 
 /-- Check whether a tactic has made progress -/
 def madeProgress (goalsBefore : List MVarId) (typesBefore : List Expr) : TacticM Bool := do
@@ -94,15 +118,26 @@ def serializeGoal : TacticM String := do
 partial def dfsTactic
     (tactics  : List (TSyntax `tactic))
     (maxDepth : Nat)
+    (visitedStates  : IO.Ref (List String))   -- previously visited goal states
     (depth    : Nat := 0)
     (path     : List String := []) -- for logging
-    (visitedStates : List String := [])  -- previously visited goal states
+    (pathStates    : List String := [])  -- states on current path only
     : TacticM Bool := do
 
-  if depth > maxDepth then -- base case
+  if depth >= maxDepth then -- base case
     return false
 
   let currentGoalStr ← serializeGoal -- string representation of the current goal
+  -- Check 1: is current state already on our current path? (cycle detection)
+  if pathStates.contains currentGoalStr then
+    logToFile s!"[PATH CYCLE depth={depth}] current state already on path, pruning"
+    return false
+
+  -- Check 2: have we fully explored this state globally before?
+  let visited ← visitedStates.get
+  if visited.contains currentGoalStr then
+    logToFile s!"[GLOBAL PRUNE depth={depth}] already fully explored, pruning"
+    return false
 
   -- main loop
   for tac in tactics do
@@ -149,23 +184,36 @@ partial def dfsTactic
     -- Get the resulting goal state from the application of the tactic and check if
     -- it has been visited before
     let newGoalStr ← serializeGoal
-    if visitedStates.contains newGoalStr then
-      -- if we have visited this state before, then we just created a cycle, so we need
-      -- restore and move to the next tactic
-      logToFile s!"[CYCLE depth={depth}] {tacStr} produced a previously seen goal state, pruning"
+
+    -- Check new state against current path only (not global visited)
+    if pathStates.contains newGoalStr then
+      logToFile s!"[PATH CYCLE depth={depth}] {tacStr} produced state already on path"
       savedState.restore
       continue
 
-    -- Otherwise, goals remain, so recurs further down
+    -- Check new state against global visited
+    let visited ← visitedStates.get
+    if visited.contains newGoalStr then
+      -- if we have visited this state before, then we just created a cycle, so we need
+      -- restore and move to the next tactic
+      logToFile s!"[GLOBAL PRUNE depth={depth}] {tacStr} produced already-explored state"
+      savedState.restore
+      continue
+
+    -- Otherwise, goals remain, so add goal to visitedStates and recurs further down
     logToFile s!"[PROGRESS depth={depth}] {tacStr} made progress, going deeper"
-    if ← dfsTactic tactics maxDepth (depth + 1) (path ++ [tacStr]) (visitedStates ++ [currentGoalStr]) then
+    if ← dfsTactic tactics maxDepth visitedStates (depth + 1) (path ++ [tacStr]) (pathStates ++ [currentGoalStr]) then
       return true
 
-    -- Restore state and backtrack
+    -- Subtree failed: record newGoalStr as fully explored
+    visitedStates.modify (newGoalStr :: ·)
     savedState.restore
 
+  -- Current state fully explored and failed: record it
+  visitedStates.modify (currentGoalStr :: ·)
   return false
 
+#check IO.getNumHeartbeats
 
 def extractConstName : TacticM Name := do
 -- Assumes we are proving a thm of the form f i = v for f : Nat -> $Cod, but we
@@ -187,9 +235,14 @@ elab "oeis_tactic_heavy" name?:(ident)? "depth" ":=" maxDepth:num ? : tactic => 
   let name ← match name? with
     | some id => pure id.getId
     | none    => extractConstName
-  logToFile s!"Start of oeis_tactic_heavy for name: {name}"
+
+  let visitedStates ← IO.mkRef ([] : List String)
+  logToFile s!"Start of oeis_tactic_heavy for name: {name}; fresh visitedStates ref created"
+  let initialVisited ← visitedStates.get
+  logToFile s!"Initial visited size: {initialVisited.length}"
+
   let tactics ← makeTactics name
-  let solved ← dfsTactic tactics depth
+  let solved ← dfsTactic tactics depth visitedStates
   unless solved do
     throwTacticEx `oeis_tactic (← getMainGoal)
       m!"oeis_tactic: no tactic combination (depth {depth}) closed the goal"
@@ -240,14 +293,18 @@ def A001511v2 (n : ℕ) : ℕ :=
 
 set_option maxHeartbeats 400000 in
 example : A001511v2 2 = 2 := by
-  oeis_tactic_heavy depth := 4
+  oeis_tactic_heavy depth := 5
 
+-- example : A001511v2 2 = 2 := by
+--   unfold A001511v2
+--   rw [Nat.mul_comm]
+--   simp [A001511v2]
 
-set_option maxHeartbeats 400000 in
-example : A001511v2 3 = 1 := by oeis_tactic_heavy depth := 4
+-- set_option maxHeartbeats 400000 in
+-- example : A001511v2 3 = 1 := by oeis_tactic_heavy depth := 4
 
-set_option maxHeartbeats 400000 in
-example : A001511v2 4 = 3 := by oeis_tactic_heavy depth := 4
+-- set_option maxHeartbeats 8000000 in
+-- example : A001511v2 4 = 3 := by oeis_tactic_heavy depth := 8
 
 example : A001511v2 2 = 2 := by
   unfold A001511v2
@@ -269,6 +326,10 @@ example: A001511v2 3 = 1 := by
   norm_num
   repeat omega
 
+#check Nat.factorization
+
 example : A001511v2 4 = 3 := by
   unfold A001511v2
-  simp
+  rw [Nat.mul_comm]
+  rw[Nat.factorization_mul]
+  norm_num

@@ -229,13 +229,20 @@ def extractConstName : TacticM Name := do
           Lean.Meta.throwTacticEx `oeis_tactic goal m!"wrong codomain {c}"
         return f.constName
 
+syntax oeis_option := (&"depth" ":=" num) <|> ident
+syntax oeis_options := oeis_option,*,?
 
--- TODO: depth isn't optional, something wrong with my syntax..
-elab "oeis_tactic_heavy" name?:(ident)? "depth" ":=" maxDepth:num ? : tactic => do
-  let depth := maxDepth.map (·.getNat) |>.getD 3
-  let name ← match name? with
-    | some id => pure id.getId
-    | none    => extractConstName
+elab "oeis_tactic_heavy" opts?:oeis_options : tactic => do
+  let mut name ← extractConstName
+  let mut depth := 1
+  match opts? with
+  | `(oeis_options|$[$args:oeis_option],*) =>
+    for arg in args do
+      match arg with
+      | `(oeis_option|depth := $n:num) => depth := n.getNat
+      | `(oeis_option|$n:ident) => name := n.getId
+      | e => throwError "unrecognized option `{e}`"
+  | e => throwError "wrong options syntax `{e}`"
 
   let visitedStates ← IO.mkRef ([] : List String)
   logToFile s!"Start of oeis_tactic_heavy for name: {name}; fresh visitedStates ref created"

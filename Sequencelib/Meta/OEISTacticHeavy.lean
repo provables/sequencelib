@@ -10,10 +10,11 @@ import Mathlib
 open Lean Expr Elab Term Tactic Meta Qq Command
 
 
-def logToFile (msg : String) : TacticM Unit := do
+def logToFile (msg : String) (depth : Nat := 0) : TacticM Unit := do
   let path := "/tmp/oeis_tactic_log.txt"
   let h ← IO.FS.Handle.mk path IO.FS.Mode.append
-  h.putStrLn msg
+  let depthStr := String.replicate (2 * depth) '.'
+  h.putStrLn s!"{depthStr}{msg}"
 
 
 def rwThms : List Name := [
@@ -151,17 +152,17 @@ partial def dfsTactic
     let tacStr := toString (← PrettyPrinter.ppTactic tac) -- for logging
 
     -- try to use tactic
-    logToFile s!"Trying tactic: {tacStr}"
+    logToFile s!"Trying tactic: {tacStr}" depth
     let ok ← try
       evalTactic tac
       pure true
     catch e =>
       let msg ← e.toMessageData.toString
       if msg.contains "maximum number of heartbeats" then -- TODO: a bit of a hack
-        logToFile s!"[TIMEOUT] path so far: {(path ++ [tacStr])}"
+        logToFile s!"[TIMEOUT] path so far: {(path ++ [tacStr])}" depth
         savedState.restore
         return false  -- abort entire search since we hit the heartbeat limit
-      logToFile s!"[EXCEPTION depth={depth}] {tacStr} threw, pruning"
+      logToFile s!"[EXCEPTION depth={depth}] {tacStr} threw, pruning" depth
       pure false -- some other exception, just set ok to false
 
     if !ok then -- if tactic failed, restore the state and continue to next tactic
@@ -171,13 +172,13 @@ partial def dfsTactic
     -- Otherwise, the tactic did not crash, so check if goals are closed and if it changed
     -- the goals at all
     if (← getUnsolvedGoals).isEmpty then  -- if goals are closed, we're done
-      logToFile s!"[SUCCESS] path: {(path ++ [tacStr])}"
+      logToFile s!"[SUCCESS] path: {(path ++ [tacStr])}" depth
       logInfo m!"[SUCCESS] path: {(path ++ [tacStr])}"
       return true
 
     -- Check if goals have been changed at all
     if !(← madeProgress goalsBefore typesBefore) then
-      logToFile s!"[NO PROGRESS depth={depth}] {tacStr} changed nothing so pruning"
+      logToFile s!"[NO PROGRESS depth={depth}] {tacStr} changed nothing so pruning" depth
       savedState.restore
       continue
 

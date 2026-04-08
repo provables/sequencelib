@@ -260,8 +260,8 @@ elab "oeis_tactic_heavy" opts?:oeis_options : tactic => do
 /-- Some Tests, most are passing but the last one will fail. -/
 
 -- Very simple test
--- example : 1 + 1 = 2 := by
---   oeis_tactic_heavy depth:=1
+example : 1 + 1 = 2 := by
+   oeis_tactic_heavy
 
 
 -- An OEIS example that needs decide

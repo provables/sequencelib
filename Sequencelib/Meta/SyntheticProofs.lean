@@ -43,6 +43,11 @@ theorem loop2_eq_loop2' (f g : ℤ → ℤ → ℤ) (a : ℤ) (b c : ℤ) :
       unfold loop2 loop2'
       exact ih _ _
 
+theorem loop2_rec (f g : ℤ → ℤ → ℤ) (n : ℕ) (b c : ℤ) :
+    loop2 f g (n + 1) b c = loop2 f g n (f b c) (g b c) := by
+  rw [← show Int.ofNat (n + 1) = n + 1 by rfl]
+  nth_rw 1 [loop2]
+
 theorem loop2'_rec (f g : ℤ × ℤ → ℤ) (n : ℕ) (b : ℤ × ℤ) :
     loop2' f g (n + 1) b = (f (loop2' f g n b), g (loop2' f g n b)) := by
   induction n generalizing b with

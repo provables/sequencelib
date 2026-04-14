@@ -5,7 +5,7 @@ Authors: Walter Moreira, Joe Stubbs
 -/
 import Lean
 import Qq
-import Mathlib
+-- import Mathlib -- TODO: need to remove import of Mathlib
 import Sequencelib.Meta.Defs
 import Sequencelib.Meta.Codomain
 
@@ -34,7 +34,6 @@ def doTactics (name : Name) : TacticM Unit := do
     (← `(tactic|try decide)),
     (← `(tactic|try simp [$(mkIdent name):ident])),
     (← `(tactic|try simp [$(mkIdent name):ident] <;> decide)),
-    (← `(tactic|try unfold $(mkIdent name):ident <;> norm_num)),
   ]
   for s in tactics do
     let x ←  doTactic s
@@ -116,6 +115,49 @@ def deriveTheorem {c : Codomain} (decl : Name) (idx : Nat) (value : ↑c) (stx :
   addDeclarationRangesFromSyntax thmDeclName (Syntax.ofRange newRange)
   Lean.addAndCompile thmDecl
   return none
+
+def deriveTheoremWithTactic {c : Codomain} (decl : Name) (idx : Nat) (value : ↑c) (stx : Syntax) (tactic: String):
+    TermElabM (Option String) := do
+  let some idxName := Suffixes[idx]? |
+    return some s!"Maximum index not supported above 100"
+  let declConst : Expr := .const decl []
+  let env ← getEnv
+  let idxExpr : Expr := toExpr idx
+  let lhsExpr := mkApp declConst idxExpr
+  let valueExpr := toExpr value
+  let cTypeExpr : Expr := .const c []
+  let eqExpr ← instantiateMVars <| mkApp3 (.const `Eq [1]) cTypeExpr lhsExpr valueExpr
+  let s ← saveState
+  -- TODO: can we just create the constant directly to avoid running the parser? This didn't work..
+  -- let tacStx ← mkConst tactic.toName
+  -- let proof ← Term.elabTerm (← `(term| by $tacStx)) (some eqExpr)
+  let tacStx : TSyntax `tactic ←
+    match Parser.runParserCategory env `tactic tactic with
+    | .ok stx    => pure ⟨stx⟩
+    | .error err => throwError m!"invalid tactic `{tactic}`:\n{err}"
+  let proof ← Term.elabTerm (← `(term| by $tacStx:tactic)) (some eqExpr)
+  Term.synthesizeSyntheticMVarsNoPostponing
+  let p ← instantiateMVars proof
+  -- dbg_trace "After instantiate MVars; p: {p}"
+  if (← instantiateMVars proof).hasSorry then
+    s.restore
+    return some s!"Auto derivation failed for theorem: {decl} {idx} = {value}"
+  let thmDeclName := Name.appendAfter decl s!"_{idxName}"
+  let thmDecl := Declaration.thmDecl {
+    name := thmDeclName
+    levelParams := []
+    type := ← instantiateMVars eqExpr
+    value := ← instantiateMVars proof
+  }
+  addDocStringCore thmDeclName s!"(Auto-generated theorem for `{decl}`)"
+  let originalRange := stx.getRange? |>.getD default
+  let newRange := {originalRange with
+    start := ⟨originalRange.start.byteIdx + idx + 2⟩,
+    stop := ⟨originalRange.stop.byteIdx + idx + 2⟩}
+  addDeclarationRangesFromSyntax thmDeclName (Syntax.ofRange newRange)
+  Lean.addAndCompile thmDecl
+  return none
+
 
 def deriveTheoremForIndex (decl : Name) (idx : Nat) (stx : Syntax) (cod : Codomain) :
     TermElabM (Option String) := do

@@ -129,8 +129,7 @@ def deriveTheoremWithTactic {c : Codomain} (decl : Name) (idx : Nat) (value : �
   let eqExpr ← instantiateMVars <| mkApp3 (.const `Eq [1]) cTypeExpr lhsExpr valueExpr
   let s ← saveState
   -- TODO: can we just create the constant directly to avoid running the parser? This didn't work..
-  -- let tacStx ← mkConst tactic.toName
-  -- let proof ← Term.elabTerm (← `(term| by $tacStx)) (some eqExpr)
+  -- let proof ← Term.elabTerm (← `(term| by $(mkIdent tactic):ident)) (some eqExpr)
   let tacStx : TSyntax `tactic ←
     match Parser.runParserCategory env `tactic tactic with
     | .ok stx    => pure ⟨stx⟩

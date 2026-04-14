@@ -10,10 +10,11 @@ import Mathlib
 open Lean Expr Elab Term Tactic Meta Qq Command
 
 
-def logToFile (msg : String) : TacticM Unit := do
+def logToFile (msg : String) (depth : Nat := 0) : TacticM Unit := do
   let path := "/tmp/oeis_tactic_log.txt"
   let h ← IO.FS.Handle.mk path IO.FS.Mode.append
-  h.putStrLn msg
+  let depthStr := String.replicate (2 * depth) '.'
+  h.putStrLn s!"{depthStr}{msg}"
 
 
 def rwThms : List Name := [
@@ -151,17 +152,17 @@ partial def dfsTactic
     let tacStr := toString (← PrettyPrinter.ppTactic tac) -- for logging
 
     -- try to use tactic
-    logToFile s!"Trying tactic: {tacStr}"
+    logToFile s!"Trying tactic: {tacStr}" depth
     let ok ← try
       evalTactic tac
       pure true
     catch e =>
       let msg ← e.toMessageData.toString
       if msg.contains "maximum number of heartbeats" then -- TODO: a bit of a hack
-        logToFile s!"[TIMEOUT] path so far: {(path ++ [tacStr])}"
+        logToFile s!"[TIMEOUT] path so far: {(path ++ [tacStr])}" depth
         savedState.restore
         return false  -- abort entire search since we hit the heartbeat limit
-      logToFile s!"[EXCEPTION depth={depth}] {tacStr} threw, pruning"
+      logToFile s!"[EXCEPTION depth={depth}] {tacStr} threw, pruning" depth
       pure false -- some other exception, just set ok to false
 
     if !ok then -- if tactic failed, restore the state and continue to next tactic
@@ -171,13 +172,13 @@ partial def dfsTactic
     -- Otherwise, the tactic did not crash, so check if goals are closed and if it changed
     -- the goals at all
     if (← getUnsolvedGoals).isEmpty then  -- if goals are closed, we're done
-      logToFile s!"[SUCCESS] path: {(path ++ [tacStr])}"
+      logToFile s!"[SUCCESS] path: {(path ++ [tacStr])}" depth
       logInfo m!"[SUCCESS] path: {(path ++ [tacStr])}"
       return true
 
     -- Check if goals have been changed at all
     if !(← madeProgress goalsBefore typesBefore) then
-      logToFile s!"[NO PROGRESS depth={depth}] {tacStr} changed nothing so pruning"
+      logToFile s!"[NO PROGRESS depth={depth}] {tacStr} changed nothing so pruning" depth
       savedState.restore
       continue
 
@@ -228,13 +229,20 @@ def extractConstName : TacticM Name := do
           Lean.Meta.throwTacticEx `oeis_tactic goal m!"wrong codomain {c}"
         return f.constName
 
+syntax oeis_option := (&"depth" ":=" num) <|> ident
+syntax oeis_options := oeis_option,*,?
 
--- TODO: depth isn't optional, something wrong with my syntax..
-elab "oeis_tactic_heavy" name?:(ident)? "depth" ":=" maxDepth:num ? : tactic => do
-  let depth := maxDepth.map (·.getNat) |>.getD 3
-  let name ← match name? with
-    | some id => pure id.getId
-    | none    => extractConstName
+elab "oeis_tactic_heavy" opts?:oeis_options : tactic => do
+  let mut name ← extractConstName
+  let mut depth := 1
+  match opts? with
+  | `(oeis_options|$[$args:oeis_option],*) =>
+    for arg in args do
+      match arg with
+      | `(oeis_option|depth := $n:num) => depth := n.getNat
+      | `(oeis_option|$n:ident) => name := n.getId
+      | e => throwError "unrecognized option `{e}`"
+  | e => throwError "wrong options syntax `{e}`"
 
   let visitedStates ← IO.mkRef ([] : List String)
   logToFile s!"Start of oeis_tactic_heavy for name: {name}; fresh visitedStates ref created"
@@ -252,8 +260,8 @@ elab "oeis_tactic_heavy" name?:(ident)? "depth" ":=" maxDepth:num ? : tactic => 
 /-- Some Tests, most are passing but the last one will fail. -/
 
 -- Very simple test
--- example : 1 + 1 = 2 := by
---   oeis_tactic_heavy depth:=1
+example : 1 + 1 = 2 := by
+   oeis_tactic_heavy
 
 
 -- An OEIS example that needs decide

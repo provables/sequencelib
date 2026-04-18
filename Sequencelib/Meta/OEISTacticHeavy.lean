@@ -214,8 +214,44 @@ partial def dfsTactic
   visitedStates.modify (currentGoalStr :: ·)
   return false
 
-#check IO.getNumHeartbeats
+/-- Get the head constant (i.e., outermost function) associated with an expression.
+    Note that Expr functions are defined using Expr.app and are always unary.
+    Thus, for multi-argument functions, the Expr.app's get nested.
+    Ex:
+    A001511v2 1
+    = Expr.app (Expr.const `A001511v2 _) (Expr.lit 1)
 
+    And:
+    primeFactors 9 3
+    = Expr.app (Expr.app (Expr.const `primeFactors _) 9) 3
+
+-/
+def extractHeadFunctionConst (e : Expr) : Option Name :=
+  match e with
+  | Expr.const name _ => some name -- we found a function, so return it
+  | Expr.app f _      => extractHeadFunctionConst f  -- we're still applying functions, so strip off and recurs
+  | _                 => none -- it wasn't a function, return none
+
+
+/-- Assuming the goal is of the form LHS = RHS, extracts the name of a function from
+    the LHS.
+-/
+def extractFuncName : TacticM Name := do
+  let goal ← getMainGoal
+  let goalType ← goal.getType
+  -- We're looking for a goal of the form LHS = RHS
+  -- Note: Eq takes 3 arguments: type, LHS and RHS
+  match goalType with
+  | Expr.app (Expr.app (Expr.app (Expr.const `Eq _) _) lhs) _ =>
+    -- Goal is `Eq T lhs rhs`
+    match extractHeadFunctionConst lhs with
+    | some name => return name
+    | none => throwError "oeis_tactic: could not extract constant from LHS: {← Meta.ppExpr lhs}"
+  | _ =>
+    throwError "oeis_tactic: goal is not an equality, got: {← Meta.ppExpr goalType}"
+
+
+/-- NOTE: deprecated in favor of the new extractFuncName -/
 def extractConstName : TacticM Name := do
 -- Assumes we are proving a thm of the form f i = v for f : Nat -> $Cod, but we
 --  should revisit this assumption.. we might want to make our tactic more general?
@@ -233,7 +269,7 @@ syntax oeis_tactic_option := (&"depth" ":=" num) <|> ident
 syntax oeis_tactic_options := oeis_tactic_option,*,?
 
 elab "oeis_tactic_heavy" opts?:oeis_tactic_options : tactic => do
-  let mut name ← extractConstName
+  let mut name ← extractFuncName
   let mut depth := 1
   match opts? with
   | `(oeis_tactic_options|$[$args:oeis_tactic_option],*) =>
@@ -254,84 +290,3 @@ elab "oeis_tactic_heavy" opts?:oeis_tactic_options : tactic => do
   unless solved do
     throwTacticEx `oeis_tactic (← getMainGoal)
       m!"oeis_tactic: no tactic combination (depth {depth}) closed the goal"
-
-
-
-/-- Some Tests, most are passing but the last one will fail. -/
-
--- Very simple test
-example : 1 + 1 = 2 := by
-   oeis_tactic_heavy
-
-
--- An OEIS example that needs decide
-def f (n: Nat) : Nat := n.divisors.card
-
--- example : f 2 = 2 := by
---   oeis_tactic_heavy depth:=1
-
-
--- The OEIS ruler example
--- def A001511 : (n : ℕ) → ℕ
--- | 0 => 0
--- | n + 1 =>
---     if Even (n + 1)  then
---       1 + A001511 ((n + 1) / 2)
---     else
---       1
-
--- example : A001511 1 = 1 := by
---   oeis_tactic_heavy depth:= 1
-
--- example : A001511 2 = 2 := by
---   oeis_tactic_heavy depth:= 1
-
--- example : A001511 3 = 1 := by
---   oeis_tactic_heavy depth:= 1
-
--- example : A001511 4 = 3 := by
---   oeis_tactic_heavy depth:= 1
-
-
-def A001511v2 (n : ℕ) : ℕ :=
-  Nat.factorization (2 * n) 2
-
--- example : A001511v2 1 = 1 := by
---   oeis_tactic_heavy depth := 1
-
-set_option maxHeartbeats 400000 in
-example : A001511v2 2 = 2 := by
-  oeis_tactic_heavy depth := 5
-
--- example : A001511v2 2 = 2 := by
---   unfold A001511v2
---   rw [Nat.mul_comm]
---   simp [A001511v2]
-
--- set_option maxHeartbeats 400000 in
--- example : A001511v2 3 = 1 := by oeis_tactic_heavy depth := 4
-
--- set_option maxHeartbeats 8000000 in
--- example : A001511v2 4 = 3 := by oeis_tactic_heavy depth := 8
-
-example : A001511v2 2 = 2 := by
-  unfold A001511v2
-  rw [Nat.factorization_mul]
-  norm_num
-  norm_num
-  repeat omega
-
-example : A001511v2 2 = 2 := by
-  unfold A001511v2
-  rw [Nat.factorization_mul]
-  norm_num
-  repeat omega
-
-example: A001511v2 3 = 1 := by
-  unfold A001511v2
-  rw [Nat.mul_comm]
-  rw [Nat.factorization_mul]
-  norm_num
-  repeat omega
-
-#check Nat.factorization

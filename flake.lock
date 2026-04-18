@@ -241,11 +241,11 @@
         "shell-utils": "shell-utils_3"
       },
       "locked": {
-        "lastModified": 1757276327,
-        "narHash": "sha256-oiJYsKXumtzrlZnU+8qzVvTCR3Iq0BV+uKz8vPoAuTc=",
+        "lastModified": 1772236666,
+        "narHash": "sha256-+5RJ/xIAm/Hxv7Vo8OpK9prfUw2dioC+98tfSVm0uXg=",
         "owner": "provables",
         "repo": "lean-toolchain-nix",
-        "rev": "53b804a212174da345d6326db719573320407de0",
+        "rev": "9dfaff3d4092ebc145c9c088dd9c9a96597c3d5c",
         "type": "github"
       },
       "original": {
@@ -549,11 +549,11 @@
         "shell-utils": "shell-utils_4"
       },
       "locked": {
-        "lastModified": 1759800261,
-        "narHash": "sha256-yMvILSliSOHmw3uMToM0h1eyXzi7IFdC2r14RnQVlP0=",
+        "lastModified": 1776202946,
+        "narHash": "sha256-8GY1L5+zD5/J09oka3ROVLOU4ctntd/fwhbNOsFvqAE=",
         "owner": "provables",
         "repo": "synthetic",
-        "rev": "31477d607b8f625376b7558dfab6bba412e650d3",
+        "rev": "e937b9cce3d2261bcbe13501c1f524745fcd938e",
         "type": "github"
       },
       "original": {

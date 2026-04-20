@@ -10,11 +10,12 @@ import Mathlib
 open Lean Expr Elab Term Tactic Meta Qq Command
 
 
-def logToFile (msg : String) (depth : Nat := 0) : TacticM Unit := do
-  let path := "/tmp/oeis_tactic_log.txt"
-  let h ← IO.FS.Handle.mk path IO.FS.Mode.append
-  let depthStr := String.replicate (2 * depth) '.'
-  h.putStrLn s!"{depthStr}{msg}"
+def logToFile (msg : String) (depth : Nat := 0) (logFile : Option System.FilePath := none) :
+    TacticM Unit := do
+  if let some path := logFile then
+    let h ← IO.FS.Handle.mk path IO.FS.Mode.append
+    let depthStr := String.replicate (2 * depth) '.'
+    h.putStrLn s!"{depthStr}{msg}"
 
 
 def rwThms : List Name := [
@@ -123,6 +124,7 @@ partial def dfsTactic
     (depth    : Nat := 0)
     (path     : List String := []) -- for logging
     (pathStates    : List String := [])  -- states on current path only
+    (logFile : Option System.FilePath)
     : TacticM Bool := do
 
   if depth >= maxDepth then -- base case
@@ -131,13 +133,13 @@ partial def dfsTactic
   let currentGoalStr ← serializeGoal -- string representation of the current goal
   -- Check 1: is current state already on our current path? (cycle detection)
   if pathStates.contains currentGoalStr then
-    logToFile s!"[PATH CYCLE depth={depth}] current state already on path, pruning"
+    logToFile s!"[PATH CYCLE depth={depth}] current state already on path, pruning" (logFile := logFile)
     return false
 
   -- Check 2: have we fully explored this state globally before?
   let visited ← visitedStates.get
   if visited.contains currentGoalStr then
-    logToFile s!"[GLOBAL PRUNE depth={depth}] already fully explored, pruning"
+    logToFile s!"[GLOBAL PRUNE depth={depth}] already fully explored, pruning" (logFile := logFile)
     return false
 
   -- main loop
@@ -152,17 +154,17 @@ partial def dfsTactic
     let tacStr := toString (← PrettyPrinter.ppTactic tac) -- for logging
 
     -- try to use tactic
-    logToFile s!"Trying tactic: {tacStr}" depth
+    logToFile s!"Trying tactic: {tacStr}" depth (logFile := logFile)
     let ok ← try
       evalTactic tac
       pure true
     catch e =>
       let msg ← e.toMessageData.toString
       if msg.contains "maximum number of heartbeats" then -- TODO: a bit of a hack
-        logToFile s!"[TIMEOUT] path so far: {(path ++ [tacStr])}" depth
+        logToFile s!"[TIMEOUT] path so far: {(path ++ [tacStr])}" depth (logFile := logFile)
         savedState.restore
         return false  -- abort entire search since we hit the heartbeat limit
-      logToFile s!"[EXCEPTION depth={depth}] {tacStr} threw, pruning" depth
+      logToFile s!"[EXCEPTION depth={depth}] {tacStr} threw, pruning" depth (logFile := logFile)
       pure false -- some other exception, just set ok to false
 
     if !ok then -- if tactic failed, restore the state and continue to next tactic
@@ -172,13 +174,13 @@ partial def dfsTactic
     -- Otherwise, the tactic did not crash, so check if goals are closed and if it changed
     -- the goals at all
     if (← getUnsolvedGoals).isEmpty then  -- if goals are closed, we're done
-      logToFile s!"[SUCCESS] path: {(path ++ [tacStr])}" depth
+      logToFile s!"[SUCCESS] path: {(path ++ [tacStr])}" depth (logFile := logFile)
       logInfo m!"[SUCCESS] path: {(path ++ [tacStr])}"
       return true
 
     -- Check if goals have been changed at all
     if !(← madeProgress goalsBefore typesBefore) then
-      logToFile s!"[NO PROGRESS depth={depth}] {tacStr} changed nothing so pruning" depth
+      logToFile s!"[NO PROGRESS depth={depth}] {tacStr} changed nothing so pruning" depth (logFile := logFile)
       savedState.restore
       continue
 
@@ -188,7 +190,7 @@ partial def dfsTactic
 
     -- Check new state against current path only (not global visited)
     if pathStates.contains newGoalStr then
-      logToFile s!"[PATH CYCLE depth={depth}] {tacStr} produced state already on path"
+      logToFile s!"[PATH CYCLE depth={depth}] {tacStr} produced state already on path" (logFile := logFile)
       savedState.restore
       continue
 
@@ -197,13 +199,13 @@ partial def dfsTactic
     if visited.contains newGoalStr then
       -- if we have visited this state before, then we just created a cycle, so we need
       -- restore and move to the next tactic
-      logToFile s!"[GLOBAL PRUNE depth={depth}] {tacStr} produced already-explored state"
+      logToFile s!"[GLOBAL PRUNE depth={depth}] {tacStr} produced already-explored state" (logFile := logFile)
       savedState.restore
       continue
 
     -- Otherwise, goals remain, so add goal to visitedStates and recurs further down
     logToFile s!"[PROGRESS depth={depth}] {tacStr} made progress, going deeper"
-    if ← dfsTactic tactics maxDepth visitedStates (depth + 1) (path ++ [tacStr]) (pathStates ++ [currentGoalStr]) then
+    if ← dfsTactic tactics maxDepth visitedStates (depth + 1) (path ++ [tacStr]) (pathStates ++ [currentGoalStr]) (logFile := logFile) then
       return true
 
     -- Subtree failed: record newGoalStr as fully explored
@@ -229,28 +231,30 @@ def extractConstName : TacticM Name := do
           Lean.Meta.throwTacticEx `oeis_tactic goal m!"wrong codomain {c}"
         return f.constName
 
-syntax oeis_tactic_option := (&"depth" ":=" num) <|> ident
+syntax oeis_tactic_option := (&"depth" ":=" num) <|> (&"logFile" ":=" str) <|> ident
 syntax oeis_tactic_options := oeis_tactic_option,*,?
 
 elab "oeis_tactic_heavy" opts?:oeis_tactic_options : tactic => do
   let mut name ← extractConstName
   let mut depth := 1
+  let mut logFile := none
   match opts? with
   | `(oeis_tactic_options|$[$args:oeis_tactic_option],*) =>
     for arg in args do
       match arg with
       | `(oeis_tactic_option|depth := $n:num) => depth := n.getNat
+      | `(oeis_tactic_option|logFile := $lf:str) => logFile := some lf.getString
       | `(oeis_tactic_option|$n:ident) => name := n.getId
       | e => throwError "unrecognized option `{e}`"
   | e => throwError "wrong options syntax `{e}`"
 
   let visitedStates ← IO.mkRef ([] : List String)
-  logToFile s!"Start of oeis_tactic_heavy for name: {name}; fresh visitedStates ref created"
+  logToFile s!"Start of oeis_tactic_heavy for name: {name}; fresh visitedStates ref created" (logFile := logFile)
   let initialVisited ← visitedStates.get
-  logToFile s!"Initial visited size: {initialVisited.length}"
+  logToFile s!"Initial visited size: {initialVisited.length}" (logFile := logFile)
 
   let tactics ← makeTactics name
-  let solved ← dfsTactic tactics depth visitedStates
+  let solved ← dfsTactic tactics depth visitedStates (logFile := logFile)
   unless solved do
     throwTacticEx `oeis_tactic (← getMainGoal)
       m!"oeis_tactic: no tactic combination (depth {depth}) closed the goal"
@@ -260,8 +264,8 @@ elab "oeis_tactic_heavy" opts?:oeis_tactic_options : tactic => do
 /-- Some Tests, most are passing but the last one will fail. -/
 
 -- Very simple test
-example : 1 + 1 = 2 := by
-   oeis_tactic_heavy
+-- example : 1 + 1 = 2 := by
+--    oeis_tactic_heavy logFile := "/tmp/foo"
 
 
 -- An OEIS example that needs decide

@@ -80,4 +80,22 @@ example : primeFactors 9 3 = 2 := by
   rw [show (9 : ℕ) = 3^2 by norm_num]
   rw [Nat.factorization_pow]
   simp
-  exact Nat.Prime.factorization_self (by norm_num)
+  apply Nat.Prime.factorization_self
+  norm_num
+
+example : primeFactors 9 3 = 2 := by
+  oeis_tactic_heavy depth := 10
+
+
+example : primeFactors 6 3 = 1 := by
+  oeis_tactic_heavy depth := 7
+
+
+example : primeFactors 6 3 = 1 := by
+  unfold primeFactors
+  rw [show (6 : ℕ) = 3*2 by norm_num]
+  rw [Nat.factorization_mul]
+  simp
+  norm_num
+  decide
+  decide

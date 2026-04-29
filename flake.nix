@@ -299,6 +299,7 @@
         in
         buildLeanDeps {
           name = "sequencelibDeps";
+          leanVersion = "4.28.0";
           src = with pkgs.lib; with builtins; cleanSourceWith {
             src = cleanSource ./.;
             filter = p: t:
@@ -316,8 +317,10 @@
         };
       sequencelibFromDeps = buildLeanPackageFromDeps {
         name = "sequencelibFromDeps";
+        leanVersion = "4.28.0";
         deps = sequencelibDeps;
         src = pkgs.lib.cleanSource ./.;
+        phases = ["unpackPhase" "buildPhase"];
         buildPhase = ''
           ls -l .gitlog
           lake build Sequencelib.Meta

@@ -32,6 +32,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
       shell = shell-utils.myShell.${system};
       toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_28;
+      inherit (lean-toolchain.lib.${system}) buildLeanDeps buildLeanPackageFromDeps;
       genseq = synthetic.packages.${system}.default;
       sgenseq = synthetic.packages.${system}.sgenseq;
       buildNixImage = nix-docker-img.lib.${system}.buildNixImage;
@@ -287,6 +288,42 @@
             rsync -a .lake/build/doc $out/
           '';
         };
+      sequencelibDeps =
+        let
+          hashes = {
+            "aarch64-darwin" = "sha256-cCr36YDnpOw1om/qUsBQYXy5nBuEJyXMAeVr8luKjUM=";
+            "aarch64-linux" = "";
+            "x86_64-darwin" = "";
+            "x86_64-linux" = "";
+          };
+        in
+        buildLeanDeps {
+          name = "sequencelibDeps";
+          src = with pkgs.lib; with builtins; cleanSourceWith {
+            src = cleanSource ./.;
+            filter = p: t:
+              (baseNameOf p != ".lake") &&
+              (match ".*Sequencelib/Meta.*" (toString p) != null ||
+              match ".*Sequencelib/.*" (toString p) == null);
+          };
+          outputHash = hashes.${system};
+          buildPhase = ''
+            lake exe cache get
+            lake build Sequencelib.Meta
+            lake build Tests
+            find .lake -name \*.trace -delete
+          '';
+        };
+      sequencelibFromDeps = buildLeanPackageFromDeps {
+        name = "sequencelibFromDeps";
+        deps = sequencelibDeps;
+        src = pkgs.lib.cleanSource ./.;
+        buildPhase = ''
+          ls -l .gitlog
+          lake build Sequencelib.Meta
+          lake build Tests
+        '';
+      };
     in
     {
       packages = {
@@ -297,9 +334,15 @@
         inherit interactive;
         inherit synthesizeBundled;
         inherit sequencelibDocs sequencelib;
+        inherit sequencelibDeps sequencelibFromDeps;
       };
       devShells = {
         default = devShell;
+        toolchain = shell {
+          src = builtins.path { path = ./.; filter = p: t: false; };
+          name = "toolchain";
+          packages = [ toolchain ];
+        };
       };
     }
     );

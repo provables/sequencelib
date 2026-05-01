@@ -8,7 +8,8 @@ abbrev DbId := UInt64
 
 def populateSequence (env : Environment) (tag : Option TagWithInfo) (sequenceData : System.FilePath) :
     DbM Unit := do
-  let x ← .ofExcept <| (← fileToOEISRepoItem env sequenceData).mapError DbError.OEISRepoParseError
+  let x ← .ofExcept <| (← fileToOEISRepoItem env sequenceData).mapError
+    <| fun e => DbError.OEISRepoParseError s!"{e} ({sequenceData})"
   IO.println s!"RepoItem: {repr x}"
 
 -- TODO: see if we can populate the database from here

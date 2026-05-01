@@ -13,7 +13,8 @@ def run (_ : Parsed) : IO UInt32 := do
   let env ← importModules (modules.map ({module := ·})) {} (trustLevel := 1024) (loadExts := true)
   let some oeisdata ← IO.getEnv "SEQUENCELIB_OEISDATA" |
     throw <| .userError "missing `SEQUENCELIB_OEISDATA` environment variable"
-  DbM.fromEnvToIO <| populateDb env default oeisdata
+  let tags ← DbM.fromEnvToIO <| populateDb env default oeisdata
+  IO.println s!"Ok: {tags.size} entries processed."
   return 0
 
 unsafe

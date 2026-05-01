@@ -18,7 +18,7 @@ value theorems are proved using `Nat.nth_count`.
 
 ## Main results
 
-- The basic definition and the first values of the sequence are given, up to `n=5`.
+- The basic definition and the first values of the sequence are given, up to `n=12`.
 
 
 -/

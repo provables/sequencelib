@@ -39,3 +39,6 @@ name = "Tests"
 
 [[lean_lib]]
 name = "Sequencelib"
+
+[[lean_lib]]
+name = "SequencelibLite"

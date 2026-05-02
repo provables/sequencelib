@@ -294,7 +294,7 @@
             "aarch64-darwin" = "sha256-cCr36YDnpOw1om/qUsBQYXy5nBuEJyXMAeVr8luKjUM=";
             "aarch64-linux" = "";
             "x86_64-darwin" = "";
-            "x86_64-linux" = "";
+            "x86_64-linux" = "sha256-cyLuTerdbZKyIaIrTOVAcN94d4TLRnE6MKFuZ6vup80=";
           };
         in
         buildLeanDeps {
@@ -310,21 +310,24 @@
           outputHash = hashes.${system};
           buildPhase = ''
             lake exe cache get
-            lake build Sequencelib.Meta
-            lake build Tests
-            find .lake -name \*.trace -delete
+            lake -v build Sequencelib.Meta
+            lake -v build Tests
           '';
         };
       sequencelibFromDeps = buildLeanPackageFromDeps {
         name = "sequencelibFromDeps";
         leanVersion = "4.28.0";
         deps = sequencelibDeps;
-        src = pkgs.lib.cleanSource ./.;
+        src = ./.;
         phases = ["unpackPhase" "buildPhase"];
+        buildInputs = with pkgs; [
+          nodejs
+        ];
         buildPhase = ''
-          ls -l .gitlog
-          lake build Sequencelib.Meta
-          lake build Tests
+          lake build -v Sequencelib
+          rsync -av .lake/build/lib/lean/ $out/lib/
+          rm -rf .lake
+          mkdir -p .lake
         '';
       };
     in
@@ -344,7 +347,7 @@
         toolchain = shell {
           src = builtins.path { path = ./.; filter = p: t: false; };
           name = "toolchain";
-          packages = [ toolchain ];
+          packages = basePackages ++ [ toolchain pkgs.glibcLocalesUtf8 ];
         };
       };
     }

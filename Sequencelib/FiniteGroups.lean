@@ -259,12 +259,3 @@ by
     exact ⟨Quotient.mk _ ⟨K, hK⟩⟩
 
 end Sequence
-
-run_meta do
-  let x ← getOEISTag "A000001"
-  let y := x.sequences
-  for ⟨c, s⟩ in y do
-    let z := s.theorems
-    dbg_trace c
-    for t in z do
-      dbg_trace (repr t)

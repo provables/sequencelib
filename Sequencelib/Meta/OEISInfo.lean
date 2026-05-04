@@ -4,6 +4,7 @@ Released under CC BY-SA 4.0 license as described in the file LICENSE.
 Authors: Walter Moreira
 -/
 import Lean
+import ImportGraph
 import Qq
 import Batteries
 import Sequencelib.Meta.Defs
@@ -43,8 +44,9 @@ def findValueTheorems' (seq : SimpleSequence) (c : Codomain) (offst : Nat) :
     let some p := Suffixes[i]? | continue
     let n := Name.appendAfter seq.definition s!"_{p}"
     let some type := env.find? n |>.map (·.type) | continue
+    let some mod := env.getModuleFor? n | continue
     let some value ← matchValueTheorem c type seq.definition i | continue
-    result := result.push <| .Value n seq.definition i value
+    result := result.push <| .Value mod n seq i value
   return result
 
 def findEquivTheorems' (seqs : Array SimpleSequence) (c : Codomain) : MetaM (Array (Thm c)) := do
@@ -55,8 +57,9 @@ def findEquivTheorems' (seqs : Array SimpleSequence) (c : Codomain) : MetaM (Arr
       if seq1.definition != seq2.definition then
         let n := Name.appendAfter seq1.definition s!"_eq_{seq2.definition.getString!}"
         let some type := env.find? n |>.map (·.type) | continue
+        let some mod := env.getModuleFor? n | continue
         let some _ ← matchEquivTheorem type seq1.definition seq2.definition | continue
-        result := result.push <| Thm.Equiv n seq1.definition seq2.definition
+        result := result.push <| Thm.Equiv mod n seq1 seq2
   return result
 
 def toTagWithInfo (s : SimpleTag) : MetaM TagWithInfo := do
@@ -120,11 +123,11 @@ def showOEISInfo : Command.CommandElabM Unit := do
 
 def ThmToJson {c : Codomain} (thm : Thm c) : Json :=
   match thm with
-  | .Value thmName declName index value =>
+  | .Value mod thmName declName index value =>
     Json.mkObj [
       ("type", "value"),
-      ("declaration", Json.str declName.toString),
-      ("theorem", Json.str thmName.toString),
+      ("declaration", Json.str s!"{declName}"),
+      ("theorem", Json.str s!"{mod}.{thmName.toString}"),
       ("index", Json.num index),
       ("value", Json.num (by
         cases c with
@@ -132,18 +135,18 @@ def ThmToJson {c : Codomain} (thm : Thm c) : Json :=
         | Int => exact ↑value
       ))
     ]
-  | .Equiv thmName seq1 seq2 =>
+  | .Equiv mod thmName seq1 seq2 =>
     Json.mkObj [
       ("type", "equiv"),
-      ("theorem", thmName.toString),
-      ("seq1", seq1.toString),
-      ("seq2", seq2.toString)
+      ("theorem", s!"{mod}.{thmName.toString}"),
+      ("seq1", s!"{seq1}"),
+      ("seq2", s!"{seq2}")
     ]
 
 def ThmToName {c : Codomain} (thm : Thm c) : Name :=
   match thm with
-  | .Value n _ _ _ => n
-  | .Equiv n _ _ => n
+  | .Value _m n _ _ _ => n
+  | .Equiv _m n _ _ => n
 
 def OEISInfoToJson (info : TagsWithInfo) : Json :=
   Json.mkObj <| OEISInfoToMod info |>.toList.map (fun (mod, tagsForMod) =>

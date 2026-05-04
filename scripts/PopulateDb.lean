@@ -25,7 +25,9 @@ def run (p : Parsed) : IO UInt32 := do
   let ctx := {fileName := default, fileMap := default}
   let state := {env}
   let tagsWithInfo ← Prod.fst <$> (Meta.MetaM.toIO · ctx state) getTagsWithInfo
-  let tags ← DbM.fromEnvToIO <| populateDb env tagsWithInfo oeisdata
+  let tags ← DbM.fromEnvToIO do
+    ensureDb
+    populateDb env tagsWithInfo oeisdata
   IO.println s!"Ok: {tags.size} entries processed."
   return 0
 

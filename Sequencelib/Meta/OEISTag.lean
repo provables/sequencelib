@@ -15,19 +15,31 @@ abbrev Tag := String
 
 instance : Inhabited Tag := inferInstanceAs (Inhabited String)
 
+structure SimpleSequence where
+  tagName : Tag
+  definition : Name
+  mod : Name
+  isComputable : Bool
+  derive : Bool
+  maxIndex : Nat
+  deriving Inhabited, Repr, BEq, Hashable
+
+instance : ToString SimpleSequence where
+  toString x := s!"{x.mod}.{x.definition}"
+
 inductive Thm (c : Codomain) : Type where
-  | Value (thmName : Name) (seq : Name) (index : Nat) (value : ↑c) : Thm c
-  | Equiv (thmName : Name) (seq1 : Name) (seq2 : Name) : Thm c
+  | Value (mod thmName : Name) (seq : SimpleSequence) (index : Nat) (value : ↑c) : Thm c
+  | Equiv (mod thmName : Name) (seq1 seq2 : SimpleSequence) : Thm c
   deriving Inhabited
 
 instance {c : Codomain} : Repr (Thm c) where
   reprPrec t _ :=
     match t with
-    | .Value n s i v => by
+    | .Value m n s i v => by
       cases c with
-      | Nat => exact s!"[Nat] theorem {n} : {s} {i} = {v}".toFormat
-      | Int => exact s!"[Int] theorem {n} : {s} {i} = {v}".toFormat
-    | .Equiv n s1 s2 => s!"theorem {n} : {s1} = {s2}"
+      | Nat => exact s!"[Nat] theorem {m}.{n} : {s} {i} = {v}".toFormat
+      | Int => exact s!"[Int] theorem {m}.{n} : {s} {i} = {v}".toFormat
+    | .Equiv m n s1 s2 => s!"theorem {m}.{n} : {s1.mod}.{s1.definition} = {s2.mod}.{s2.definition}"
 
 structure Sequence (c : Codomain) where
   tagName : Tag
@@ -36,15 +48,6 @@ structure Sequence (c : Codomain) where
   theorems : Array (Thm c)
   offset : Nat
   isComputable : Bool
-  deriving Inhabited, Repr
-
-structure SimpleSequence where
-  tagName : Tag
-  definition : Name
-  mod : Name
-  isComputable : Bool
-  derive : Bool
-  maxIndex : Nat
   deriving Inhabited, Repr
 
 structure SimpleTag where

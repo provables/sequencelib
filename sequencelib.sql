@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS "keyword" (
 	PRIMARY KEY("keyword_id")
 );
 CREATE TABLE IF NOT EXISTS "sequence" (
-	"tag"	INTEGER NOT NULL UNIQUE,
+	"tag"   TEXT NOT NULL UNIQUE,
 	"description"	TEXT NOT NULL,
 	"offset"	INTEGER NOT NULL,
 	"codomain"	INTEGER NOT NULL DEFAULT 0,

@@ -24,9 +24,12 @@ def run (p : Parsed) : IO UInt32 := do
     throw <| .userError "missing `SEQUENCELIB_OEISDATA` environment variable"
   let ctx := {fileName := default, fileMap := default}
   let state := {env}
+  IO.println "Collecting data from Sequencelib..."
   let tagsWithInfo ← Prod.fst <$> (Meta.MetaM.toIO · ctx state) getTagsWithInfo
+  IO.println s!"  {tagsWithInfo.size} declarations found"
   let tags ← DbM.fromEnvToIO do
     ensureDb
+    IO.println "Starting DB population..."
     populateDb env tagsWithInfo oeisdata
   IO.println s!"Ok: {tags.size} entries processed."
   return 0

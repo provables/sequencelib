@@ -150,11 +150,17 @@ def populateSequence (tag : Option TagWithInfo) (repoItem : OEISRepoItem) :
   let seqId ← insertOrUpdateSequence repoItem.tag repoItem.offset.toInt64 cod repoItem.description
   for kwdId in keywordIds do
     insertSequenceKeyword seqId kwdId
-  --IO.println s!"  {keywordIds.size} keywords"
+  IO.println s!"  {keywordIds.size} keywords processed from OEIS"
   let valuesIds := Std.HashMap.ofArray <| ← repoItem.values.mapIdxM fun i v => do
     let idx := (i : Int) + repoItem.offset
     pure (idx, ← insertOrUpdateSequenceValue seqId idx.toInt64 v.toInt64)
+  IO.println s!"  {valuesIds.size} values processed from OEIS"
   if let some t := tag then
+    IO.println s!"    found {t.sequences.size} declarations in Sequencelib"
+    let valueThms := t.theorems.filter (match · with | .Value _ _ _ _ _ => true | _ => false)
+    let equivThms := t.theorems.filter (match · with | .Equiv _ _ _ _ => true | _ => false)
+    IO.println s!"    {valueThms.size} value theorems"
+    IO.println s!"    {equivThms.size} equivalence theorems"
     let declsIds := Std.HashMap.ofArray <| ← t.sequences.mapM fun decl => do
       pure (
         decl,
@@ -181,10 +187,10 @@ def populateDb (env : Environment) (tags : TagsWithInfo) (oeisData : System.File
   for f in (← System.FilePath.walkDir (oeisData / "seq") (fun _ => return true)) do
     if f.extension != "seq" then continue
     let tagName := f.fileStem |>.getD ""
+    IO.println s!"- Processing tag {tagName}"
     let tag := tags.get? tagName
     let repoItem ← .ofExcept <| (← fileToOEISRepoItem env f).mapError
       <| fun e => DbError.OEISRepoParseError s!"{e} ({f})"
-    IO.println s!"- Processing tag {tagName}"
     populateSequence tag repoItem
     result := result.push tagName
   return result

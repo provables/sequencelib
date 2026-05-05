@@ -7,7 +7,7 @@
     lean-toolchain.url = "github:provables/lean-toolchain-nix";
     nix-docker-img.url = "github:provables/nix-docker-img";
     sequencelib-cache = {
-      url = "https://sequencelib-cache.provables.org/build.tgz";
+      url = "file+https://sequencelib-cache.provables.org/build.tgz";
       flake = false;
     };
     solutions = {
@@ -108,6 +108,11 @@
         genseq
         python
       ];
+
+      cache = pkgs.fetchzip {
+        url = "https://sequencelib-cache.provables.org/build.tgz";
+        hash = "";
+      };
 
       devShell = shell {
         name = "sequencelib";
@@ -348,6 +353,8 @@
         inherit synthesizeBundled;
         inherit sequencelibDocs sequencelib;
         inherit sequencelibDeps sequencelibFromDeps;
+        inherit cache;
+        inherit sequencelib-cache;
       };
       devShells = {
         default = devShell;

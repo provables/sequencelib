@@ -6,6 +6,10 @@
     synthetic.url = "github:provables/synthetic";
     lean-toolchain.url = "github:provables/lean-toolchain-nix";
     nix-docker-img.url = "github:provables/nix-docker-img";
+    sequencelib-cache = {
+      url = "https://sequencelib-cache.provables.org/build.tgz";
+      flake = false;
+    };
     solutions = {
       url = "git+ssh://git@provables.wetdog.digital/users/git/solutions";
       flake = false;
@@ -23,6 +27,7 @@
     , synthetic
     , lean-toolchain
     , nix-docker-img
+    , sequencelib-cache
     , solutions
     , oeis_results
     , ...
@@ -324,8 +329,10 @@
           nodejs
         ];
         buildPhase = ''
+          mkdir -p $out/build
           lake build -v Sequencelib
-          rsync -av .lake/build/lib/lean/ $out/lib/
+          lake build -v Tests
+          rsync -av .lake/build/ $out/build/
           rm -rf .lake
           mkdir -p .lake
         '';

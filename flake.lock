@@ -221,11 +221,11 @@
         "shell-utils": "shell-utils"
       },
       "locked": {
-        "lastModified": 1772236666,
-        "narHash": "sha256-+5RJ/xIAm/Hxv7Vo8OpK9prfUw2dioC+98tfSVm0uXg=",
+        "lastModified": 1777255072,
+        "narHash": "sha256-a99JxmQPp8mXpUC3FXlYPBSaHmTEt13HEp2aVg31hUo=",
         "owner": "provables",
         "repo": "lean-toolchain-nix",
-        "rev": "9dfaff3d4092ebc145c9c088dd9c9a96597c3d5c",
+        "rev": "76936c0573b5b0b3f83ed41803e50160d4d054bd",
         "type": "github"
       },
       "original": {
@@ -440,9 +440,22 @@
         "nix-docker-img": "nix-docker-img",
         "nixpkgs": "nixpkgs_4",
         "oeis_results": "oeis_results",
+        "sequencelib-cache": "sequencelib-cache",
         "shell-utils": "shell-utils_2",
         "solutions": "solutions",
         "synthetic": "synthetic"
+      }
+    },
+    "sequencelib-cache": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-RqPXngGs+aXdF12M6NHcVaoMrG0Jsfb2/hHdir9+JKs=",
+        "type": "file",
+        "url": "https://sequencelib-cache.provables.org/build.tgz"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://sequencelib-cache.provables.org/build.tgz"
       }
     },
     "shell-utils": {

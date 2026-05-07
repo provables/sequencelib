@@ -6,6 +6,10 @@
     synthetic.url = "github:provables/synthetic";
     lean-toolchain.url = "github:provables/lean-toolchain-nix";
     nix-docker-img.url = "github:provables/nix-docker-img";
+    sequencelib-cache = {
+      url = "file+https://sequencelib-cache.provables.org/build.tgz";
+      flake = false;
+    };
     solutions = {
       url = "git+ssh://git@provables.wetdog.digital/users/git/solutions";
       flake = false;
@@ -23,6 +27,7 @@
     , synthetic
     , lean-toolchain
     , nix-docker-img
+    , sequencelib-cache
     , solutions
     , oeis_results
     , ...
@@ -32,6 +37,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
       shell = shell-utils.myShell.${system};
       toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_28;
+      inherit (lean-toolchain.lib.${system}) buildLeanDeps buildLeanPackageFromDeps;
       genseq = synthetic.packages.${system}.default;
       sgenseq = synthetic.packages.${system}.sgenseq;
       buildNixImage = nix-docker-img.lib.${system}.buildNixImage;
@@ -102,6 +108,17 @@
         genseq
         python
       ];
+
+      cache = pkgs.stdenv.mkDerivation {
+        name = "sequencelib-cache";
+        src = builtins.path { path = ./.; filter = p: t: false; };
+        buildInputs = with pkgs; [ rsync gnutar ];
+        phases = [ "buildPhase" ];
+        buildPhase = ''
+          mkdir -p $out
+          tar zxf ${sequencelib-cache} -C $out
+        '';
+      };
 
       devShell = shell {
         name = "sequencelib";
@@ -287,6 +304,52 @@
             rsync -a .lake/build/doc $out/
           '';
         };
+      sequencelibDeps =
+        let
+          hashes = {
+            "aarch64-darwin" = "sha256-cCr36YDnpOw1om/qUsBQYXy5nBuEJyXMAeVr8luKjUM=";
+            "aarch64-linux" = "";
+            "x86_64-darwin" = "";
+            "x86_64-linux" = "sha256-cyLuTerdbZKyIaIrTOVAcN94d4TLRnE6MKFuZ6vup80=";
+          };
+        in
+        buildLeanDeps {
+          name = "sequencelibDeps";
+          leanVersion = "4.28.0";
+          src = with pkgs.lib; with builtins; cleanSourceWith {
+            src = cleanSource ./.;
+            filter = p: t:
+              (baseNameOf p != ".lake") &&
+              (match ".*Sequencelib/Meta.*" (toString p) != null ||
+              match ".*Sequencelib/.*" (toString p) == null);
+          };
+          outputHash = hashes.${system};
+          buildPhase = ''
+            lake exe cache get
+            lake -v build Sequencelib.Meta
+            lake -v build Tests
+          '';
+        };
+      sequencelibFromDeps = buildLeanPackageFromDeps {
+        name = "sequencelibFromDeps";
+        leanVersion = "4.28.0";
+        deps = sequencelibDeps;
+        src = ./.;
+        phases = ["unpackPhase" "buildPhase"];
+        buildInputs = with pkgs; [
+          nodejs
+        ];
+        buildPhase = ''
+          mkdir -p $out/build
+          mkdir -p .lake
+          rsync -a --chmod=0777 ${cache}/build .lake/
+          lake build Tests
+          lake build Sequencelib
+          rsync -a .lake/build/ $out/build/
+          rm -rf .lake
+          mkdir -p .lake
+        '';
+      };
     in
     {
       packages = {
@@ -297,9 +360,17 @@
         inherit interactive;
         inherit synthesizeBundled;
         inherit sequencelibDocs sequencelib;
+        inherit sequencelibDeps sequencelibFromDeps;
+        inherit cache;
+        inherit sequencelib-cache;
       };
       devShells = {
         default = devShell;
+        toolchain = shell {
+          src = builtins.path { path = ./.; filter = p: t: false; };
+          name = "toolchain";
+          packages = basePackages ++ [ toolchain pkgs.glibcLocalesUtf8 ];
+        };
       };
     }
     );

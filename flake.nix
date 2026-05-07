@@ -109,9 +109,15 @@
         python
       ];
 
-      cache = pkgs.fetchzip {
-        url = "https://sequencelib-cache.provables.org/build.tgz";
-        hash = "";
+      cache = pkgs.stdenv.mkDerivation {
+        name = "sequencelib-cache";
+        src = builtins.path { path = ./.; filter = p: t: false; };
+        buildInputs = with pkgs; [ rsync gnutar ];
+        phases = [ "buildPhase" ];
+        buildPhase = ''
+          mkdir -p $out
+          tar zxf ${sequencelib-cache} -C $out
+        '';
       };
 
       devShell = shell {
@@ -335,9 +341,11 @@
         ];
         buildPhase = ''
           mkdir -p $out/build
-          lake build -v Sequencelib
-          lake build -v Tests
-          rsync -av .lake/build/ $out/build/
+          mkdir -p .lake
+          rsync -a --chmod=0777 ${cache}/build .lake/
+          lake build Tests
+          lake build Sequencelib
+          rsync -a .lake/build/ $out/build/
           rm -rf .lake
           mkdir -p .lake
         '';

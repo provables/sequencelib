@@ -449,7 +449,7 @@
     "sequencelib-cache": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-ldqy35OZEJJe9u6QOKdqflGTSJ3Ti3vJXat/o3xtthE=",
+        "narHash": "sha256-RqPXngGs+aXdF12M6NHcVaoMrG0Jsfb2/hHdir9+JKs=",
         "type": "file",
         "url": "https://sequencelib-cache.provables.org/build.tgz"
       },

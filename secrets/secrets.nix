@@ -1,0 +1,7 @@
+let
+  wm-tacc = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCspihtDe9okXntClhgKMgyCMWXcQm27EVUjnEf++3OVuKydn162njKiniRB26MFFgYcjINIfBP1Qplh7hxNsOTH+ygoyduWnhPzO4i0xWznETSGB1298+nukRUjM07KgcgaBkEJUnBAVwQZQZeSKPu3E29H+NNkVc+cDbkSOHlRYNFbv9rNb2Dqkvu4w2oONc8OccP9psRA5zHmJF50eMqSfPea8roBZXjorNsm4DAhelFSrktWffFKYFt9fu+n4e6JjbwiLs9WXgCBo4IwVJCF1pRqpzvXCZ1byXGsLd2gAQOf9aOOycjrNeyoYXhvV5iQn3T3vkYi3hfgcVhx3Uok1BCY5tUiahqVYbRZUdFv9kd887msxujsESDPjpM55iKsNH+brR4jP+4eoRDflEkCvQmW5QCQyG+EQWKsMSDTlbw/yIJRQlp1CKbhOR7iHyyfyjiqBsEgNKdE+jDrzV5iH1K/Oiu9OnraEj7HXVv3xTJ/BXBdWD1wmtWC2PCFk8=";
+  users = [ wm-tacc ];
+in
+{
+  "rclone.conf.age".publicKeys = users;
+}

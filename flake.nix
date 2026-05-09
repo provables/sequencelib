@@ -10,6 +10,7 @@
       url = "file+https://sequencelib-cache.provables.org/build.tgz";
       flake = false;
     };
+    nix-with-secrets.url = "github:provables/nix-with-secrets";
     solutions = {
       url = "git+ssh://git@provables.wetdog.digital/users/git/solutions";
       flake = false;
@@ -28,6 +29,7 @@
     , lean-toolchain
     , nix-docker-img
     , sequencelib-cache
+    , nix-with-secrets
     , solutions
     , oeis_results
     , ...
@@ -38,6 +40,8 @@
       shell = shell-utils.myShell.${system};
       toolchain = lean-toolchain.packages.${system}.lean-toolchain-4_28;
       inherit (lean-toolchain.lib.${system}) buildLeanDeps buildLeanPackageFromDeps;
+      inherit (nix-with-secrets.lib.${system}) appWithSecrets;
+      inherit (nix-with-secrets.packages.${system}) agenix;
       genseq = synthetic.packages.${system}.default;
       sgenseq = synthetic.packages.${system}.sgenseq;
       buildNixImage = nix-docker-img.lib.${system}.buildNixImage;
@@ -334,7 +338,7 @@
         name = "sequencelibFromDeps";
         leanVersion = "4.28.0";
         deps = sequencelibDeps;
-        src = ./.;
+        src = pkgs.lib.cleanSource ./.;
         phases = ["unpackPhase" "buildPhase"];
         buildInputs = with pkgs; [
           nodejs
@@ -350,6 +354,20 @@
           mkdir -p .lake
         '';
       };
+
+    createCache = appWithSecrets {
+      name = "create-cache";
+      secrets = [ "rclone.conf.age" ];
+      secretsDir = ./secrets;
+      runtimeInputs = with pkgs; [ rclone gnutar ];
+      text = ''
+        TEMP_BUILD="$(mktemp -d)"
+        cd ${sequencelibFromDeps}
+        tar zcf "$TEMP_BUILD"/build.tgz build/
+        rclone --config "$SECRETS_DIR"/rclone.conf.age copy "$TEMP_BUILD"/build.tgz cloudflare-r2:test/
+      '';
+    };
+
     in
     {
       packages = {
@@ -363,13 +381,14 @@
         inherit sequencelibDeps sequencelibFromDeps;
         inherit cache;
         inherit sequencelib-cache;
+        inherit createCache;
       };
       devShells = {
         default = devShell;
         toolchain = shell {
           src = builtins.path { path = ./.; filter = p: t: false; };
           name = "toolchain";
-          packages = basePackages ++ [ toolchain pkgs.glibcLocalesUtf8 ];
+          packages = basePackages ++ [ toolchain pkgs.glibcLocalesUtf8 agenix ];
         };
       };
     }

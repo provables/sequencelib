@@ -53,7 +53,7 @@
 
           shells = pkgs.callPackage ./nix/shell.nix {
             inherit (inputs'.shell-utils.lib) shell;
-            inherit python ruby toolchain interactive agenix;
+            inherit python ruby toolchain interactive agenix cache;
           };
         in
         {

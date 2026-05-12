@@ -7,6 +7,7 @@
 , agenix
 , toolchain
 , interactive
+, cache
 , ...
 }:
 let
@@ -31,7 +32,7 @@ let
     netcat
   ]) ++ lib.optional stdenv.isDarwin pkgs.apple-sdk_14
   ++ lib.optional stdenv.isLinux pkgs.strace
-  ++ [ python ruby toolchain agenix ];
+  ++ [ python ruby toolchain agenix cache.create-cache ];
   devEnvPackages = with pkgs; [
     texliveFull
     ghostscript

@@ -11,7 +11,7 @@
   create-cache = appWithSecrets {
     name = "create-cache";
     secrets = [ "rclone.conf.age" ];
-    secretsDir = ./secrets;
+    secretsDir = ./../secrets;
     runtimeInputs = [ rclone gnutar ];
     text = ''
       TEMP_BUILD="$(mktemp -d)"

@@ -41,10 +41,12 @@
             inherit sequencelib appWithSecrets;
           };
 
-          sequencelib = pkgs.callPackage ./nix/sequencelib.nix {
+          sequencelibModule = pkgs.callPackage ./nix/sequencelib.nix {
             inherit buildLean;
             inherit (cache) cache;
           };
+          sequencelib = sequencelibModule "Sequencelib";
+          sequencelibLite = sequencelibModule "SequencelibLite";
 
           interactive = pkgs.callPackage ./nix/interactive.nix {
             inherit (inputs) solutions oeis_results;
@@ -58,7 +60,7 @@
         in
         {
           packages = {
-            inherit interactive sequencelib;
+            inherit interactive sequencelib sequencelibLite;
           };
           devShells = {
             inherit (shells) full basic;

@@ -1,4 +1,5 @@
 { lib, system, buildLean, cache, ... }:
+leanModule:
 let
   sequencelibDeps =
     let
@@ -38,7 +39,7 @@ buildLean.package {
     mkdir -p .lake
     rsync -a --chmod=0777 ${cache}/build .lake/
     lake build Tests
-    lake build Sequencelib
+    lake build ${leanModule}
     rsync -a .lake/build/ $out/build/
     rm -rf .lake
     mkdir -p .lake

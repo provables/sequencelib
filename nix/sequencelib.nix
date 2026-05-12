@@ -3,7 +3,7 @@ let
   sequencelibDeps =
     let
       hashes = {
-        "aarch64-darwin" = "sha256-cCr36YDnpOw1om/qUsBQYXy5nBuEJyXMAeVr8luKjUM=";
+        "aarch64-darwin" = "sha256-jwHj+ZANtXL+g4a6F0xCOJlh03Orx+6TDGnS50cFg0c=";
         "aarch64-linux" = "";
         "x86_64-darwin" = "";
         "x86_64-linux" = "sha256-cyLuTerdbZKyIaIrTOVAcN94d4TLRnE6MKFuZ6vup80=";

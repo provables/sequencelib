@@ -13,7 +13,7 @@ let
       name = "sequencelibDeps";
       leanVersion = "4.28.0";
       src = with lib; with builtins; cleanSourceWith {
-        src = cleanSource ./.;
+        src = cleanSource ./..;
         filter = p: t:
           (baseNameOf p != ".lake") &&
           (match ".*Sequencelib/Meta.*" (toString p) != null ||
@@ -31,7 +31,7 @@ buildLean.package {
   name = "sequencelibFromDeps";
   leanVersion = "4.28.0";
   deps = sequencelibDeps;
-  src = lib.cleanSource ./.;
+  src = lib.cleanSource ./..;
   phases = [ "unpackPhase" "buildPhase" ];
   buildPhase = ''
     mkdir -p $out/build

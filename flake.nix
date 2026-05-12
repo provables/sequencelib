@@ -1,4 +1,3 @@
-
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
@@ -27,8 +26,8 @@
       systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
       perSystem = { pkgs, inputs', system, ... }:
         let
-          toolchain = inputs'.toolchain.packages.lean-toolchain-4_28;
-          buildLean = inputs'.toolchain.lib.buildLean;
+          toolchain = inputs'.lean-toolchain.packages.lean-toolchain-4_28;
+          buildLean = inputs'.lean-toolchain.lib.buildLean;
           appWithSecrets = inputs'.nix-with-secrets.lib.appWithSecrets;
           agenix = inputs'.nix-with-secrets.packages.agenix;
 
@@ -58,10 +57,10 @@
           };
         in
         {
-          packages = { 
+          packages = {
             inherit interactive sequencelib;
           };
-          devShells = { 
+          devShells = {
             inherit (shells) full basic;
             default = shells.full;
           };

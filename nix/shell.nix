@@ -32,11 +32,12 @@ let
     netcat
   ]) ++ lib.optional stdenv.isDarwin pkgs.apple-sdk_14
   ++ lib.optional stdenv.isLinux pkgs.strace
-  ++ [ python ruby toolchain agenix cache.create-cache ];
+  ++ [ python ruby toolchain agenix ];
   devEnvPackages = with pkgs; [
     texliveFull
     ghostscript
     genseq
+    cache.create-cache
   ];
 in
 {

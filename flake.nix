@@ -4,7 +4,7 @@
     simple-flake.url = "github:waltermoreira/simple-flake";
     shell-utils.url = "github:waltermoreira/shell-utils";
     synthetic.url = "github:provables/synthetic";
-    lean-toolchain.url = "github:provables/lean-toolchain-nix";
+    lean-toolchain.url = "github:provables/lean-toolchain-nix/native-elan";
     nix-docker-img.url = "github:provables/nix-docker-img";
     sequencelib-cache = {
       url = "file+https://sequencelib-cache.provables.org/build.tgz";
@@ -44,9 +44,24 @@
           sequencelibModule = pkgs.callPackage ./nix/sequencelib.nix {
             inherit buildLean;
             inherit (cache) cache;
+            distPhase = ''
+              rsync -a .lake/build $out/build/
+            '';
           };
-          sequencelib = sequencelibModule "Sequencelib";
-          sequencelibLite = sequencelibModule "SequencelibLite";
+          sequencelib = (sequencelibModule "Sequencelib").package;
+          sequencelibLite = (sequencelibModule "SequencelibLite").package;
+
+          sequencelibDocs = pkgs.callPackage ./nix/sequencelib.nix {
+            inherit buildLean;
+            inherit (cache) cache;
+            rev = inputs.self.rev or (builtins.elemAt (builtins.split "-" inputs.self.dirtyRev) 0);
+          };
+          sequencelibLiteDocs = (sequencelibDocs "SequencelibLite").docs;
+
+          s = pkgs.callPackage ./nix/s.nix {
+            inherit buildLean;
+            inherit (cache) cache;
+          };
 
           interactive = pkgs.callPackage ./nix/interactive.nix {
             inherit (inputs) solutions oeis_results;
@@ -61,6 +76,8 @@
         {
           packages = {
             inherit interactive sequencelib sequencelibLite;
+            inherit sequencelibLiteDocs;
+            inherit s;
           };
           devShells = {
             inherit (shells) full basic;

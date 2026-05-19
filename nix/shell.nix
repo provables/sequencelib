@@ -12,7 +12,6 @@
 }:
 let
   basePackages = (with pkgs; [
-    elan
     go-task
     bibtool
     findutils

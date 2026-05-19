@@ -345,15 +345,16 @@
         "simple-flake": "simple-flake_2"
       },
       "locked": {
-        "lastModified": 1778479868,
-        "narHash": "sha256-rVuxwV37LrD+XQi8dqYoaBtCAwzferiqJEesoPTaiAw=",
+        "lastModified": 1779141500,
+        "narHash": "sha256-cVdyg5FUJZTzo3izbnz7fhJg91rVx/3YhjBAyxhkCJc=",
         "owner": "provables",
         "repo": "lean-toolchain-nix",
-        "rev": "742c27c878ee6df3f9cde14ddce60f72e8122487",
+        "rev": "2eee16a2fcd72bed86831deb2027bf1d68b66e21",
         "type": "github"
       },
       "original": {
         "owner": "provables",
+        "ref": "native-elan",
         "repo": "lean-toolchain-nix",
         "type": "github"
       }

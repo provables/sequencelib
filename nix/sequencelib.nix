@@ -1,4 +1,4 @@
-{ lib, system, buildLean, cache, ... }:
+{ lib, system, buildLean, cache, patchPhase ? "true", distPhase ? "true", rev, ... }:
 leanModule:
 let
   sequencelibDeps =
@@ -7,7 +7,7 @@ let
         "aarch64-darwin" = "sha256-jwHj+ZANtXL+g4a6F0xCOJlh03Orx+6TDGnS50cFg0c=";
         "aarch64-linux" = "";
         "x86_64-darwin" = "";
-        "x86_64-linux" = "sha256-cyLuTerdbZKyIaIrTOVAcN94d4TLRnE6MKFuZ6vup80=";
+        "x86_64-linux" = "sha256-85g3q9oRiwDN1uLN28gC7lXBEn1FUXDcjaz3qrmFygs=";
       };
     in
     buildLean.deps {
@@ -28,12 +28,14 @@ let
       '';
     };
 in
-buildLean.package {
+{
+  package = (buildLean.package {
   name = "sequencelibFromDeps";
   leanVersion = "4.28.0";
   deps = sequencelibDeps;
   src = lib.cleanSource ./..;
-  phases = [ "unpackPhase" "buildPhase" ];
+  phases = [ "unpackPhase" "patchPhase" "buildPhase" "distPhase"];
+  inherit patchPhase distPhase;
   buildPhase = ''
     mkdir -p $out/build
     mkdir -p .lake
@@ -44,4 +46,32 @@ buildLean.package {
     rm -rf .lake
     mkdir -p .lake
   '';
+});
+docs = (buildLean.package {
+  name = "sequencelibFromDepsDocs";
+  leanVersion = "4.28.0";
+  deps = sequencelibDeps;
+  src = lib.cleanSource ./..;
+  phases = [ "unpackPhase" "patchPhase" "buildPhase" "distPhase"];
+  inherit patchPhase distPhase;
+  buildPhase = ''
+    mkdir -p $out/build
+    mkdir -p .lake
+    # TODO: make this a hook
+    rsync -a --chmod=0777 ${cache}/build .lake/
+
+    git init -b main
+    git config user.email "nouser@localhost"
+    git config user.name "No User"
+    git commit --allow-empty -m "Empty commit"
+    git remote add origin git@github.com:provables/sequencelib.git
+    TEMP_REV=$(git rev-parse HEAD)
+
+    lake build ${leanModule}:docs
+
+    find .lake/build/doc -type f -exec sed -i -e 's|'$(pwd)'|/base|g' '{}' \;
+    find .lake/build/doc -type f -exec sed -i -e 's|'$TEMP_REV'|'${rev}'|g' '{}' \;
+    rsync -a .lake/build/doc $out/
+  '';
+});
 }

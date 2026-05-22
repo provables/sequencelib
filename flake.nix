@@ -23,6 +23,7 @@
 
   outputs = inputs@{ simple-flake, ... }:
     simple-flake.lib.mkFlake { inherit inputs; } {
+      debug = true;
       systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
       perSystem = { pkgs, inputs', system, ... }:
         let
@@ -41,20 +42,20 @@
             inherit sequencelib appWithSecrets;
           };
 
+          rev = inputs.self.rev or (builtins.elemAt (builtins.split "-" inputs.self.dirtyRev) 0);
           sequencelibModule = pkgs.callPackage ./nix/sequencelib.nix {
-            inherit buildLean;
+            inherit buildLean rev;
             inherit (cache) cache;
             distPhase = ''
-              rsync -a .lake/build $out/build/
+              rsync -a .lake/build/ $out/build/
             '';
           };
           sequencelib = (sequencelibModule "Sequencelib").package;
           sequencelibLite = (sequencelibModule "SequencelibLite").package;
 
           sequencelibDocs = pkgs.callPackage ./nix/sequencelib.nix {
-            inherit buildLean;
+            inherit buildLean rev;
             inherit (cache) cache;
-            rev = inputs.self.rev or (builtins.elemAt (builtins.split "-" inputs.self.dirtyRev) 0);
           };
           sequencelibLiteDocs = (sequencelibDocs "SequencelibLite").docs;
 

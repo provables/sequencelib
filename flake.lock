@@ -345,11 +345,11 @@
         "simple-flake": "simple-flake_2"
       },
       "locked": {
-        "lastModified": 1779141500,
-        "narHash": "sha256-cVdyg5FUJZTzo3izbnz7fhJg91rVx/3YhjBAyxhkCJc=",
+        "lastModified": 1779422946,
+        "narHash": "sha256-r76wV7pf9ETAoZutnPC4R2PgdMriYWcTVhzzSDO6RmQ=",
         "owner": "provables",
         "repo": "lean-toolchain-nix",
-        "rev": "2eee16a2fcd72bed86831deb2027bf1d68b66e21",
+        "rev": "6a249b6d900fc8dc120d34c878019f8b7f8e21e9",
         "type": "github"
       },
       "original": {

@@ -1,4 +1,4 @@
-{ lib, system, buildLean, cache, distPhase ? "", rev, ... }:
+{ lib, system, buildLean, cacheHook, distPhase ? "", rev, ... }:
 leanModule:
 let
   sequencelibDeps =
@@ -36,10 +36,10 @@ in
     src = lib.cleanSource ./..;
     phases = [ "unpackPhase" "patchPhase" "buildPhase" "distPhase" ];
     inherit distPhase;
+    nativeBuildInputs = [ cacheHook ];
     buildPhase = ''
+      runHook preBuild
       mkdir -p $out/build
-      mkdir -p .lake
-      rsync -a --chmod=0777 ${cache}/build .lake/
       lake build Tests
       lake build ${leanModule}
       echo ".lake is"
@@ -53,12 +53,10 @@ in
     src = lib.cleanSource ./..;
     phases = [ "unpackPhase" "patchPhase" "buildPhase" "distPhase" ];
     inherit distPhase;
+    nativeBuildInputs = [ cacheHook ];
     buildPhase = ''
+      runHook preBuild
       mkdir -p $out/build
-      mkdir -p .lake
-      # TODO: make this a hook
-      rsync -a --chmod=0777 ${cache}/build .lake/
-
       git init -b main
       git config user.email "nouser@localhost"
       git config user.name "No User"

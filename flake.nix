@@ -41,11 +41,13 @@
             inherit (inputs) sequencelib-cache;
             inherit sequencelib appWithSecrets;
           };
+          cacheHook = pkgs.callPackage ./nix/hooks.nix { 
+            inherit (cache) cache;
+          };
 
           rev = inputs.self.rev or (builtins.elemAt (builtins.split "-" inputs.self.dirtyRev) 0);
           sequencelibModule = pkgs.callPackage ./nix/sequencelib.nix {
-            inherit buildLean rev;
-            inherit (cache) cache;
+            inherit buildLean rev cacheHook;
             distPhase = ''
               rsync -a .lake/build/ $out/build/
             '';
@@ -54,8 +56,7 @@
           sequencelibLite = (sequencelibModule "SequencelibLite").package;
 
           sequencelibDocs = pkgs.callPackage ./nix/sequencelib.nix {
-            inherit buildLean rev;
-            inherit (cache) cache;
+            inherit buildLean rev cacheHook;
           };
           sequencelibLiteDocs = (sequencelibDocs "SequencelibLite").docs;
 

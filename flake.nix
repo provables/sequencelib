@@ -60,11 +60,6 @@
           };
           sequencelibLiteDocs = (sequencelibDocs "SequencelibLite").docs;
 
-          s = pkgs.callPackage ./nix/s.nix {
-            inherit buildLean;
-            inherit (cache) cache;
-          };
-
           interactive = pkgs.callPackage ./nix/interactive.nix {
             inherit (inputs) solutions oeis_results;
             inherit python sgenseq;

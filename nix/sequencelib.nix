@@ -1,4 +1,12 @@
-{ lib, system, buildLean, cacheHook, distPhase ? "", rev, ... }:
+{ lib
+, system
+, buildLean
+, cacheHook
+, distPhase ? ""
+, rev
+, leanVersion
+, ...
+}:
 leanModule:
 let
   sequencelibDeps =
@@ -11,8 +19,8 @@ let
       };
     in
     buildLean.deps {
+      inherit leanVersion;
       name = "sequencelibDeps";
-      leanVersion = "4.28.0";
       src = with lib; with builtins; cleanSourceWith {
         src = cleanSource ./..;
         filter = p: t:
@@ -30,12 +38,11 @@ let
 in
 {
   package = (buildLean.package {
+    inherit distPhase leanVersion;
     name = "sequencelibFromDeps";
-    leanVersion = "4.28.0";
     deps = sequencelibDeps;
     src = lib.cleanSource ./..;
     phases = [ "unpackPhase" "patchPhase" "buildPhase" "distPhase" ];
-    inherit distPhase;
     nativeBuildInputs = [ cacheHook ];
     buildPhase = ''
       runHook preBuild
@@ -47,16 +54,15 @@ in
     '';
   });
   docs = (buildLean.package {
+    inherit distPhase leanVersion;
     name = "sequencelibFromDepsDocs";
-    leanVersion = "4.28.0";
     deps = sequencelibDeps;
     src = lib.cleanSource ./..;
     phases = [ "unpackPhase" "patchPhase" "buildPhase" "distPhase" ];
-    inherit distPhase;
     nativeBuildInputs = [ cacheHook ];
     buildPhase = ''
       runHook preBuild
-      mkdir -p $out/build
+      mkdir -p $out
       git init -b main
       git config user.email "nouser@localhost"
       git config user.name "No User"
@@ -68,7 +74,7 @@ in
 
       find .lake/build/doc -type f -exec sed -i -e 's|'$(pwd)'|/base|g' '{}' \;
       find .lake/build/doc -type f -exec sed -i -e 's|'$TEMP_REV'|'${rev}'|g' '{}' \;
-      rsync -a .lake/build/doc $out/
+      rsync -a .lake/build/doc/ $out/
     '';
   });
 }

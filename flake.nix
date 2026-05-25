@@ -4,7 +4,7 @@
     simple-flake.url = "github:waltermoreira/simple-flake";
     shell-utils.url = "github:waltermoreira/shell-utils";
     synthetic.url = "github:provables/synthetic";
-    lean-toolchain.url = "github:provables/lean-toolchain-nix/native-elan";
+    lean-toolchain.url = "github:provables/lean-toolchain-nix";
     nix-docker-img.url = "github:provables/nix-docker-img";
     sequencelib-cache = {
       url = "file+https://sequencelib-cache.provables.org/build.tgz";
@@ -21,14 +21,16 @@
     };
   };
 
-  outputs = inputs@{ simple-flake, ... }:
+  outputs = inputs@{ self, simple-flake, ... }:
     simple-flake.lib.mkFlake { inherit inputs; } {
       debug = true;
       systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
       perSystem = { pkgs, inputs', system, ... }:
         let
-          toolchain = inputs'.lean-toolchain.packages.lean-toolchain-4_28;
-          buildLean = inputs'.lean-toolchain.lib.buildLean;
+          leanVersion = "4.28.0";
+
+          toolchain = inputs'.lean-toolchain.lib.toolchain leanVersion;
+          inherit (inputs'.lean-toolchain.lib) buildLean;
           appWithSecrets = inputs'.nix-with-secrets.lib.appWithSecrets;
           agenix = inputs'.nix-with-secrets.packages.agenix;
 
@@ -45,9 +47,9 @@
             inherit (cache) cache;
           };
 
-          rev = inputs.self.rev or (builtins.elemAt (builtins.split "-" inputs.self.dirtyRev) 0);
+          rev = self.rev or (builtins.elemAt (builtins.split "-" self.dirtyRev) 0);
           sequencelibModule = pkgs.callPackage ./nix/sequencelib.nix {
-            inherit buildLean rev cacheHook;
+            inherit buildLean rev cacheHook leanVersion;
             distPhase = ''
               rsync -a .lake/build/ $out/build/
             '';
@@ -55,10 +57,11 @@
           sequencelib = (sequencelibModule "Sequencelib").package;
           sequencelibLite = (sequencelibModule "SequencelibLite").package;
 
-          sequencelibDocs = pkgs.callPackage ./nix/sequencelib.nix {
-            inherit buildLean rev cacheHook;
+          sequencelibDocsModule = pkgs.callPackage ./nix/sequencelib.nix {
+            inherit buildLean rev cacheHook leanVersion;
           };
-          sequencelibLiteDocs = (sequencelibDocs "SequencelibLite").docs;
+          sequencelibDocs = (sequencelibDocsModule "Sequencelib").docs;
+          sequencelibLiteDocs = (sequencelibDocsModule "SequencelibLite").docs;
 
           interactive = pkgs.callPackage ./nix/interactive.nix {
             inherit (inputs) solutions oeis_results;
@@ -73,8 +76,7 @@
         {
           packages = {
             inherit interactive sequencelib sequencelibLite;
-            inherit sequencelibLiteDocs;
-            inherit s;
+            inherit sequencelibLiteDocs sequencelibDocs;
           };
           devShells = {
             inherit (shells) full basic;

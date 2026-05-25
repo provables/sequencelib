@@ -354,7 +354,6 @@
       },
       "original": {
         "owner": "provables",
-        "ref": "native-elan",
         "repo": "lean-toolchain-nix",
         "type": "github"
       }

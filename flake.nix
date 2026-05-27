@@ -10,6 +10,10 @@
       url = "file+https://sequencelib-cache.provables.org/build.tgz";
       flake = false;
     };
+    sequencelib-docs-cache = {
+      url = "file+https://sequencelib-cache.provables.org/docs.tgz";
+      flake = false;
+    };
     nix-with-secrets.url = "github:provables/nix-with-secrets";
     solutions = {
       url = "git+ssh://git@provables.wetdog.digital/users/git/solutions";
@@ -40,16 +44,14 @@
           sgenseq = inputs.synthetic.packages.${system}.sgenseq;
 
           cache = pkgs.callPackage ./nix/cache.nix {
-            inherit (inputs) sequencelib-cache;
-            inherit sequencelib appWithSecrets;
-          };
-          cacheHook = pkgs.callPackage ./nix/hooks.nix { 
-            inherit (cache) cache;
+            inherit (inputs) sequencelib-cache sequencelib-docs-cache;
+            inherit sequencelib sequencelibDocs appWithSecrets;
           };
 
           rev = self.rev or (builtins.elemAt (builtins.split "-" self.dirtyRev) 0);
           sequencelibModule = pkgs.callPackage ./nix/sequencelib.nix {
-            inherit buildLean rev cacheHook leanVersion;
+            inherit buildLean rev leanVersion;
+            cacheHook = cache.moduleCacheHook;
             distPhase = ''
               rsync -a .lake/build/ $out/build/
             '';
@@ -58,7 +60,8 @@
           sequencelibLite = (sequencelibModule "SequencelibLite").package;
 
           sequencelibDocsModule = pkgs.callPackage ./nix/sequencelib.nix {
-            inherit buildLean rev cacheHook leanVersion;
+            inherit buildLean rev leanVersion;
+            cacheHook = cache.docsCacheHook;
           };
           sequencelibDocs = (sequencelibDocsModule "Sequencelib").docs;
           sequencelibLiteDocs = (sequencelibDocsModule "SequencelibLite").docs;

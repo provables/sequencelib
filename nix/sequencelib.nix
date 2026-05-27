@@ -62,18 +62,11 @@ in
     nativeBuildInputs = [ cacheHook ];
     buildPhase = ''
       runHook preBuild
+      ls -lag .lake/build/doc
       mkdir -p $out
-      git init -b main
-      git config user.email "nouser@localhost"
-      git config user.name "No User"
-      git commit --allow-empty -m "Empty commit"
-      git remote add origin git@github.com:provables/sequencelib.git
-      TEMP_REV=$(git rev-parse HEAD)
-
-      lake build ${leanModule}:docs
-
-      find .lake/build/doc -type f -exec sed -i -e 's|'$(pwd)'|/base|g' '{}' \;
-      find .lake/build/doc -type f -exec sed -i -e 's|'$TEMP_REV'|'${rev}'|g' '{}' \;
+      DOCGEN_SRC="file" lake build ${leanModule}:docs
+      # find .lake/build/doc -type f -exec sed -i -e 's|'$(pwd)'|/base|g' '{}' \;
+      # find .lake/build/doc -type f -exec sed -i -e 's|'$TEMP_REV'|'${rev}'|g' '{}' \;
       rsync -a .lake/build/doc/ $out/
     '';
   });

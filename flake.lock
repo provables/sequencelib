@@ -724,6 +724,7 @@
         "nixpkgs": "nixpkgs_7",
         "oeis_results": "oeis_results",
         "sequencelib-cache": "sequencelib-cache",
+        "sequencelib-docs-cache": "sequencelib-docs-cache",
         "shell-utils": "shell-utils_3",
         "simple-flake": "simple-flake_6",
         "solutions": "solutions",
@@ -740,6 +741,18 @@
       "original": {
         "type": "file",
         "url": "https://sequencelib-cache.provables.org/build.tgz"
+      }
+    },
+    "sequencelib-docs-cache": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-m7V2iv1nzy1+z1zPSkQY+JJ85X/Ctr9uasf5bhuc2uM=",
+        "type": "file",
+        "url": "https://sequencelib-cache.provables.org/docs.tgz"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://sequencelib-cache.provables.org/docs.tgz"
       }
     },
     "shell-utils": {

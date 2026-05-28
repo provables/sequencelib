@@ -49,8 +49,6 @@ in
       mkdir -p $out/build
       lake build Tests
       lake build ${leanModule}
-      echo ".lake is"
-      ls -l .lake/
     '';
   });
   docs = (buildLean.package {

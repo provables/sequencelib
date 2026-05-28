@@ -746,7 +746,7 @@
     "sequencelib-docs-cache": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-m7V2iv1nzy1+z1zPSkQY+JJ85X/Ctr9uasf5bhuc2uM=",
+        "narHash": "sha256-uUnZKX2WaGrCmfqTV85nFaxVbU42wY1P/rg5A08jnaI=",
         "type": "file",
         "url": "https://sequencelib-cache.provables.org/docs.tgz"
       },

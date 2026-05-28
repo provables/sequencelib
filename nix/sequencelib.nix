@@ -1,7 +1,7 @@
 { lib
 , system
 , buildLean
-, cacheHook
+, cache
 , distPhase ? ""
 , rev
 , leanVersion
@@ -12,7 +12,7 @@ let
   sequencelibDeps =
     let
       hashes = {
-        "aarch64-darwin" = "sha256-Dz45Co9yLAuoNGtgrsFsNL/8xlRv7lFLcTrDMXWFEwM=";
+        "aarch64-darwin" = "sha256-P6jyc6JhJcGHJtLjE0e0e3ATW+3vEWWllUmmXM+cqVU=";
         "aarch64-linux" = "";
         "x86_64-darwin" = "";
         "x86_64-linux" = "sha256-85g3q9oRiwDN1uLN28gC7lXBEn1FUXDcjaz3qrmFygs=";
@@ -43,7 +43,7 @@ in
     deps = sequencelibDeps;
     src = lib.cleanSource ./..;
     phases = [ "unpackPhase" "patchPhase" "buildPhase" "distPhase" ];
-    nativeBuildInputs = [ cacheHook ];
+    nativeBuildInputs = [ cache.moduleCacheHook ];
     buildPhase = ''
       runHook preBuild
       mkdir -p $out/build
@@ -59,10 +59,9 @@ in
     deps = sequencelibDeps;
     src = lib.cleanSource ./..;
     phases = [ "unpackPhase" "patchPhase" "buildPhase" "distPhase" ];
-    nativeBuildInputs = [ cacheHook ];
+    nativeBuildInputs = [ cache.moduleCacheHook cache.docsCacheHook ];
     buildPhase = ''
       runHook preBuild
-      ls -lag .lake/build/doc
       mkdir -p $out
       DOCGEN_SRC="file" lake build ${leanModule}:docs
       # find .lake/build/doc -type f -exec sed -i -e 's|'$(pwd)'|/base|g' '{}' \;

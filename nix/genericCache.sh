@@ -1,4 +1,4 @@
-useCache () {
+useCache-@name@ () {
     echo "Creating: @target@"
     mkdir -p @target@
     echo "Will unpack @inputPath@"
@@ -8,4 +8,4 @@ useCache () {
     chmod -R u+rwx @target@
 }
 
-preBuildHooks+=(useCache)
+preBuildHooks+=(useCache-@name@)

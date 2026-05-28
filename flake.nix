@@ -50,8 +50,7 @@
 
           rev = self.rev or (builtins.elemAt (builtins.split "-" self.dirtyRev) 0);
           sequencelibModule = pkgs.callPackage ./nix/sequencelib.nix {
-            inherit buildLean rev leanVersion;
-            cacheHook = cache.moduleCacheHook;
+            inherit buildLean rev leanVersion cache;
             distPhase = ''
               rsync -a .lake/build/ $out/build/
             '';
@@ -60,8 +59,7 @@
           sequencelibLite = (sequencelibModule "SequencelibLite").package;
 
           sequencelibDocsModule = pkgs.callPackage ./nix/sequencelib.nix {
-            inherit buildLean rev leanVersion;
-            cacheHook = cache.docsCacheHook;
+            inherit buildLean rev leanVersion cache;
           };
           sequencelibDocs = (sequencelibDocsModule "Sequencelib").docs;
           sequencelibLiteDocs = (sequencelibDocsModule "SequencelibLite").docs;

@@ -37,7 +37,7 @@ let
         inherit name;
         propagatedBuildInputs = [ gnutar ];
         substitutions = {
-          inherit inputPath target;
+          inherit name inputPath target;
         };
       } ./genericCache.sh;
 in
@@ -62,6 +62,6 @@ in
   docsCacheHook = genericHook {
     name = "docs-cache-hook";
     inputPath = "${sequencelib-docs-cache}";
-    target = ".lake/build/doc";
+    target = ".lake/build";
   };
 }

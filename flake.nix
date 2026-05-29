@@ -31,7 +31,7 @@
       systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
       perSystem = { pkgs, inputs', system, ... }:
         let
-          leanVersion = "4.28.0";
+          leanVersion = "4.30.0";
 
           toolchain = inputs'.lean-toolchain.lib.toolchain leanVersion;
           inherit (inputs'.lean-toolchain.lib) buildLean;

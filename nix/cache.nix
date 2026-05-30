@@ -4,8 +4,7 @@
 , makeSetupHook
 , sequencelib
 , sequencelibDocs
-, sequencelib-cache
-, sequencelib-docs-cache
+, dotLake
 , ...
 }:
 let
@@ -54,14 +53,9 @@ in
     drv = sequencelibDocs;
     dir = "doc/";
   };
-  moduleCacheHook = genericHook {
-    name = "module-cache-hook";
-    inputPath = "${sequencelib-cache}";
-    target = ".lake";
-  };
-  docsCacheHook = genericHook {
-    name = "docs-cache-hook";
-    inputPath = "${sequencelib-docs-cache}";
-    target = ".lake/build";
+  dotLakeHook = genericHook {
+    name = "dot-lake-hook";
+    inputPath = "${dotLake}";
+    target = ".";
   };
 }

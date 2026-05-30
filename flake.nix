@@ -6,14 +6,7 @@
     synthetic.url = "github:provables/synthetic";
     lean-toolchain.url = "github:provables/lean-toolchain-nix";
     nix-docker-img.url = "github:provables/nix-docker-img";
-    sequencelib-cache = {
-      url = "file+https://sequencelib-cache.provables.org/build.tgz";
-      flake = false;
-    };
-    sequencelib-docs-cache = {
-      url = "file+https://sequencelib-cache.provables.org/docs.tgz";
-      flake = false;
-    };
+    sequencelib-cache.url = "github:provables/sequencelib-cache";
     nix-with-secrets.url = "github:provables/nix-with-secrets";
     solutions = {
       url = "git+ssh://git@provables.wetdog.digital/users/git/solutions";
@@ -35,6 +28,7 @@
 
           toolchain = inputs'.lean-toolchain.lib.toolchain leanVersion;
           inherit (inputs'.lean-toolchain.lib) buildLean;
+          inherit (inputs'.sequencelib-cache.lib) fetcher;
           appWithSecrets = inputs'.nix-with-secrets.lib.appWithSecrets;
           agenix = inputs'.nix-with-secrets.packages.agenix;
 
@@ -44,8 +38,8 @@
           sgenseq = inputs.synthetic.packages.${system}.sgenseq;
 
           cache = pkgs.callPackage ./nix/cache.nix {
-            inherit (inputs) sequencelib-cache sequencelib-docs-cache;
             inherit sequencelib sequencelibDocs appWithSecrets;
+            dotLake = fetcher leanVersion;
           };
 
           rev = self.rev or (builtins.elemAt (builtins.split "-" self.dirtyRev) 0);

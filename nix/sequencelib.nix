@@ -12,10 +12,10 @@ let
   sequencelibDeps =
     let
       hashes = {
-        "aarch64-darwin" = "sha256-P6jyc6JhJcGHJtLjE0e0e3ATW+3vEWWllUmmXM+cqVU=";
+        "aarch64-darwin" = "";
         "aarch64-linux" = "";
         "x86_64-darwin" = "";
-        "x86_64-linux" = "sha256-85g3q9oRiwDN1uLN28gC7lXBEn1FUXDcjaz3qrmFygs=";
+        "x86_64-linux" = "sha256-SGDWzR/XQc8Tk7R5zHPIZnGfs+BJVvfzPhphthkxTe0=";
       };
     in
     buildLean.deps {
@@ -43,7 +43,7 @@ in
     deps = sequencelibDeps;
     src = lib.cleanSource ./..;
     phases = [ "unpackPhase" "patchPhase" "buildPhase" "distPhase" ];
-    nativeBuildInputs = [ cache.moduleCacheHook ];
+    nativeBuildInputs = [ cache.dotLakeHook ];
     buildPhase = ''
       runHook preBuild
       mkdir -p $out/build
@@ -57,7 +57,7 @@ in
     deps = sequencelibDeps;
     src = lib.cleanSource ./..;
     phases = [ "unpackPhase" "patchPhase" "buildPhase" "distPhase" ];
-    nativeBuildInputs = [ cache.moduleCacheHook cache.docsCacheHook ];
+    nativeBuildInputs = [ cache.dotLakeHook ];
     buildPhase = ''
       runHook preBuild
       mkdir -p $out

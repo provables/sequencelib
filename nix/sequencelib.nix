@@ -15,7 +15,7 @@ let
         "aarch64-darwin" = "";
         "aarch64-linux" = "";
         "x86_64-darwin" = "";
-        "x86_64-linux" = "sha256-SGDWzR/XQc8Tk7R5zHPIZnGfs+BJVvfzPhphthkxTe0=";
+        "x86_64-linux" = "sha256-CPwnmvOHpPxYozOoc5byMcnRq+WIsJ0EfqQzeQR5s1s=";
       };
     in
     buildLean.deps {

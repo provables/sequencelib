@@ -1,0 +1,15 @@
+import Sequencelib.Synthetic.A042.A042013
+import Sequencelib.Synthetic.A042.A042105
+import Sequencelib.Synthetic.A042.A042201
+import Sequencelib.Synthetic.A042.A042301
+import Sequencelib.Synthetic.A042.A042405
+import Sequencelib.Synthetic.A042.A042513
+import Sequencelib.Synthetic.A042.A042625
+import Sequencelib.Synthetic.A042.A042741
+import Sequencelib.Synthetic.A042.A042861
+import Sequencelib.Synthetic.A042.A042948
+import Sequencelib.Synthetic.A042.A042950
+import Sequencelib.Synthetic.A042.A042963
+import Sequencelib.Synthetic.A042.A042964
+import Sequencelib.Synthetic.A042.A042965
+import Sequencelib.Synthetic.A042.A042968

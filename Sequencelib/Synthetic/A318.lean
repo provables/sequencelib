@@ -1,0 +1,12 @@
+import Sequencelib.Synthetic.A318.A318159
+import Sequencelib.Synthetic.A318.A318165
+import Sequencelib.Synthetic.A318.A318234
+import Sequencelib.Synthetic.A318.A318236
+import Sequencelib.Synthetic.A318.A318609
+import Sequencelib.Synthetic.A318.A318618
+import Sequencelib.Synthetic.A318.A318623
+import Sequencelib.Synthetic.A318.A318765
+import Sequencelib.Synthetic.A318.A318778
+import Sequencelib.Synthetic.A318.A318895
+import Sequencelib.Synthetic.A318.A318970
+import Sequencelib.Synthetic.A318.A318972

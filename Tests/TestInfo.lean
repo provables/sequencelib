@@ -22,7 +22,7 @@ noncomputable def baz (n : Nat) : Nat := n
 def bazSign (n : Nat) : Int := -n
 
 /--
-warning: declaration uses 'sorry'
+warning: declaration uses `sorry`
 -/
 #guard_msgs in
 theorem foo_five : foo 5 = 6 := by sorry

@@ -5,6 +5,8 @@ Authors: Joe Stubbs, Walter Moreira, Li Xuanji
 -/
 import Mathlib
 import Sequencelib.Meta
+import Sequencelib.Synthetic.A000.A000045
+import Sequencelib.Meta.SyntheticProofs
 
 /-!
 # Fibonacci numbers
@@ -49,6 +51,54 @@ def Fibonacci2 (n : ℕ) : ℕ := Id.run do
     x := y
     y := x_prev + y
   pure x
+
+theorem Fibonacci2_spec {n : ℕ} : Fibonacci2 (n + 2) = Fibonacci2 n + Fibonacci2 (n + 1) := by
+  simp [Fibonacci2]
+  induction n using Nat.strong_induction_on with | h n Ih
+  by_cases h : n = 0
+  · simp [h]
+    decide
+  · grind [List.range'_1_concat]
+
+theorem Fibonacci_eq_Fibonacci2 : Fibonacci = Fibonacci2 := by
+  ext n
+  unfold Fibonacci
+  induction n using Nat.strong_induction_on with | h n Ih
+  match n with
+  | 0 | 1 => simp [Fibonacci2]
+  | k + 2 =>
+    grind [Fibonacci2_spec, Nat.fib_add_two]
+
+theorem A000045_spec {n : ℕ} : A000045 (n + 2) = A000045 n + A000045 (n + 1) := by
+  unfold A000045
+  suffices h : ∀ (u v : ℕ),
+    (Synth.loop2 (λ x y ↦ x + y) (λ x _y ↦ x) (n + 2) u v).toNat =
+      (Synth.loop2 (λ x y ↦ x + y) (λ x _y ↦ x) n u v).toNat +
+      (Synth.loop2 (λ x y ↦ x + y) (λ x _y ↦ x) (n + 1) u v).toNat
+    from h 0 1
+  intro u v
+  induction n using Nat.strong_induction_on generalizing u v with | h n Ih
+  match n with
+  | 0 =>
+    simp [Synth.loop2.eq_def]
+    grind
+  | k + 1 =>
+    norm_cast at *
+    rw [show k + 1 + 2 = k + 2 + 1 by omega]
+    unfold Synth.loop2
+    apply Ih
+    omega
+
+theorem Fibonacci_eq_A000045 : Fibonacci = A000045 := by
+  ext n
+  unfold Fibonacci
+  induction n using Nat.strong_induction_on with | h n Ih
+  match n with
+  | 0 | 1 =>
+    simp [A000045]
+    decide
+  | k + 2 =>
+    grind [A000045_spec, Nat.fib_add_two]
 
 theorem Fibonacci_zero : Fibonacci 0 = 0 := Nat.fib_zero
 

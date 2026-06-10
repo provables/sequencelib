@@ -258,11 +258,4 @@ by
 
     exact ⟨Quotient.mk _ ⟨K, hK⟩⟩
 
-
--- The formalization of the proof of this theorem is a work in progress, but the
--- pen-and-paper proof is quite straight-forward. Could be a nice exercise for AI.
-theorem nonIsoSubgroupsSymmOfOrder_prime_squared
-  (p : ℕ) (hp : Nat.Prime p) :
-  NonIsoSubgroupsSymmOfOrder (p * p) = 2 := by sorry
-
 end Sequence

@@ -18,7 +18,7 @@ value theorems are proved using `Nat.nth_count`.
 
 ## Main results
 
-- The basic definition and the first values of the sequence are given, up to `n=5`.
+- The basic definition and the first values of the sequence are given, up to `n=12`.
 
 
 -/
@@ -33,10 +33,29 @@ The sequence of primes, starting at index 1 (i.e., `Primes 1 = 2`).
 @[OEIS := A000040, offset := 1]
 noncomputable def Primes (n : ℕ) : ℕ := nth Nat.Prime (n - 1)
 
-theorem Primes_one : Primes 1 = 2 := nth_count prime_two
-theorem Primes_two : Primes 2 = 3 := nth_count prime_three
-theorem Primes_three : Primes 3 = 5 := nth_count prime_five
-theorem Primes_four : Primes 4 = 7 := nth_count prime_seven
-theorem Primes_five : Primes 5 = 11 := nth_count prime_eleven
+local macro "prove_primes" : tactic =>
+  `(tactic| (
+    unfold Primes
+    apply count_injective (p := Nat.Prime)
+    · apply nth_mem_of_infinite infinite_setOf_prime
+    · norm_num
+    · rw [count_nth_of_infinite]
+      · decide
+      · exact infinite_setOf_prime
+  ))
+
+theorem Primes_one : Primes 1 = 2 := by prove_primes
+theorem Primes_two : Primes 2 = 3 := by prove_primes
+theorem Primes_three : Primes 3 = 5 := by prove_primes
+theorem Primes_four : Primes 4 = 7 := by prove_primes
+theorem Primes_five : Primes 5 = 11 := by prove_primes
+theorem Primes_six : Primes 6 = 13 := by prove_primes
+theorem Primes_seven : Primes 7 = 17 := by prove_primes
+theorem Primes_eight : Primes 8 = 19 := by prove_primes
+theorem Primes_nine : Primes 9 = 23 := by prove_primes
+theorem Primes_ten : Primes 10 = 29 := by prove_primes
+theorem Primes_eleven : Primes 11 = 31 := by prove_primes
+theorem Primes_twelve : Primes 12 = 37 := by prove_primes
+
 
 end Sequence

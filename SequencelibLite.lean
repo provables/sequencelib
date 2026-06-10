@@ -1,0 +1,47 @@
+/-
+Copyright (c) 2025 Walter Moreira, Joe Stubbs. All rights reserved.
+Released under CC BY-SA 4.0 license as described in the file LICENSE.
+Authors: Walter Moreira, Joe Stubbs
+-/
+
+import Sequencelib.Basic
+import Sequencelib.Catalan
+import Sequencelib.Defs
+import Sequencelib.DoubleFactorial
+import Sequencelib.Factorial
+import Sequencelib.Fibonacci
+import Sequencelib.FiniteGroups
+import Sequencelib.MersenneExponents
+import Sequencelib.MersenneNumbers
+import Sequencelib.Meta
+import Sequencelib.Moebius
+import Sequencelib.Parity
+import Sequencelib.Partitions
+import Sequencelib.Pascal
+import Sequencelib.Pentagonal
+import Sequencelib.PowersOfPrimes
+import Sequencelib.PowersOfTwo
+import Sequencelib.Primes
+import Sequencelib.Recaman
+import Sequencelib.Refactorable
+import Sequencelib.Ruler
+import Sequencelib.Sylvester
+import Sequencelib.Synthetic.A000.A000004
+import Sequencelib.Synthetic.A000.A000007
+import Sequencelib.Synthetic.A351.A351781
+import Sequencelib.Synthetic.A351.A351831
+import Sequencelib.Totient
+import Sequencelib.TriangleOfPartitions
+import Sequencelib.Triangular
+
+/-!
+# Sequencelib Lite
+
+## Compact version for testing tooling
+
+A collection of formalizations of sequences from the
+[The On-Line Encyclopedia of Integer Sequences (OEIS)](https://oeis.org/).
+
+- [Main website](https://provables.github.io/sequencelib/)
+
+-/
